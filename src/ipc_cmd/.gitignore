@@ -1,0 +1,5 @@
+# Ignore the install dir
+_install/
+ipc_cmd/ipc_cmd
+ipc_cmd/ipc_multiplexer
+ipc_cmd/ipc_read

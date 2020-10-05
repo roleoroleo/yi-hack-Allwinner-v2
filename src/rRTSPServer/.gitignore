@@ -1,0 +1,4 @@
+# Ignore the install dir
+_install/
+live/
+live.*.tar.gz

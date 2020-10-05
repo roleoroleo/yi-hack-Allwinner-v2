@@ -1,0 +1,12 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+cd onvif_srvd
+
+make clean
+rm -rf SDK
+rm -rf gsoap-2.8
+rm -rf openssl-1.0.2u
+rm -rf openssl

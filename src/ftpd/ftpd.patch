@@ -1,0 +1,23 @@
+diff -Naur pure-ftpd.ori/src/log_unix.c pure-ftpd/src/log_unix.c
+--- pure-ftpd.ori/src/log_unix.c	2020-04-11 15:36:30.246492557 +0200
++++ pure-ftpd/src/log_unix.c	2020-04-11 15:36:05.438545312 +0200
+@@ -54,6 +54,10 @@
+         return;
+     }
+ #ifdef USE_SHADOW
++    /* Hack for Yi Allwinner cam */
++    if (strlen(pw.pw_passwd) == 0) {
++        goto good;
++    }
+     if ((((pw.pw_passwd)[0] == 'x' && (pw.pw_passwd)[1] == 0) ||
+          ((pw.pw_passwd)[0] == '#' && (pw.pw_passwd)[1] == '#' &&
+           strcmp(pw.pw_passwd + 2, account) == 0)) &&
+@@ -84,6 +88,8 @@
+             goto bye;
+         }
+     }
++
++    good:
+     result->uid = pw.pw_uid;
+     result->gid = pw.pw_gid;
+     result->dir = dir;

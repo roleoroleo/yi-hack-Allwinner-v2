@@ -1,0 +1,12 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+mkdir -p ../../build/yi-hack/bin/
+mkdir -p ../../build/yi-hack/lib/
+mkdir -p ../../build/yi-hack/etc/
+
+rsync -a ./_install/bin/* ../../build/yi-hack/bin/
+rsync -a ./_install/lib/* ../../build/yi-hack/lib/
+rsync -a ./proxychains.conf ../../build/yi-hack/etc/

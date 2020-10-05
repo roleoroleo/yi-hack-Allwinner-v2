@@ -1,0 +1,4 @@
+# Ignore the install dir
+_install/
+alsa-lib-1.1.4.1/
+alsa-lib-*.tar.bz2

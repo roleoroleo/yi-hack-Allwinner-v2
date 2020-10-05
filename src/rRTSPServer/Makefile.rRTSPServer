@@ -1,0 +1,104 @@
+##### Change the following for your environment:
+COMPILE_OPTS =		$(INCLUDES) -I. -I./include -O2 -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DNO_OPENSSL=1
+C =			c
+C_COMPILER =		$(CC)
+C_FLAGS =		$(COMPILE_OPTS) $(CPPFLAGS) $(CFLAGS)
+CPP =			cpp
+CPLUSPLUS_COMPILER =	$(CXX)
+CPLUSPLUS_FLAGS =	$(COMPILE_OPTS) -Wall -DBSD=1 $(CPPFLAGS) $(CXXFLAGS)
+OBJ =			o
+LINK =			$(CXX) -o
+LINK_OPTS =		-L. $(LDFLAGS)
+CONSOLE_LINK_OPTS =	$(LINK_OPTS)
+LIBRARY_LINK =		$(AR) cr 
+LIBRARY_LINK_OPTS =	
+LIB_SUFFIX =			a
+LIBS_FOR_CONSOLE_APPLICATION =
+LIBS_FOR_GUI_APPLICATION =
+EXE =
+##### End of variables to change
+
+INCLUDES = -IUsageEnvironment/include -Igroupsock/include -IliveMedia/include -IBasicUsageEnvironment/include
+# Default library filename suffixes for each library that we link with.  The "config.*" file might redefine these later.
+libliveMedia_LIB_SUFFIX = $(LIB_SUFFIX)
+libBasicUsageEnvironment_LIB_SUFFIX = $(LIB_SUFFIX)
+libUsageEnvironment_LIB_SUFFIX = $(LIB_SUFFIX)
+libgroupsock_LIB_SUFFIX = $(LIB_SUFFIX)
+
+PREFIX = /usr/local
+
+USAGE_ENVIRONMENT_DIR = UsageEnvironment
+USAGE_ENVIRONMENT_LIB = $(USAGE_ENVIRONMENT_DIR)/libUsageEnvironment.$(libUsageEnvironment_LIB_SUFFIX)
+BASIC_USAGE_ENVIRONMENT_DIR = BasicUsageEnvironment
+BASIC_USAGE_ENVIRONMENT_LIB = $(BASIC_USAGE_ENVIRONMENT_DIR)/libBasicUsageEnvironment.$(libBasicUsageEnvironment_LIB_SUFFIX)
+LIVEMEDIA_DIR = liveMedia
+LIVEMEDIA_LIB = $(LIVEMEDIA_DIR)/libliveMedia.$(libliveMedia_LIB_SUFFIX)
+GROUPSOCK_DIR = groupsock
+GROUPSOCK_LIB = $(GROUPSOCK_DIR)/libgroupsock.$(libgroupsock_LIB_SUFFIX)
+LOCAL_LIBS =	$(LIVEMEDIA_LIB) $(GROUPSOCK_LIB) \
+		$(BASIC_USAGE_ENVIRONMENT_LIB) $(USAGE_ENVIRONMENT_LIB)
+LIBS =			$(LOCAL_LIBS) $(LIBS_FOR_CONSOLE_APPLICATION)
+
+
+LIVEMEDIA_DIR = liveMedia
+GROUPSOCK_DIR = groupsock
+USAGE_ENVIRONMENT_DIR = UsageEnvironment
+BASIC_USAGE_ENVIRONMENT_DIR = BasicUsageEnvironment
+
+TESTPROGS_DIR = testProgs
+
+MEDIA_SERVER_DIR = mediaServer
+
+PROXY_SERVER_DIR = proxyServer
+
+all: livemedia rRTSPServer
+
+livemedia:
+	cd $(LIVEMEDIA_DIR) ; $(MAKE)
+	cd $(GROUPSOCK_DIR) ; $(MAKE)
+	cd $(USAGE_ENVIRONMENT_DIR) ; $(MAKE)
+	cd $(BASIC_USAGE_ENVIRONMENT_DIR) ; $(MAKE)
+	cd $(TESTPROGS_DIR) ; $(MAKE)
+	cd $(MEDIA_SERVER_DIR) ; $(MAKE)
+	cd $(PROXY_SERVER_DIR) ; $(MAKE)
+	@echo
+	@echo "For more information about this source code (including your obligations under the LGPL), please see our FAQ at http://live555.com/liveMedia/faq.html"
+
+.$(C).$(OBJ):
+	$(C_COMPILER) -c $(C_FLAGS) -o $@ $<
+.$(CPP).$(OBJ):
+	$(CPLUSPLUS_COMPILER) -c $(CPLUSPLUS_FLAGS) -o $@ $<
+
+rRTSPServer_OBJS	= src/rRTSPServer.$(OBJ) \
+				src/ByteStreamCBMemorySource.$(OBJ) src/H264VideoCBMemoryServerMediaSubsession.$(OBJ) \
+				src/CBMemoryServerMediaSubsession.$(OBJ) \
+				src/WAVAudioFifoSource.$(OBJ) src/WAVAudioFifoServerMediaSubsession.$(OBJ) \
+				src/DummySink.$(OBJ)
+
+rRTSPServer$(EXE):	$(rRTSPServer_OBJS) $(LOCAL_LIBS)
+	$(LINK)$@ $(CONSOLE_LINK_OPTS) $(rRTSPServer_OBJS) $(LIBS) -lpthread
+
+install:
+	cd $(LIVEMEDIA_DIR) ; $(MAKE) install
+	cd $(GROUPSOCK_DIR) ; $(MAKE) install
+	cd $(USAGE_ENVIRONMENT_DIR) ; $(MAKE) install
+	cd $(BASIC_USAGE_ENVIRONMENT_DIR) ; $(MAKE) install
+	cd $(TESTPROGS_DIR) ; $(MAKE) install
+	cd $(MEDIA_SERVER_DIR) ; $(MAKE) install
+	cd $(PROXY_SERVER_DIR) ; $(MAKE) install
+
+clean:
+	cd $(LIVEMEDIA_DIR) ; $(MAKE) clean
+	cd $(GROUPSOCK_DIR) ; $(MAKE) clean
+	cd $(USAGE_ENVIRONMENT_DIR) ; $(MAKE) clean
+	cd $(BASIC_USAGE_ENVIRONMENT_DIR) ; $(MAKE) clean
+	cd $(TESTPROGS_DIR) ; $(MAKE) clean
+	cd $(MEDIA_SERVER_DIR) ; $(MAKE) clean
+	cd $(PROXY_SERVER_DIR) ; $(MAKE) clean
+	-rm -rf *.$(OBJ) rRTSPServer core *.core *~ include/*~
+
+distclean: clean
+	-rm -f $(LIVEMEDIA_DIR)/Makefile $(GROUPSOCK_DIR)/Makefile \
+	  $(USAGE_ENVIRONMENT_DIR)/Makefile $(BASIC_USAGE_ENVIRONMENT_DIR)/Makefile \
+	  $(TESTPROGS_DIR)/Makefile $(MEDIA_SERVER_DIR)/Makefile \
+	  $(PROXY_SERVER_DIR)/Makefile Makefile

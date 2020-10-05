@@ -1,0 +1,25 @@
+#!/bin/bash
+
+ARCHIVE=alsa-lib-1.1.4.1.tar.bz2
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+rm -rf ./_install
+rm -rf ./alsa-lib-1.1.4.1
+
+if [ ! -f $ARCHIVE ]; then
+    wget https://www.alsa-project.org/files/pub/lib/$ARCHIVE
+fi
+tar jxvf $ARCHIVE
+
+cd alsa-lib-1.1.4.1 || exit 1
+
+patch -p1 < ../patch/001_dmix_support_S16_LE_format.patch
+patch -p1 < ../patch/100-link_fix.patch
+patch -p1 < ../patch/200-fix_include_file_redirect_warnings.patch
+patch -p1 < ../patch/201-fix-snd_pcm_area_silence-remaining-samples-issue.patch
+patch -p1 < ../patch/300-ensure-ringbuffer-empty-with-dmix.patch
+
+patch -p1 < ../alsa-lib.patch
+
+./configure --host=arm-openwrt-linux --disable-aload --disable-topology --disable-ucm --disable-alisp --disable-python --without-debug --with-versioned=no

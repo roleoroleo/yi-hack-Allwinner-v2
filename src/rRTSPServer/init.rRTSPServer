@@ -1,0 +1,22 @@
+#!/bin/bash
+
+ARCHIVE=live.2020.05.15.tar.gz
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+rm -rf ./_install
+rm -rf ./live
+
+if [ ! -f $ARCHIVE ]; then
+    wget https://download.videolan.org/pub/contrib/live555/$ARCHIVE
+fi
+tar zxvf $ARCHIVE
+
+patch -p0 < rRTSPServer.patch
+
+cd live || exit 1
+
+./genMakefiles linux-cross
+cp -f ../Makefile.rRTSPServer Makefile
+cp -rf ../src .
+cp -rf ../include .

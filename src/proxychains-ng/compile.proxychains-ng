@@ -1,0 +1,34 @@
+#!/bin/bash
+
+export CROSSPATH=/opt/yi/toolchain-sunxi-musl/toolchain/bin
+export PATH=${PATH}:${CROSSPATH}
+
+export TARGET=arm-openwrt-linux
+export CROSS=arm-openwrt-linux
+export BUILD=x86_64-pc-linux-gnu
+
+export CROSSPREFIX=${CROSS}-
+
+export STRIP=${CROSSPREFIX}strip
+export CXX=${CROSSPREFIX}g++
+export CC=${CROSSPREFIX}gcc
+export LD=${CROSSPREFIX}ld
+export AS=${CROSSPREFIX}as
+export AR=${CROSSPREFIX}ar
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+cd proxychains-ng || exit 1
+
+make clean
+make -j$(nproc) || exit 1
+
+mkdir -p $SCRIPT_DIR/_install/bin
+mkdir -p $SCRIPT_DIR/_install/lib
+
+cp -f proxychains4 $SCRIPT_DIR/_install/bin
+cp -f libproxychains4.so $SCRIPT_DIR/_install/lib
+
+arm-openwrt-linux-strip $SCRIPT_DIR/_install/bin/proxychains4
+arm-openwrt-linux-strip $SCRIPT_DIR/_install/lib/libproxychains4.so

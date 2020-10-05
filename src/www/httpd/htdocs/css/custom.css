@@ -1,0 +1,353 @@
+body {
+	padding-top: 80px
+}
+
+/* main navigation */
+nav {
+	top: 0;
+	position: fixed;
+	width: 100%;
+	z-index: 10000;
+	background-color: #fff;
+	border-bottom: 1px solid #dcdcdc;
+	transition: top 0.2s ease-in-out;
+}
+
+nav ul {
+	margin: 0;
+	background-color: #fff;
+}
+
+nav ul li {
+	display: inline;
+	float: left;
+	position: relative;
+	margin: 0;
+	list-style-type: none;
+}
+
+nav ul li a {
+	display: inline-block;
+	padding: 14px 16px;
+	color: #757575;
+	font-size: 1.7rem;
+	text-decoration: none;
+	transition: 0.2s;
+}
+
+/* add caret for drop menu */
+nav ul > li a:not(:only-child):after { content: '\00a0\00a0▼'; font-size: 0.8rem; vertical-align: middle; }
+
+/* sub menu */
+nav ul ul {
+	position: absolute;
+	min-width: 180px;
+	height: 0;
+	overflow: hidden; /* hide sub menu */
+}
+
+nav ul li:hover ul {
+	height: auto;
+	overflow: visible; /* show sub menu */
+	border: 1px solid #dcdcdc;
+}
+
+nav ul ul li {
+	display: list-item;
+	float: none;
+}
+
+nav ul ul li a {
+	display: block
+}
+
+/* Change background color of links on hover */
+nav ul li a:hover {	
+	background-color: #eee; 
+	color: #757575;
+}
+
+/* Hide the list item that contains the link that should open and close the topnav on small screens */
+nav ul li.icon {
+	display: none
+}
+
+/* When the screen is less than 680 pixels wide, hide all list items, except for the first one ("Home"). Show the list item that contains the link to open and close the topnav (li.icon) */
+@media screen and (max-width:880px) {
+	nav ul li:not(:first-child) { display: none; }
+	nav ul li.icon {
+		position: absolute;
+		right: 0;
+		top: 0;
+		display: inline-block;
+	}
+}
+
+/* The "mobile" class is added to the topnav with JavaScript when the user clicks on the icon. This class makes the nav look good on small screens */
+@media screen and (max-width:880px) {
+	nav.mobile ul li {
+		float: none;
+		display: inline;
+	}
+	nav.mobile ul li a {
+		display: block;
+		text-align: left;
+	}
+	nav.mobile ul li ul {
+		position: relative;
+		height: auto;
+		overflow: visible;
+		padding-left: 20px;
+	}
+	nav.mobile ul li:hover ul {
+		border: none;
+	}
+}
+
+.strong {
+    font-weight: bold
+}
+
+.italic {
+    font-style: italic
+}
+
+.float-right {
+	float: right
+}
+
+.align-right {
+    text-align: right
+}
+
+.inline {
+    display: inline
+}
+
+.inline-block {
+    display: inline-block
+}
+
+.no-margin {
+    margin: 0
+}
+
+.tiny-margin {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.padded-right {
+	padding-right: 20px
+}
+
+.ios-onclick-fix {
+    cursor: pointer
+}
+
+table.ptz-table {
+    width: 35%
+}
+
+table.ptz-table tr td {
+    padding: 1px 1px 1px 1px;
+    border: 0;
+    text-align: center;
+}
+
+table.padded-table tr td {
+    padding: 10px 10px 9px;
+}
+
+table.padded-table td:first-child {
+    color: rgba(0,0,0,0.7);
+    width: 35%;
+}
+
+table.config-table td:first-child {
+	vertical-align: top;
+	padding-top: 16px;
+	text-align: right;
+}
+
+li.nav-elem-right {
+    float: right
+}
+
+/* The switch - the box around the slider */
+.switch {
+	position: relative;
+	display: block;
+	width: 50px;
+	height: 30px;
+	z-index: 1;
+	margin-top: 8px;
+}
+.switch.small{
+	width: 40px;
+	height: 20px;
+}
+.switch.xs{
+	width: 25px;
+	height: 15px;
+	margin: 0;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+	display:none
+}
+
+/* The slider */
+.slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #ccc;
+	-webkit-transition: .4s;
+	transition: .4s;
+}
+
+.slider:before {
+	position: absolute;
+	content: "";
+	height: 24px;
+	width: 24px;
+	left: 4px;
+	bottom: 3px;
+	background-color: white;
+	-webkit-transition: .4s;
+	transition: .4s;
+}
+
+.switch.small .slider:before{
+	height: 15px;
+	width: 15px;
+}
+
+.switch.xs .slider:before{
+	height: 11px;
+	width: 11px;
+	bottom: 2px;
+	left: 2px;
+}
+
+input:checked + .slider {
+	background-color: #12b6ea
+}
+
+input:focus + .slider {
+	box-shadow: 0 0 1px #12b6ea
+}
+
+input:checked + .slider:before {
+	-webkit-transform: translateX(18px);
+	-ms-transform: translateX(18px);
+	transform: translateX(18px);
+}
+
+.xs input:checked + .slider:before {
+	-webkit-transform: translateX(10px);
+	-ms-transform: translateX(10px);
+	transform: translateX(10px);
+}
+
+/* Rounded sliders */
+.slider.round {
+	border-radius: 34px
+}
+
+.slider.round:before {
+	border-radius: 50%
+}
+
+/* Switch text */
+.switch-text{
+	left: 47px;
+	top: 3px;
+	position: relative;
+	display: block;
+	right: 0;
+	line-height: 2;
+}
+
+.switch.small .switch-text{
+	line-height: 1;
+	min-width: 150px;
+}
+
+.save-text {
+	display: inline-block;
+	min-width: 80px;
+	text-align: center;
+}
+
+.loading-text {
+	margin-top: 15px;
+	margin-bottom: 0;
+}
+
+/* Select */
+select {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	-ms-appearance: none;
+	appearance: none;
+	outline: 0;
+	box-shadow: none;
+	border: 0 !important;
+	background: #12b6ea;
+	background-image: none;
+	width: 100%;
+}
+
+/* Remove IE arrow */
+select::-ms-expand {
+	display: none;
+}
+
+/* Custom Select */
+.standard-select {
+	position: relative;
+	width: 10em;
+	height: 3em;
+	line-height: 3;
+	background: #12b6ea;
+	overflow: hidden;
+	border-radius: .25em;
+}
+
+select {
+	flex: 1;
+	padding: 0 .5em;
+	color: #fff;
+	cursor: pointer;
+}
+
+/* Arrow */
+.standard-select::after {
+	content: '\25BC';
+	position: absolute;
+	top: 0;
+	right: 0;
+	padding: 0 1em;
+	background: #33c4f8;
+	color: white;
+	cursor: pointer;
+	pointer-events: none;
+	-webkit-transition: .25s all ease;
+	-o-transition: .25s all ease;
+    transition: .25s all ease;
+}
+
+/* Transition */
+.standard-select:hover::after {
+	color: #12b6ea;
+}
+
+#wlan_strength {
+	vertical-align: middle;
+}

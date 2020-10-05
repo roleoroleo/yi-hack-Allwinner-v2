@@ -1,0 +1,241 @@
+<div class="row">
+    <div class="twelve columns">
+        <div class="row">
+            <div class="twelve columns">
+                <h3 class="no-margin inline-block" id="header">MQTT</h3>
+                <h6 id="loading-status" class="float-right loading-text"></h6>
+            </div>
+        </div>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <p>
+                MQTT is one of the most commonly used protocols in IoT projects. It stands for Message Queuing Telemetry Transport.
+                <br/>
+                Currently it can be used to catch the motion events of the camera.
+                <br/>
+            </p>
+        </div>
+        <h4 class="no-margin">General</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                        <tr class="row">
+                        <td>Enabled</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" id="enable-mqtt" data-key="MQTT"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable or disable the MQTT service.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Server IP</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="MQTT_IP"/>
+                            <span class="switch-description">
+                                MQTT Server IP.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Server Port</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="1883" data-key="MQTT_PORT"/>
+                            <span class="switch-description">
+                                MQTT Server Port.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Client ID</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="MQTT_CLIENT_ID"/>
+                            <span class="switch-description">
+                                Client ID of the camera. This needs to be unique on the network.
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <h4 class="no-margin">Authentication</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>Username</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="MQTT_USER"/>
+                            <span class="switch-description">
+                                Server username.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Password</td>
+                        <td>
+                            <input class="u-full-width" type="password" placeholder="" data-key="MQTT_PASSWORD"/>
+                            <span class="switch-description">
+                                Server password.
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <h4 class="no-margin">Topics</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>Topics Prefix</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="yicam" data-key="MQTT_PREFIX"/>
+                            <span class="switch-description">
+                                The MQTT Topic prefix where the camera will publish messages. The final topic will be TOPIC_PREFIX/TOPIC_XXXXX (Example: yicam/motion).
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Birth and will messages</td>
+                        <td>
+                            <label for="topic_motion">Birth/Will Topic Suffix</label>
+                            <input class="u-full-width" type="text" placeholder="" id="topic_birth_will" data-key="TOPIC_BIRTH_WILL"/>
+                            <label for="motion_start_msg">Birth Message</label>
+                            <input class="u-full-width" type="text" placeholder="" id="birth_msg" data-key="BIRTH_MSG"/>
+                            <label for="motion_start_msg">Will Message</label>
+                            <input class="u-full-width" type="text" placeholder="" id="will_msg" data-key="WILL_MSG"/>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Motion</td>
+                        <td>
+                            <label for="topic_motion">Topic Suffix</label>
+                            <input class="u-full-width" type="text" placeholder="" id="topic_motion" data-key="TOPIC_MOTION"/>
+                            <label for="motion_start_msg">Motion Start Message</label>
+                            <input class="u-full-width" type="text" placeholder="" id="motion_start_msg" data-key="MOTION_START_MSG"/>
+                            <label for="motion_stop_msg">Motion Stop Message</label>
+                            <input class="u-full-width" type="text" placeholder="" id="motion_stop_msg" data-key="MOTION_STOP_MSG"/>
+                            <label for="topic_motion_files">Topic Suffix for video list message</label>
+                            <input class="u-full-width" type="text" placeholder="" id="topic_motion_files" data-key="TOPIC_MOTION_FILES">
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>AI Human Detection</td>
+                        <td>
+                            <label for="topic_ai_human_detection">Topic Suffix</label>
+                            <input class="u-full-width" type="text" placeholder="" id="topic_ai_human_detection" data-key="TOPIC_AI_HUMAN_DETECTION"/>
+                            <label for="ai_human_detection_start_msg">AI Human Detection Start Message</label>
+                            <input class="u-full-width" type="text" placeholder="" id="ai_human_detection_start_msg" data-key="AI_HUMAN_DETECTION_START_MSG"/>
+                            <label for="ai_human_detection_stop_msg">AI Human Detection Stop Message</label>
+                            <input class="u-full-width" type="text" placeholder="" id="ai_human_detection_stop_msg" data-key="AI_HUMAN_DETECTION_STOP_MSG"/>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Baby Crying</td>
+                        <td>
+                            <label for="topic_baby_crying">Topic Suffix</label>
+                            <input class="u-full-width" type="text" placeholder="" id="topic_baby_crying" data-key="TOPIC_BABY_CRYING"/>
+                            <label for="baby_crying_msg">Baby Crying Message</label>
+                            <input class="u-full-width" type="text" placeholder="" id="baby_crying_msg" data-key="BABY_CRYING_MSG"/>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <h4 class="no-margin">Advanced</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>Keepalive</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="120" data-key="MQTT_KEEPALIVE"/>
+                            <span class="switch-description">
+                                Keep alive ensures that the connection between the broker and client is still open and that the broker and the client are aware of being connected. The amount is specified is seconds.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>QoS</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="1" data-key="MQTT_QOS"/>
+                            <span class="switch-description">
+                                The Quality of Service (QoS) level is an agreement between the sender of a message and the receiver of a message that defines the guarantee of delivery for a specific message.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Retain for birth and will messages</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="1" data-key="MQTT_RETAIN_BIRTH_WILL"/>
+                            <span class="switch-description">
+                                A retained message is a normal MQTT message with the retained flag set to true. The broker stores the last retained message and the corresponding QoS for that topic. (1 = enabled, 0 = disabled)
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Retain for motion messages</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="1" data-key="MQTT_RETAIN_MOTION"/>
+                            <span class="switch-description">
+                                A retained message is a normal MQTT message with the retained flag set to true. The broker stores the last retained message and the corresponding QoS for that topic. (1 = enabled, 0 = disabled)
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Retain for video list messages</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="1" data-key="MQTT_RETAIN_MOTION_FILES"/>
+                            <span class="switch-description">
+                                A retained message is a normal MQTT message with the retained flag set to true. The broker stores the last retained message and the corresponding QoS for that topic. (1 = enabled, 0 = disabled)
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Retain for AI Human Detection messages</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="1" data-key="MQTT_RETAIN_AI_HUMAN_DETECTION"/>
+                            <span class="switch-description">
+                                A retained message is a normal MQTT message with the retained flag set to true. The broker stores the last retained message and the corresponding QoS for that topic. (1 = enabled, 0 = disabled)
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Retain for baby crying messages</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="1" data-key="MQTT_RETAIN_BABY_CRYING"/>
+                            <span class="switch-description">
+                                A retained message is a normal MQTT message with the retained flag set to true. The broker stores the last retained message and the corresponding QoS for that topic. (1 = enabled, 0 = disabled)
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="align-right">
+            <span class="strong">Any change will take effect after the reboot of the camera.</span>
+        </div>
+        <br/>
+        <div class="float-right">
+            <div class="padded-right save-text" id="save-status"></div>
+            <input class="button-primary" type="button" id="button-save" value="Save Configuration"/>
+        </div>
+    </div>
+</div>

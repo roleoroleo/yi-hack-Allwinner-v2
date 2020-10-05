@@ -1,0 +1,10 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+cd wsdd
+
+make clean
+rm -rf SDK
+rm -rf gsoap-2.8

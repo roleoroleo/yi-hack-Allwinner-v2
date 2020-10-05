@@ -1,0 +1,19 @@
+After silencing the buffer 64 bits at a time, any remaining samples
+need to be silenced by the following width-specific code.  However, instead
+of silencing the end of the buffer, the code instead re-silences the start
+of the buffer, leaving the end unsilenced.  To fix this, update the pointer
+used by the width-specific code to point to the end of the area just
+silenced, instead of leaving it pointing to the start of the buffer.
+
+diff --git a/src/pcm/pcm.c b/src/pcm/pcm.c
+index 200b10c..c020cbf 100644
+--- a/src/pcm/pcm.c
++++ b/src/pcm/pcm.c
+@@ -2908,6 +2908,7 @@ int snd_pcm_area_silence(const snd_pcm_channel_area_t *dst_area, snd_pcm_uframes
+ 			*dstp++ = silence;
+ 		if (samples == 0)
+ 			return 0;
++		dst = (char *)dstp;
+ 	}
+ 	dst_step = dst_area->step / 8;
+ 	switch (width) {

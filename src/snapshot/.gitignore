@@ -1,0 +1,6 @@
+# Ignore the install dir
+_install/
+snapshot/SDK
+snapshot/ffmpeg-4.0.4
+snapshot/jpeg-9c
+snapshot/framefinder

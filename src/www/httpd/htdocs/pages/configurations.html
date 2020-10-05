@@ -1,0 +1,381 @@
+<div class="row">
+    <div class="twelve columns">
+        <div class="row">
+            <div class="twelve columns">
+                <h3 class="no-margin inline-block" id="header">Configurations</h3>
+                <h6 id="loading-status" class="float-right loading-text"></h6>
+            </div>
+        </div>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <p>
+                In this page you can enable and disable services, change the camera hostname, disable the cloud features and more.
+            </p>
+        </div>
+        <h4 class="no-margin">General</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>Hostname</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="HOSTNAME" id="HOSTNAME"/>
+                            <span class="switch-description">
+                                Camera's hostname on the network. Leave blank to generate automatically.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Timezone</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="TIMEZONE" id="TIMEZONE"/>
+                            <span class="switch-description">
+                                Timezone. Get your timezone string from <a href="?page=tz">this page</a> and copy here.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Disable Cloud</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="DISABLE_CLOUD"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Disable the Yi App and all the Cloud features (aka private mode).
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Recording without Cloud</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="REC_WITHOUT_CLOUD"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable recording on the SD card even with the Cloud features disabled. (It takes effect only if the "Disable Cloud" option is enabled).
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>RTSP</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="RTSP"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable RTSP Server.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>RTSP Stream</td>
+                        <td>
+                            <div class="standard-select">
+                                <select data-key="RTSP_STREAM" id="RTSP_STREAM">
+                                    <option value="high">High</option>
+                                    <option value="low">Low</option>
+                                    <option value="both">Both</option>
+                                </select>
+                            </div>
+                            <span class="switch-description">
+                                Select stream resolution.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>RTSP Audio</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="RTSP_AUDIO"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable/disable audio for RTSP stream.
+                                <br/>
+                                <span class="strong">WARNING: this is an experimental feature.</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>ONVIF</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="ONVIF"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable ONVIF Server.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>ONVIF WS-Discovery</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="ONVIF_WSDD"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable WS-Discovery daemon for ONVIF service.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>ONVIF Profile</td>
+                        <td>
+                            <div class="standard-select">
+                                <select data-key="ONVIF_PROFILE" id="ONVIF_PROFILE">
+                                    <option value="high">High</option>
+                                    <option value="low">Low</option>
+                                    <option value="both">Both</option>
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>ONVIF watermark</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="ONVIF_WM_SNAPSHOT"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Add watermark to snapshot.
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <h4 class="no-margin">Advanced</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>SSH</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="SSHD"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable or disable the SSH server.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>FTP</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="FTPD"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable or disable the FTP server.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Legacy FTP</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="BUSYBOX_FTPD"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Switch to the legacy BusyBox FTP server.
+                            </span>
+                                <br/>
+                            <span class="italic">
+                                NOTE: If you are trying to disable Pure-FTPd as mentioned in <a target="_blank" href="https://github.com/shadow-1/yi-hack-v3/issues/129#issuecomment-361723075">this issue</a> you can enable this option instead of manually editing the system.sh file.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Telnet</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="TELNETD"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable or disable the Telnet server.
+                                <br/>
+                                <span class="strong">WARNING: Telnet is NOT a secure protocol and should be avoided. Enable only if it's really necessary.</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>NTPD</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="NTPD"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable or disable the Network Time Protocol Daemon. This is required to sync the time on the camera if the cloud features are disabled.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>NTP Server</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="NTP_SERVER" id="NTP_SERVER"/>
+                            <span class="switch-description">
+                                NTP server name.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>HTTPD</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="HTTPD"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable or disable the Web Server.
+                                <br/>
+                                <span class="strong">WARNING: If disabled, you won't have access to this page.</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Proxychains-ng</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="PROXYCHAINSNG"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Proxychains-ng is a way to bypass the region restrictions imposed by Yi when using a Chinese camera outside China. See the GitHub page for more info on how to configure it.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Swap File</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="SWAP_FILE"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable swap file on SD card. This option will create a file (/tmp/sd/swapfile) to expand your memory.
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <h4 class="no-margin">TCP ports</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>RTSP Port</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="RTSP_PORT" id="RTSP_PORT"/>
+                            <span class="switch-description">
+                                TCP port used by RTSP Server (default 554).
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>ONVIF Port</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="ONVIF_PORT" id="ONVIF_PORT"/>
+                            <span class="switch-description">
+                                TCP port used by ONVIF Server (default 80).
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>HTTPD Port</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="HTTPD_PORT" id="HTTPD_PORT"/>
+                            <span class="switch-description">
+                                TCP port used by HTTPD Server (default 8080).
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <h4 class="no-margin">Authentication</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>Username</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="USERNAME" id="USERNAME"/>
+                            <span class="switch-description">
+                                Username to access RTSP, ONVIF and HTTP (default empty).
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Password</td>
+                        <td>
+                            <input class="u-full-width" type="password" placeholder="" data-key="PASSWORD" id="PASSWORD"/>
+                            <span class="switch-description">
+                                Password to access RTSP, ONVIF and HTTP (default empty).
+                                <br/>
+                                Allowed special chars: \ | ! &quot; $ % &amp; / ( ) &apos; ? ^ [ ] @ &lt; &gt; , ; . : - _
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Root Password</td>
+                        <td>
+                            <input class="u-full-width" type="password" placeholder="" data-key="SSH_PASSWORD" id="SSH_PASSWORD"/>
+                            <span class="switch-description">
+                                Password for SSH, Telnet and FTP root user (default empty).
+                                <br/>
+                                Allowed special chars: \ | ! &quot; $ % &amp; / ( ) &apos; ? ^ [ ] @ &lt; &gt; , ; . : - _
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="align-right">
+            <span class="strong">Any change will take effect after the reboot of the camera.</span>
+        </div>
+        <br/>
+        <div class="float-right">
+            <div class="padded-right save-text" id="save-status"></div>
+            <input class="button-primary" type="button" id="button-save" value="Save Configuration"/>
+        </div>
+    </div>
+</div>

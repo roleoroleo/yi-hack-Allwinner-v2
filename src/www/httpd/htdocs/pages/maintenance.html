@@ -1,0 +1,88 @@
+<div class="row">
+    <div class="twelf columns">
+        <h3 class="no-margin" id="header">Maintenance</h3>
+        <hr class="tiny-margin" />
+        <div class="row">
+            <p>Here you can load/save config and reboot cam.</p>
+        </div>
+
+        <h5 class="tiny-margin strong">Save</h5>
+        <hr class="no-margin"/>
+
+        <table class="u-full-width padded-table">
+            <tbody>
+            <tr class="row">
+                <td>Click to save config</td>
+                <td>
+                    <input class="button-primary" type="button" id="button-save" value="Save Config"/>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h5 class="tiny-margin strong">Load</h5>
+        <hr class="no-margin"/>
+
+        <table class="u-full-width padded-table">
+            <tbody>
+            <tr class="row">
+                <td>
+                    <input class="button-primary" type="file" id="button-file" value="Select File"/>
+                </td>
+                <td>
+                    <input class="button-primary" type="button" id="button-load" value="Load Config"/>
+                    <div id="text-load"></div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h5 class="tiny-margin strong">Reboot</h5>
+        <hr class="no-margin"/>
+
+        <table class="u-full-width padded-table">
+            <tbody>
+            <tr class="row">
+                <td>
+                    <input class="u-full-width" type="text" placeholder="" readonly="" data-key="STATUS" id="STATUS"/>
+                </td>
+                <td>
+                    <input class="button-primary" type="button" id="button-reboot" value="Reboot Camera"/>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h5 class="tiny-margin strong">Reset to yi-hack default</h5>
+        <hr class="no-margin"/>
+
+        <table class="u-full-width padded-table">
+            <tbody>
+            <tr class="row">
+                <td>
+                    <input class="u-full-width" type="text" placeholder="" readonly="" data-key="RESET" id="RESET"/>
+                </td>
+                <td>
+                    <input class="button-primary" type="button" id="button-reset" value="Reset Camera"/>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h5 class="tiny-margin strong">Online FW upgrade</h5>
+        <hr class="no-margin"/>
+
+        <table class="u-full-width padded-table">
+            <tbody>
+            <tr class="row">
+                <td>
+                    <input class="u-full-width" type="text" placeholder="" readonly="" data-key="FW" id="FW"/>
+                </td>
+                <td>
+                    <input class="button-primary" type="button" id="button-upgrade" value="Upgrade Firmware"/>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

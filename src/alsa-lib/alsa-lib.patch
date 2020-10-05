@@ -1,0 +1,169 @@
+diff -Naur alsa-lib-1.1.4.1.ori/src/pcm/pcm.c alsa-lib-1.1.4.1/src/pcm/pcm.c
+--- alsa-lib-1.1.4.1.ori/src/pcm/pcm.c	2020-05-28 12:39:18.086164945 +0200
++++ alsa-lib-1.1.4.1/src/pcm/pcm.c	2020-05-28 12:53:23.290468299 +0200
+@@ -656,6 +656,17 @@
+ #include <limits.h>
+ #include "pcm_local.h"
+ 
++/* Start - Handle for the pipe that will be used to clone the audio frames. */
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <pthread.h>
++#include "pcm_fifo.h"
++#define FIFO_CONVERT_TO_MONO
++#define FIFO_REMOVE_BLANK
++int fifo_snoop_fd = 0;
++u_int8_t fifo_buf[FIFO_BUFFER_SIZE];
++/* End - Handle for the pipe that will be used to clone the audio frames. */
++
+ #ifndef DOC_HIDDEN
+ #define P_STATE(x)	(1U << SND_PCM_STATE_ ## x)
+ #define P_STATE_RUNNABLE (P_STATE(PREPARED) | \
+@@ -743,6 +754,10 @@
+ 	err = snd_pcm_free(pcm);
+ 	if (err < 0)
+ 		res = err;
++
++	if (fifo_snoop_fd > 0)
++		close(fifo_snoop_fd);
++
+ 	return res;
+ }	
+ 
+@@ -1509,6 +1524,10 @@
+ 	}
+ 	if (bad_pcm_state(pcm, P_STATE_RUNNABLE))
+ 		return -EBADFD;
++
++	/* Write to fifo, ignore the result */
++	pcm_write_snoop_fifo(pcm, (void *) buffer, size);
++
+ 	return _snd_pcm_readi(pcm, buffer, size);
+ }
+ 
+@@ -2480,6 +2499,14 @@
+ 			snd_config_get_integer(tmp, &(*pcmp)->minperiodtime);
+ 		err = 0;
+ 	}
++
++	if (pcm_create_snoop_fifo(*pcmp) != 0)
++	{
++		SNDERR("cannot create snoop fifo");
++	}
++	/* Hopefully nobody uses this one */
++	signal(SIGPIPE, SIG_IGN);
++
+        _err:
+ 	if (type_conf)
+ 		snd_config_delete(type_conf);
+@@ -8562,3 +8589,101 @@
+ 	return INTERNAL(snd_pcm_hw_params_get_period_size)(&params, period_size,
+ 							   NULL);
+ }
++
++void* fifo_open_thread(void *data)
++{
++    int fd;
++    char *fifo_name = data;
++
++    fd = open(fifo_name, O_RDONLY);
++    usleep(250);
++    close(fd);
++
++    return NULL;
++}
++
++int pcm_create_snoop_fifo(snd_pcm_t *pcm)
++{
++    char *fifo = "/tmp/audio_fifo";
++    pthread_t open_thread;
++
++    if (mkfifo(fifo, 0666) < 0) {
++        if (errno != EEXIST) {
++            SNDERR("cannot create snoop fifo");
++            return -1;
++        }
++    }
++
++    if(pthread_create(&open_thread, NULL, fifo_open_thread, fifo)) {
++        SNDERR("error creating thread\n");
++        return -1;
++    }
++
++    fifo_snoop_fd = open(fifo, O_WRONLY);
++    if (fifo_snoop_fd <= 0) {
++        SNDERR("cannot open snoop fifo");
++        return -1;
++    }
++
++    if(pthread_join(open_thread, NULL)) {
++        SNDERR("failed to join unblocking thread");
++        return -1;
++    }
++
++    if (fcntl(fifo_snoop_fd, F_SETFL, O_NONBLOCK) != 0) {
++        SNDERR("cannot set non-block to snoop fifo");
++        close(fifo_snoop_fd);
++        fifo_snoop_fd = 0;
++        return -1;
++    };
++
++    return 0;
++}
++
++int pcm_write_snoop_fifo(snd_pcm_t *pcm, void *data, unsigned int frames)
++{
++	// Assume S16_LE
++	unsigned int bytes = snd_pcm_frames_to_bytes(pcm, frames);
++	if (bytes != 2 * frames) return 0;
++	if (bytes > 2048) return 0;
++
++	int blank_audio = 0;
++	int i;
++	u_int16_t *buf_ptr;
++	u_int32_t *pcm_ptr;
++
++//	fprintf(stderr, "frames: %d - bytes: %d\n", frames, bytes);
++
++	if (fifo_snoop_fd <= 0) {
++		SNDERR("snoop fifo is not openend");
++		return -1;
++	}
++
++	memset(&fifo_buf, '\0', sizeof(fifo_buf));
++
++#ifdef FIFO_REMOVE_BLANK
++	if (memcmp(fifo_buf, (u_int8_t *) data, bytes) == 0)
++		blank_audio = 1;
++#endif
++
++	if (!blank_audio) {
++#ifdef FIFO_CONVERT_TO_MONO
++		buf_ptr = (u_int16_t *) fifo_buf;
++		pcm_ptr = (u_int32_t *) data;
++		for (i = 0; i < frames; i++) {
++			buf_ptr[i] = *pcm_ptr & 0xffff;
++			pcm_ptr++;
++		}
++
++		if (write(fifo_snoop_fd, fifo_buf, bytes / 2) < 0) {
++#else
++		if (write(fifo_snoop_fd, data, bytes) < 0) {
++#endif
++			if (errno == EAGAIN || errno == EWOULDBLOCK) {
++				SNDERR("Fifo full!\n");
++				return -2;
++			}
++		}
++	}
++	return 0;
++}
+diff -Naur alsa-lib-1.1.4.1.ori/src/pcm/pcm_fifo.h alsa-lib-1.1.4.1/src/pcm/pcm_fifo.h
+--- alsa-lib-1.1.4.1.ori/src/pcm/pcm_fifo.h	1970-01-01 01:00:00.000000000 +0100
++++ alsa-lib-1.1.4.1/src/pcm/pcm_fifo.h	2020-05-28 12:39:30.534021142 +0200
+@@ -0,0 +1,5 @@
++#define FIFO_BUFFER_SIZE 4096
++
++int pcm_create_snoop_fifo(snd_pcm_t *pcm);
++int pcm_write_snoop_fifo(snd_pcm_t *pcm, void *data, unsigned int frames);
++

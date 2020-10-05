@@ -1,0 +1,46 @@
+diff -Naur live.ori/config.linux-cross live/config.linux-cross
+--- live.ori/config.linux-cross	1970-01-01 01:00:00.000000000 +0100
++++ live/config.linux-cross	2020-04-08 19:11:20.000000000 +0200
+@@ -0,0 +1,17 @@
++COMPILE_OPTS =		$(INCLUDES) -I. -O2 -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DNO_OPENSSL=1
++C =			c
++C_COMPILER =		$(CC)
++C_FLAGS =		$(COMPILE_OPTS) $(CPPFLAGS) $(CFLAGS)
++CPP =			cpp
++CPLUSPLUS_COMPILER =	$(CXX)
++CPLUSPLUS_FLAGS =	$(COMPILE_OPTS) -Wall -DBSD=1 $(CPPFLAGS) $(CXXFLAGS)
++OBJ =			o
++LINK =			$(CXX) -o
++LINK_OPTS =		-L. $(LDFLAGS)
++CONSOLE_LINK_OPTS =	$(LINK_OPTS)
++LIBRARY_LINK =		$(AR) cr 
++LIBRARY_LINK_OPTS =	
++LIB_SUFFIX =			a
++LIBS_FOR_CONSOLE_APPLICATION =
++LIBS_FOR_GUI_APPLICATION =
++EXE =
+diff -Naur live.ori/liveMedia/H264or5VideoStreamFramer.cpp live/liveMedia/H264or5VideoStreamFramer.cpp
+--- live.ori/liveMedia/H264or5VideoStreamFramer.cpp	2020-04-06 15:57:15.000000000 +0200
++++ live/liveMedia/H264or5VideoStreamFramer.cpp	2020-04-08 19:14:51.000000000 +0200
+@@ -86,7 +86,7 @@
+   fParser = createParser
+     ? new H264or5VideoStreamParser(hNumber, this, inputSource, includeStartCodeInOutput)
+     : NULL;
+-  fFrameRate = 25.0; // We assume a frame rate of 25 fps, unless we learn otherwise (from parsing a VPS or SPS NAL unit)
++  fFrameRate = 20.0; // We assume a frame rate of 20 fps, unless we learn otherwise (from parsing a VPS or SPS NAL unit)
+ }
+ 
+ H264or5VideoStreamFramer::~H264or5VideoStreamFramer() {
+@@ -1195,8 +1195,13 @@
+       nextPT = usingSource()->fPresentationTime;
+       double nextFraction = nextPT.tv_usec/1000000.0 + 1/usingSource()->fFrameRate;
+       unsigned nextSecsIncrement = (long)nextFraction;
++#if 0
+       nextPT.tv_sec += (long)nextSecsIncrement;
+       nextPT.tv_usec = (long)((nextFraction - nextSecsIncrement)*1000000);
++#else
++      // Use system clock to set presentation time
++      gettimeofday(&nextPT, NULL);
++#endif
+     }
+     setParseState();

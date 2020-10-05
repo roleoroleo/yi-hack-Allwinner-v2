@@ -1,0 +1,16 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+cd alsa-lib-1.1.4.1 || exit 1
+
+#make clean
+make || exit 1
+
+mkdir -p ../_install/lib
+cp -f ./src/.libs/libasound.so.2.0.0 ../_install/lib/
+
+cp -fP ./src/.libs/libasound.so.2 ../_install/lib/
+
+arm-openwrt-linux-strip ../_install/lib/libasound.so.2.0.0 || exit 1

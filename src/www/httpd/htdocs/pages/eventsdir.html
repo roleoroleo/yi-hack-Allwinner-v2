@@ -1,0 +1,127 @@
+<div class="row">
+    <div class="twelve columns">
+        <div class="row">
+            <div class="twelve columns">
+                <h3 class="no-margin inline-block" id="header">Events</h3>
+                <h6 id="loading-status" class="float-right loading-text"></h6>
+            </div>
+        </div>
+        <hr class="tiny-margin"/>
+
+        <div class="row">
+            <p>Here you can configure the automatic video cleaning and see all the motion events detected.</p>
+        </div>
+
+        <h4 class="no-margin">Auto video cleaning</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>SD free space (%)</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="FREE_SPACE" id="FREE_SPACE"/>
+                            <span class="switch-description">
+                                Percentage of free space to keep in the SD (0 to disable).
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <hr class="tiny-margin">
+
+        <h4 class="no-margin">FTP Upload</h4>
+        <hr class="tiny-margin">
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>FTP Upload</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="FTP_UPLOAD" id="FTP_UPLOAD">
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable/disable upload of recorded events to a FTP service.
+                            </span>
+                                <br/>
+                            <span class="italic">
+                                NOTE: If you enable this option, all copied files will be deleted from the cam.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>FTP Host</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="FTP_HOST" id="FTP_HOST">
+                            <span class="switch-description">
+                                DNS or IP address of the FTP service.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>FTP Directory</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="FTP_DIR" id="FTP_DIR">
+                            <span class="switch-description">
+                                Uploaded files will be placed into the specified directory. If it does not exist, it will be created. Leave empty to save files to the root directory of the FTP service.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Create directory tree</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="FTP_DIR_TREE"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Uploaded files will be placed into a directory tree. A tree equal to the one present in the cam will be made.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>FTP Username</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="FTP_USERNAME" id="FTP_USERNAME">
+                            <span class="switch-description">
+                                Username to access the FTP service.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>FTP Password</td>
+                        <td>
+                            <input class="u-full-width" type="password" placeholder="" data-key="FTP_PASSWORD" id="FTP_PASSWORD">
+                            <span class="switch-description">
+                                Password to access the FTP service.
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="align-right">
+            <span class="strong">This change will take effect after the reboot of the camera.</span>
+        </div>
+        <br/>
+        <div class="align-right">
+            <div class="padded-right save-text" id="save-status"></div>
+            <input class="button-primary" type="button" id="button-save" value="Save"/>
+        </div>
+
+        <h4 class="no-margin">Select time</h4>
+        <hr class="tiny-margin"/>
+
+        <div id="table-container"></div>
+    </div>
+</div>

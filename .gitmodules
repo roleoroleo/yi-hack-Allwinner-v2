@@ -1,0 +1,24 @@
+[submodule "src/busybox/busybox"]
+	path = src/busybox/busybox
+	url = https://github.com/mirror/busybox
+[submodule "src/dropbear/dropbear"]
+	path = src/dropbear/dropbear
+	url = https://github.com/mkj/dropbear
+[submodule "src/ftpd/pure-ftpd"]
+	path = src/ftpd/pure-ftpd
+	url = https://github.com/jedisct1/pure-ftpd
+[submodule "src/mosquitto/mosquitto"]
+	path = src/mosquitto/mosquitto
+	url = https://github.com/eclipse/mosquitto
+[submodule "src/mqtt/mqttv4"]
+	path = src/mqtt/mqttv4
+	url = https://github.com/roleoroleo/mqttv4
+[submodule "src/onvif_srvd/onvif_srvd"]
+	path = src/onvif_srvd/onvif_srvd
+	url = https://github.com/roleoroleo/onvif_srvd
+[submodule "src/proxychains-ng/proxychains-ng"]
+	path = src/proxychains-ng/proxychains-ng
+	url = https://github.com/rofl0r/proxychains-ng
+[submodule "src/wsdd/wsdd"]
+	path = src/wsdd/wsdd
+	url = https://github.com/KoynovStas/wsdd

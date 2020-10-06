@@ -8,7 +8,7 @@ cd $SCRIPT_DIR
 rm -rf ./_install
 
 cd mqttv4
-#git reset --hard 
+git reset --hard 
 
 cp ../config.mak config.mak
 

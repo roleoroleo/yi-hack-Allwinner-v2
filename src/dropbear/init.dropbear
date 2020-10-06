@@ -6,7 +6,7 @@ cd $SCRIPT_DIR
 rm -rf ./_install
 
 cd dropbear
-#git reset --hard 
+git reset --hard 
 
 autoconf; autoheader || exit 1
 

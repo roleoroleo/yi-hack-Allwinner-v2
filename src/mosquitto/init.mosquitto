@@ -6,4 +6,4 @@ cd $SCRIPT_DIR
 rm -rf ./_install
 
 cd mosquitto || exit 1
-#git reset --hard
+git reset --hard

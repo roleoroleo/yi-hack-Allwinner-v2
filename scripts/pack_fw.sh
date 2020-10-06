@@ -124,17 +124,17 @@ echo "done!"
 
 # adding defaults
 echo -n ">>> Adding defaults... "
-(cd $TMP_DIR/tmp/sd/yi-hack/etc/ && tar jcvf $TMP_DIR/tmp/sd/yi-hack/etc/defaults.tar.bz2 *.conf > /dev/null 2>&1)
+(cd $TMP_DIR/yi-hack/etc/ && tar jcvf $TMP_DIR/yi-hack/etc/defaults.tar.bz2 *.conf > /dev/null 2>&1)
 echo "done!"
 
 # insert the version file
 echo -n ">>> Copying the version file... "
-cp $BASE_DIR/VERSION $TMP_DIR/tmp/sd/yi-hack/version
+cp $BASE_DIR/VERSION $TMP_DIR/yi-hack/version
 echo "done!"
 
 # insert the model suffix file
 echo -n ">>> Creating the model suffix file... "
-echo $CAMERA_ID > $TMP_DIR/tmp/sd/yi-hack/model_suffix
+echo $CAMERA_ID > $TMP_DIR/yi-hack/model_suffix
 echo "done!"
 
 # fix the files ownership

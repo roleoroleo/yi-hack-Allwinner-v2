@@ -31,5 +31,5 @@ cp ./h264grabber ../_install/bin || exit 1
 ${STRIP} ../_install/bin/* || exit 1
 
 cd ../_install/bin/
-ln -s h264grabber h264grabber_h
-ln -s h264grabber h264grabber_l
+#ln -s h264grabber h264grabber_h
+#ln -s h264grabber h264grabber_l

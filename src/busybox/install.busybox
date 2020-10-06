@@ -3,5 +3,10 @@
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
-rsync -a ./_install/* ../../build/
-
+#rsync -a ./_install/* ../../build/yi-hack
+mkdir -p ../../build/yi-hack/bin
+mkdir -p ../../build/yi-hack/usr/bin
+cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/tar
+cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/gzip
+cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/wget
+cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/xargs

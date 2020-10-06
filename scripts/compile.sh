@@ -84,7 +84,7 @@ export STAGING_DIR="/opt/yi/toolchain-sunxi-musl"
 export PATH="/opt/yi/toolchain-sunxi-musl/toolchain/bin:~/.local/bin:$PATH"
 rm -rf "$(get_script_dir)/../build/"
 
-mkdir -p "$(get_script_dir)/../build/home"
+#mkdir -p "$(get_script_dir)/../build/home"
 #mkdir -p "$(get_script_dir)/../build/rootfs"
 
 SRC_DIR=$(get_script_dir)/../src

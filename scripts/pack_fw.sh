@@ -119,7 +119,7 @@ mkdir -p ${TMP_DIR}/yi-hack
 
 # Copy the build files to the tmp dir
 echo -n ">>> Copying files from the build directory to ${TMP_DIR}... "
-cp -R $BUILD_DIR/yi-hack/* $TMP_DIR/yi-hack || exit 1
+cp -R $BUILD_DIR/* $TMP_DIR/ || exit 1
 echo "done!"
 
 # adding defaults

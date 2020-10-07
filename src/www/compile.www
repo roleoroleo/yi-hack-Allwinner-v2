@@ -21,7 +21,6 @@ mkdir -p ./_install/www/images
 mkdir -p ./_install/www/css
 mkdir -p ./_install/www/js
 mkdir -p ./_install/www/pages
-ln -s /tmp/sd/record ./_install/www/record
 
 echo "Compressing CSS files..."
 #find ./httpd/htdocs/css/* ! -name all.css -exec cat {} \+  > ./_install/www/htdocs/css/tmp.css

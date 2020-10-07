@@ -1,3 +1,5 @@
+This fw is work in progress.
+
 <p align="center">
 	<img height="200" src="https://user-images.githubusercontent.com/39277388/80304933-cb6f7400-87b9-11ea-878b-75e48779e997.png">
 </p>
@@ -36,7 +38,7 @@ See [CONTRIBUTING](CONTRIBUTING.md)
 ## Features
 This custom firmware contains features replicated from the [yi-hack-MStar](https://github.com/roleoroleo/yi-hack-MStar) project and similar to the [yi-hack-v4](https://github.com/TheCrypt0/yi-hack-v4) project.
 
-- FEATURES
+- FEATURES (WORK IN PROGRESS)
   - RTSP server - allows a RTSP stream of the video (high and/or low resolution) and audio (thanks to @PieVo for the work on MStar platform).
     - rtsp://IP-CAM/ch0_0.h264             (high res)
     - rtsp://IP-CAM/ch0_1.h264             (low res)
@@ -86,8 +88,6 @@ Currently this project supports only the following cameras:
 
 | Camera | Firmware | File prefix | Remarks |
 | --- | --- | --- | --- |
-| **Yi 1080p Home 9FUS** | 8.2.0* | y20ga | - |
-| **Yi 1080p Home BFUS** | 8.2.0* | y20ga | - |
 
 USE AT YOUR OWN RISK.
 
@@ -100,8 +100,8 @@ USE AT YOUR OWN RISK.
 
 If you want to build your own firmware, clone this git and compile using a linux machine. Quick explanation:
 
-1. Download and install the SDK as described [here](https://github.com/roleoroleo/yi-hack-Allwinner/wiki/Build-your-own-firmware-(thanks-to-@Xandrios))
-2. clone this git: `git clone https://github.com/roleoroleo/yi-hack-Allwinner`
+1. Download and install the SDK as described [here](https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Build-your-own-firmware
+2. Clone this git: `git clone https://github.com/roleoroleo/yi-hack-Allwinner-v2`
 3. Init modules: `git submodule update --init`
 4. Compile: `./scripts/compile.sh`
 5. Pack the firmware: `./scripts/pack_fw.all.sh`

@@ -25,7 +25,7 @@ yi-hack-Allwinner is a modification of the firmware for the Allwinner-based Yi C
 
 ### Update Procedure
 1. Format an SD Card as FAT32. It's recommended to format the card in the camera using the camera's native format function. If the card is already formatted, remove all the files.
-2. Download the latest release from [the Releases page](https://github.com/roleoroleo/yi-hack-Allwinner/releases)
+2. Download the latest release from the Releases page (Todo).
 3. Extract the contents of the archive to the root of your SD card.
 4. Insert the SD Card and reboot the camera
 5. Wait for the camera to update. It will reboot a couple of times as the camera is rooted and the new firmware is applied. It can take up to an hour to update. Once the light is solid blue for at least a minute it is complete.

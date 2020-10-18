@@ -15,6 +15,7 @@ yi-hack-Allwinner is a modification of the firmware for the Allwinner-based Yi C
 - [Performance](#performance)
 - [Supported cameras](#supported-cameras)
 - [Build your own firmware](#build-your-own-firmware)
+- [Unbricking](#unbricking)
 - [License](#license)
 - [Disclaimer](#disclaimer)
 - [Donation](#donation)
@@ -24,10 +25,11 @@ yi-hack-Allwinner is a modification of the firmware for the Allwinner-based Yi C
 
 ### Update Procedure
 1. Format an SD Card as FAT32. It's recommended to format the card in the camera using the camera's native format function. If the card is already formatted, remove all the files.
-2. Download the latest release from [the Releases page](https://github.com/roleoroleo/yi-hack-Allwinner/releases)
+2. Download the latest release from the Releases page (Todo).
 3. Extract the contents of the archive to the root of your SD card.
 4. Insert the SD Card and reboot the camera
 5. Wait for the camera to update. It will reboot a couple of times as the camera is rooted and the new firmware is applied. It can take up to an hour to update. Once the light is solid blue for at least a minute it is complete.
+6. Don't remove the microSD card (yes this hack requires a dedicated microSD card).
 
 
 ## Contributing and Bug Reports
@@ -105,6 +107,12 @@ If you want to build your own firmware, clone this git and compile using a linux
 3. Init modules: `git submodule update --init`
 4. Compile: `./scripts/compile.sh`
 5. Pack the firmware: `./scripts/pack_fw.all.sh`
+
+
+## Unbricking
+
+If your camera doesn't start, no panic. This hack is not a permanent change, remove your SD card and the cam will come back to the original state.
+If the camera still won't start, try the "Unbrick the cam" procedure (Todo).
 
 ----
 

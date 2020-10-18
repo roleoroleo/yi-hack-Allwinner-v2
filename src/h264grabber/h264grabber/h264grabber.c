@@ -30,9 +30,9 @@
 #include <sys/mman.h>
 #include <getopt.h>
 
-#define BUF_OFFSET 300
-#define BUF_SIZE 1786156
-#define FRAME_HEADER_SIZE 22
+#define BUF_OFFSET 368
+#define BUF_SIZE 1786224
+#define FRAME_HEADER_SIZE 28
 
 #define USLEEP 100000
 
@@ -270,9 +270,9 @@ int main(int argc, char **argv) {
             write_enable = 1;
             sync_lost = 0;
             buf_idx_1 = cb_move(buf_idx_1, - (6 + FRAME_HEADER_SIZE));
-            if (buf_idx_1[17] == 8) {
+            if (buf_idx_1[21] == 8) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17] == 4) {
+            } else if (buf_idx_1[21] == 4) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;
@@ -280,7 +280,7 @@ int main(int argc, char **argv) {
             if (frame_res == resolution) {
                 cb_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
                 frame_len -= 6;                                                              // -6 only for SPS
-                frame_counter = (int) buf_idx_1[18] + (int) buf_idx_1[19] *256;
+                frame_counter = (int) buf_idx_1[22] + (int) buf_idx_1[23] *256;
                 buf_idx_1 = cb_move(buf_idx_1, 6 + FRAME_HEADER_SIZE);
                 buf_idx_start = buf_idx_1;
                 if (debug) fprintf(stderr, "SPS detected - frame_res: %d - frame_len: %d - frame_counter: %d\n", frame_res, frame_len, frame_counter);
@@ -293,16 +293,16 @@ int main(int argc, char **argv) {
             // PPS, IDR and PFR frames
             write_enable = 1;
             buf_idx_1 = cb_move(buf_idx_1, -FRAME_HEADER_SIZE);
-            if (buf_idx_1[17] == 8) {
+            if (buf_idx_1[21] == 8) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17] == 4) {
+            } else if (buf_idx_1[21] == 4) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;
             }
             if (frame_res == resolution) {
                 cb_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
-                frame_counter = (int) buf_idx_1[18] + (int) buf_idx_1[19] *256;
+                frame_counter = (int) buf_idx_1[22] + (int) buf_idx_1[23] *256;
                 buf_idx_1 = cb_move(buf_idx_1, FRAME_HEADER_SIZE);
                 buf_idx_start = buf_idx_1;
                 if (debug) fprintf(stderr, "frame detected - frame_res: %d - frame_len: %d - frame_counter: %d\n", frame_res, frame_len, frame_counter);

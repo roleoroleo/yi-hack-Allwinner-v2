@@ -29,9 +29,9 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#define BUF_OFFSET 300
-#define BUF_SIZE 1786156
-#define FRAME_HEADER_SIZE 22
+#define BUF_OFFSET 368
+#define BUF_SIZE 1786224
+#define FRAME_HEADER_SIZE 28
 
 #define USLEEP 100000
 

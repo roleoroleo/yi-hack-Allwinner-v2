@@ -7,6 +7,7 @@ cd $SCRIPT_DIR
 mkdir -p ../../build/yi-hack/bin
 mkdir -p ../../build/yi-hack/usr/bin
 mkdir -p ../../build/yi-hack/usr/sbin
+cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/base64
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/gzip
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/hostname
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/tar

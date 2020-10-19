@@ -1,7 +1,7 @@
 ## This fw is work in progress.
 
 <p align="center">
-	<img height="200" src="https://user-images.githubusercontent.com/39277388/80304933-cb6f7400-87b9-11ea-878b-75e48779e997.png">
+	<img height="200" src="https://user-images.githubusercontent.com/39277388/96489837-43d26180-1240-11eb-9d0e-5cfa84040fe1.png">
 </p>
 
 yi-hack-Allwinner is a modification of the firmware for the Allwinner-based Yi Camera platform.
@@ -28,7 +28,7 @@ yi-hack-Allwinner is a modification of the firmware for the Allwinner-based Yi C
 2. Download the latest release from the Releases page (Todo).
 3. Extract the contents of the archive to the root of your SD card.
 4. Insert the SD Card and reboot the camera
-5. Wait for the camera to update. It will reboot a couple of times as the camera is rooted and the new firmware is applied. It can take up to an hour to update. Once the light is solid blue for at least a minute it is complete.
+5. Wait for the camera to update. It will reboot a couple of times as the camera is rooted and the new firmware is applied. Once the light is solid blue for at least a minute it is complete.
 6. Don't remove the microSD card (yes this hack requires a dedicated microSD card).
 
 
@@ -67,12 +67,12 @@ This custom firmware contains features replicated from the [yi-hack-MStar](https
     - ir led
     - rotate
   - Management of motion detect events and videos through a web page.
-  - View recorded video through a web page (thanks to @BenjaminFaal)
+  - View recorded video through a web page (thanks to @BenjaminFaal).
   - PTZ support through a web page (if the cam supports it).
   - The possibility to disable all the cloud features.
-  - Swap File on SD
-  - Online firmware upgrade
-  - Load/save/reset configuration
+  - Swap File on SD.
+  - Online firmware upgrade (Todo).
+  - Load/save/reset configuration.
 
 
 ## Performance

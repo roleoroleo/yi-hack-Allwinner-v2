@@ -250,9 +250,9 @@ void *capture(void *ptr)
             // SPS frame
             write_enable = 1;
             buf_idx_1 = cb_move(buf_idx_1, - (6 + FRAME_HEADER_SIZE));
-            if (buf_idx_1[17] == 8) {
+            if (buf_idx_1[21] == 8) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17] == 4) {
+            } else if (buf_idx_1[21] == 4) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;
@@ -269,9 +269,9 @@ void *capture(void *ptr)
             // PPS, IDR and PFR frames
             write_enable = 1;
             buf_idx_1 = cb_move(buf_idx_1, -FRAME_HEADER_SIZE);
-            if (buf_idx_1[17] == 8) {
+            if (buf_idx_1[21] == 8) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17] == 4) {
+            } else if (buf_idx_1[21] == 4) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;

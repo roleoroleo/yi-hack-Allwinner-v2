@@ -36,9 +36,9 @@
 #include <getopt.h>
 
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
-#define BUF_OFFSET 300
-#define BUF_SIZE 1786156
-#define FRAME_HEADER_SIZE 22
+#define BUF_OFFSET 368
+#define BUF_SIZE 1786224
+#define FRAME_HEADER_SIZE 28
 
 #define MILLIS_10 10000
 #define MILLIS_25 25000

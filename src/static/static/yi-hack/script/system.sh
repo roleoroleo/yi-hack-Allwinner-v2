@@ -183,6 +183,14 @@ fi
 
 if [[ $(get_config SSHD) == "yes" ]] ; then
     mkdir -p $YI_HACK_PREFIX/etc/dropbear
+    if [ ! -f $YI_HACK_PREFIX/etc/dropbear/dropbear_ecdsa_host_key ]; then
+        dropbearkey -t ecdsa -f /tmp/dropbear_ecdsa_host_key
+        mv /tmp/dropbear_ecdsa_host_key $YI_HACK_PREFIX/etc/dropbear/
+    fi
+    # Restore keys
+#    mkdir -p /etc/dropbear
+#    cp -f $SONOFF_HACK_PREFIX/etc/dropbear/* /etc/dropbear/
+    chmod 0600 $YI_HACK_PREFIX/etc/dropbear/*
     dropbear -R -B
 fi
 

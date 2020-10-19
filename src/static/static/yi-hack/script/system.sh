@@ -39,9 +39,9 @@ rm -f $YI_HACK_PREFIX/bin/core
 rm -f $YI_HACK_PREFIX/www/cgi-bin/core
 #rm -f $YI_PREFIX/core
 
-if [ ! -L /tmp/sd/yi-hack-v4 ]; then
-    ln -s $YI_HACK_PREFIX /tmp/sd/yi-hack-v4
-fi
+#if [ ! -L /tmp/sd/yi-hack-v4 ]; then
+#    ln -s $YI_HACK_PREFIX /tmp/sd/yi-hack-v4
+#fi
 
 touch /tmp/httpd.conf
 

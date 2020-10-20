@@ -168,6 +168,7 @@ void *capture(void *ptr)
     int i;
     cb_output_buffer *cb_current;
     int write_enable = 0;
+    int first_sps_found = 0;
 
     // Opening an existing file
     fFid = fopen(input_buffer.filename, "r");
@@ -222,7 +223,7 @@ void *capture(void *ptr)
         }
 //        if (debug) fprintf(stderr, "found buf_idx_2: %08x\n", (unsigned int) buf_idx_2);
 
-        if (write_enable) {
+        if ((write_enable) && (first_sps_found)) {
             if (frame_res == RESOLUTION_LOW) {
                 cb_current = &output_buffer_low;
             } else if (frame_res == RESOLUTION_HIGH) {
@@ -249,6 +250,7 @@ void *capture(void *ptr)
         if (cb_memcmp(SPS_COMMON, buf_idx_1, sizeof(SPS_COMMON)) == 0) {
             // SPS frame
             write_enable = 1;
+            first_sps_found = 1;
             buf_idx_1 = cb_move(buf_idx_1, - (6 + FRAME_HEADER_SIZE));
             if (buf_idx_1[21] == 8) {
                 frame_res = RESOLUTION_LOW;

@@ -6,7 +6,7 @@ diff -Naur mqttv4.ori/include/mqttv4.h mqttv4/include/mqttv4.h
  
  #define MQTTV4_VERSION      "0.0.3"
 -#define MQTTV4_CONF_FILE    "/home/yi-hack-v4/etc/mqttv4.conf"
-+#define MQTTV4_CONF_FILE    "/home/yi-hack/etc/mqttv4.conf"
++#define MQTTV4_CONF_FILE    "/tmp/sd/yi-hack/etc/mqttv4.conf"
  
  typedef struct
  {

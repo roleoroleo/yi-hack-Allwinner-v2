@@ -30,9 +30,18 @@
 #include <sys/mman.h>
 #include <getopt.h>
 
-#define BUF_OFFSET 368
-#define BUF_SIZE 1786224
-#define FRAME_HEADER_SIZE 28
+#define Y21GA 0
+#define R30GB 1
+
+#define BUF_OFFSET_Y21GA 368
+#define BUF_SIZE_Y21GA 1786224
+#define FRAME_HEADER_SIZE_Y21GA 28
+#define DATA_OFFSET_Y21GA 4
+
+#define BUF_OFFSET_R30GB 300
+#define BUF_SIZE_R30GB 1786156
+#define FRAME_HEADER_SIZE_R30GB 22
+#define DATA_OFFSET_R30GB 0
 
 #define USLEEP 100000
 
@@ -40,6 +49,11 @@
 #define RESOLUTION_HIGH 1080
 
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
+
+int BUF_OFFSET;
+int BUF_SIZE;
+int FRAME_HEADER_SIZE;
+int DATA_OFFSET;
 
 unsigned char IDR[]               = {0x65, 0xB8};
 unsigned char NAL_START[]         = {0x00, 0x00, 0x00, 0x01};
@@ -119,6 +133,8 @@ void cb_memcpy(unsigned char *dest, unsigned char *src, size_t n)
 void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-r RES] [-d]\n\n", progname);
+    fprintf(stderr, "\t-m MODEL, --model MODEL\n");
+    fprintf(stderr, "\t\tset model: y21ga or r30gb (default y21ga)\n");
     fprintf(stderr, "\t-r RES, --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: LOW or HIGH (default HIGH)\n");
     fprintf(stderr, "\t-d, --debug\n");
@@ -144,9 +160,15 @@ int main(int argc, char **argv) {
     resolution = RESOLUTION_HIGH;
     debug = 0;
 
+    BUF_OFFSET = BUF_OFFSET_Y21GA;
+    BUF_SIZE = BUF_SIZE_Y21GA;
+    FRAME_HEADER_SIZE = FRAME_HEADER_SIZE_Y21GA;
+    DATA_OFFSET = DATA_OFFSET_Y21GA;
+
     while (1) {
         static struct option long_options[] =
         {
+            {"model",  required_argument, 0, 'm'},
             {"resolution",  required_argument, 0, 'r'},
             {"debug",  no_argument, 0, 'd'},
             {"help",  no_argument, 0, 'h'},
@@ -155,7 +177,7 @@ int main(int argc, char **argv) {
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "r:dh",
+        c = getopt_long (argc, argv, "m:r:dh",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -163,6 +185,20 @@ int main(int argc, char **argv) {
             break;
 
         switch (c) {
+        case 'm':
+            if (strcasecmp("y21ga", optarg) == 0) {
+                BUF_OFFSET = BUF_OFFSET_Y21GA;
+                BUF_SIZE = BUF_SIZE_Y21GA;
+                FRAME_HEADER_SIZE = FRAME_HEADER_SIZE_Y21GA;
+                DATA_OFFSET = DATA_OFFSET_Y21GA;
+            } else if (strcasecmp("r30gb", optarg) == 0) {
+                BUF_OFFSET = BUF_OFFSET_R30GB;
+                BUF_SIZE = BUF_SIZE_R30GB;
+                FRAME_HEADER_SIZE = FRAME_HEADER_SIZE_R30GB;
+                DATA_OFFSET = DATA_OFFSET_R30GB;
+            }
+            break;
+
         case 'r':
             if (strcasecmp("low", optarg) == 0) {
                 resolution = RESOLUTION_LOW;
@@ -270,9 +306,9 @@ int main(int argc, char **argv) {
             write_enable = 1;
             sync_lost = 0;
             buf_idx_1 = cb_move(buf_idx_1, - (6 + FRAME_HEADER_SIZE));
-            if (buf_idx_1[21] == 8) {
+            if (buf_idx_1[17 + DATA_OFFSET] == 8) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[21] == 4) {
+            } else if (buf_idx_1[17 + DATA_OFFSET] == 4) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;
@@ -280,7 +316,7 @@ int main(int argc, char **argv) {
             if (frame_res == resolution) {
                 cb_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
                 frame_len -= 6;                                                              // -6 only for SPS
-                frame_counter = (int) buf_idx_1[22] + (int) buf_idx_1[23] *256;
+                frame_counter = (int) buf_idx_1[18 + DATA_OFFSET] + (int) buf_idx_1[19 + DATA_OFFSET] *256;
                 buf_idx_1 = cb_move(buf_idx_1, 6 + FRAME_HEADER_SIZE);
                 buf_idx_start = buf_idx_1;
                 if (debug) fprintf(stderr, "SPS detected - frame_res: %d - frame_len: %d - frame_counter: %d\n", frame_res, frame_len, frame_counter);
@@ -293,16 +329,16 @@ int main(int argc, char **argv) {
             // PPS, IDR and PFR frames
             write_enable = 1;
             buf_idx_1 = cb_move(buf_idx_1, -FRAME_HEADER_SIZE);
-            if (buf_idx_1[21] == 8) {
+            if (buf_idx_1[17 + DATA_OFFSET] == 8) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[21] == 4) {
+            } else if (buf_idx_1[17 + DATA_OFFSET] == 4) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;
             }
             if (frame_res == resolution) {
                 cb_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
-                frame_counter = (int) buf_idx_1[22] + (int) buf_idx_1[23] *256;
+                frame_counter = (int) buf_idx_1[18 + DATA_OFFSET] + (int) buf_idx_1[19 + DATA_OFFSET] *256;
                 buf_idx_1 = cb_move(buf_idx_1, FRAME_HEADER_SIZE);
                 buf_idx_start = buf_idx_1;
                 if (debug) fprintf(stderr, "frame detected - frame_res: %d - frame_len: %d - frame_counter: %d\n", frame_res, frame_len, frame_counter);

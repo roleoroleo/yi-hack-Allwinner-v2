@@ -37,6 +37,11 @@
 
 #include "rRTSPServer.h"
 
+int BUF_OFFSET;
+int BUF_SIZE;
+int FRAME_HEADER_SIZE;
+int DATA_OFFSET;
+
 unsigned char IDR[]               = {0x65, 0xB8};
 unsigned char NAL_START[]         = {0x00, 0x00, 0x00, 0x01};
 unsigned char IDR_START[]         = {0x00, 0x00, 0x00, 0x01, 0x65, 0x88};
@@ -53,6 +58,7 @@ unsigned char SPS_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0
 
 //unsigned char *addr;                      /* Pointer to shared memory region (header) */
 int debug;                                  /* Set to 1 to debug this .c */
+int model;
 int resolution;
 int audio;
 int port;
@@ -168,7 +174,7 @@ void *capture(void *ptr)
     int i;
     cb_output_buffer *cb_current;
     int write_enable = 0;
-    int first_sps_found = 0;
+    int sync_lost = 1;
 
     // Opening an existing file
     fFid = fopen(input_buffer.filename, "r");
@@ -223,7 +229,7 @@ void *capture(void *ptr)
         }
 //        if (debug) fprintf(stderr, "found buf_idx_2: %08x\n", (unsigned int) buf_idx_2);
 
-        if ((write_enable) && (first_sps_found)) {
+        if ((write_enable) && (!sync_lost)) {
             if (frame_res == RESOLUTION_LOW) {
                 cb_current = &output_buffer_low;
             } else if (frame_res == RESOLUTION_HIGH) {
@@ -250,11 +256,11 @@ void *capture(void *ptr)
         if (cb_memcmp(SPS_COMMON, buf_idx_1, sizeof(SPS_COMMON)) == 0) {
             // SPS frame
             write_enable = 1;
-            first_sps_found = 1;
+            sync_lost = 0;
             buf_idx_1 = cb_move(buf_idx_1, - (6 + FRAME_HEADER_SIZE));
-            if (buf_idx_1[21] == 8) {
+            if (buf_idx_1[17 + DATA_OFFSET] == 8) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[21] == 4) {
+            } else if (buf_idx_1[17 + DATA_OFFSET] == 4) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;
@@ -271,9 +277,9 @@ void *capture(void *ptr)
             // PPS, IDR and PFR frames
             write_enable = 1;
             buf_idx_1 = cb_move(buf_idx_1, -FRAME_HEADER_SIZE);
-            if (buf_idx_1[21] == 8) {
+            if (buf_idx_1[17 + DATA_OFFSET] == 8) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[21] == 4) {
+            } else if (buf_idx_1[17 + DATA_OFFSET] == 4) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;
@@ -344,6 +350,8 @@ static void announceStream(RTSPServer* rtspServer, ServerMediaSession* sms, char
 void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-r RES] [-p PORT] [-d]\n\n", progname);
+    fprintf(stderr, "\t-m MODEL,  --model MODEL\n");
+    fprintf(stderr, "\t\tset model: y21ga or r30gb (default y21ga)\n");
     fprintf(stderr, "\t-r RES,  --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: low, high or both (default high)\n");
     fprintf(stderr, "\t-a AUDIO,  --audio AUDIO\n");
@@ -373,6 +381,7 @@ int main(int argc, char** argv)
     struct stat stat_buffer;
 
     // Setting default
+    model = Y21GA;
     resolution = RESOLUTION_HIGH;
     audio = 1;
     port = 554;
@@ -381,6 +390,7 @@ int main(int argc, char** argv)
     while (1) {
         static struct option long_options[] =
         {
+            {"model",  required_argument, 0, 'm'},
             {"resolution",  required_argument, 0, 'r'},
             {"audio",  required_argument, 0, 'a'},
             {"port",  required_argument, 0, 'p'},
@@ -391,7 +401,7 @@ int main(int argc, char** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "r:a:p:dh",
+        c = getopt_long (argc, argv, "m:r:a:p:dh",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -399,6 +409,14 @@ int main(int argc, char** argv)
             break;
 
         switch (c) {
+        case 'm':
+            if (strcasecmp("y21ga", optarg) == 0) {
+                model = Y21GA;
+            } else if (strcasecmp("r30gb", optarg) == 0) {
+                model = R30GB;
+            }
+            break;
+
         case 'r':
             if (strcasecmp("low", optarg) == 0) {
                 resolution = RESOLUTION_LOW;
@@ -451,6 +469,15 @@ int main(int argc, char** argv)
     }
 
     // Get parameters from environment
+    str = getenv("RRTSP_MODEL");
+    if (str != NULL) {
+        if (strcasecmp("y21ga", str) == 0) {
+            model = Y21GA;
+        } else if (strcasecmp("r30gb", str) == 0) {
+            model = R30GB;
+        }
+    }
+
     str = getenv("RRTSP_RES");
     if (str != NULL) {
         if (strcasecmp("low", str) == 0) {
@@ -489,6 +516,18 @@ int main(int argc, char** argv)
     str = getenv("RRTSP_PWD");
     if ((str != NULL) && (strlen(str) < sizeof(pwd))) {
         strcpy(pwd, str);
+    }
+
+    if (model == Y21GA) {
+        BUF_OFFSET = BUF_OFFSET_Y21GA;
+        BUF_SIZE = BUF_SIZE_Y21GA;
+        FRAME_HEADER_SIZE = FRAME_HEADER_SIZE_Y21GA;
+        DATA_OFFSET = DATA_OFFSET_Y21GA;
+    } else if (model == R30GB) {
+        BUF_OFFSET = BUF_OFFSET_R30GB;
+        BUF_SIZE = BUF_SIZE_R30GB;
+        FRAME_HEADER_SIZE = FRAME_HEADER_SIZE_R30GB;
+        DATA_OFFSET = DATA_OFFSET_R30GB;
     }
 
     // If fifo doesn't exist, disable audio

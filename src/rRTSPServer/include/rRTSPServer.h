@@ -36,9 +36,19 @@
 #include <getopt.h>
 
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
-#define BUF_OFFSET 368
-#define BUF_SIZE 1786224
-#define FRAME_HEADER_SIZE 28
+
+#define Y21GA 0
+#define R30GB 1
+
+#define BUF_OFFSET_Y21GA 368
+#define BUF_SIZE_Y21GA 1786224
+#define FRAME_HEADER_SIZE_Y21GA 28
+#define DATA_OFFSET_Y21GA 4
+
+#define BUF_OFFSET_R30GB 300
+#define BUF_SIZE_R30GB 1786156
+#define FRAME_HEADER_SIZE_R30GB 22
+#define DATA_OFFSET_R30GB 0
 
 #define MILLIS_10 10000
 #define MILLIS_25 25000

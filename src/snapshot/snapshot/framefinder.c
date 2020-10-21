@@ -29,9 +29,16 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#define BUF_OFFSET 368
-#define BUF_SIZE 1786224
-#define FRAME_HEADER_SIZE 28
+#define Y21GA 0
+#define R30GB 1
+
+#define BUF_OFFSET_Y21GA 368
+#define BUF_SIZE_Y21GA 1786224
+#define FRAME_HEADER_SIZE_Y21GA 28
+
+#define BUF_OFFSET_R30GB 300
+#define BUF_SIZE_R30GB 1786156
+#define FRAME_HEADER_SIZE_R30GB 22
 
 #define USLEEP 100000
 
@@ -54,6 +61,10 @@ typedef struct {
     int idr_addr;
     int idr_len;
 } frame;
+
+int BUF_OFFSET;
+int BUF_SIZE;
+int FRAME_HEADER_SIZE;
 
 unsigned char IDR[]               = {0x65, 0xB8};
 unsigned char NAL_START[]         = {0x00, 0x00, 0x00, 0x01};
@@ -143,6 +154,21 @@ int main(int argc, char **argv) {
 
     frame hl_frame[2], hl_frame_old[2];
 
+    BUF_OFFSET = BUF_OFFSET_Y21GA;
+    BUF_SIZE = BUF_SIZE_Y21GA;
+    FRAME_HEADER_SIZE = FRAME_HEADER_SIZE_Y21GA;
+    if (argc >= 1) {
+        if (strcasecmp("y21ga", argv[1]) == 0) {
+            BUF_OFFSET = BUF_OFFSET_Y21GA;
+            BUF_SIZE = BUF_SIZE_Y21GA;
+            FRAME_HEADER_SIZE = FRAME_HEADER_SIZE_Y21GA;
+        } else if (strcasecmp("r30gb", argv[1]) == 0) {
+            BUF_OFFSET = BUF_OFFSET_R30GB;
+            BUF_SIZE = BUF_SIZE_R30GB;
+            FRAME_HEADER_SIZE = FRAME_HEADER_SIZE_R30GB;
+        }
+    }
+
     // Opening an existing file
     fFid = fopen(BUFFER_FILE, "r") ;
     if ( fFid == NULL ) {
@@ -155,7 +181,7 @@ int main(int argc, char **argv) {
     if (addr == MAP_FAILED) {
         if (debug) fprintf(stderr, "error mapping file %s\n", BUFFER_FILE);
             return -2;
-        }
+    }
     if (debug) fprintf(stderr, "mapping file %s, size %d, to %08x\n", BUFFER_FILE, BUF_SIZE, (unsigned int) addr);
 
     // Closing the file

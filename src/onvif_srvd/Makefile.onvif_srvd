@@ -8,59 +8,60 @@ DAEMON_NO_CHDIR       = 1
 DAEMON_NO_CLOSE_STDIO = 0
 
 
-
-GSOAP_DIR         = ./gsoap-2.8/gsoap
-GSOAP_CUSTOM_DIR  = ./gsoap-2.8/gsoap/custom
+GSOAP_VERSION     = 2.8.92
+GSOAP_INSTALL_DIR = ./gsoap-2.8
+GSOAP_DIR         = $(GSOAP_INSTALL_DIR)/gsoap
+GSOAP_CUSTOM_DIR  = $(GSOAP_DIR)/custom
 GSOAP_PLUGIN_DIR  = $(GSOAP_DIR)/plugin
 GSOAP_IMPORT_DIR  = $(GSOAP_DIR)/import
 OPENSSL_DIR       = ./openssl
 
 
-
 SOAPCPP2          = $(GSOAP_DIR)/src/soapcpp2
 WSDL2H            = $(GSOAP_DIR)/wsdl/wsdl2h
+GSOAP_CONFIGURE   = --disable-c-locale
 
 
 COMMON_DIR        = ./src
 GENERATED_DIR     = ./generated
 
 
-CFLAGS            = -DDAEMON_NAME='"$(DAEMON_NAME)"'
-CFLAGS           += -DDAEMON_MAJOR_VERSION=$(DAEMON_MAJOR_VERSION)
-CFLAGS           += -DDAEMON_MINOR_VERSION=$(DAEMON_MINOR_VERSION)
-CFLAGS           += -DDAEMON_PATCH_VERSION=$(DAEMON_PATCH_VERSION)
-CFLAGS           += -DDAEMON_PID_FILE_NAME='"$(DAEMON_PID_FILE_NAME)"'
-CFLAGS           += -DDAEMON_LOG_FILE_NAME='"$(DAEMON_LOG_FILE_NAME)"'
-CFLAGS           += -DDAEMON_NO_CHDIR=$(DAEMON_NO_CHDIR)
-CFLAGS           += -DDAEMON_NO_CLOSE_STDIO=$(DAEMON_NO_CLOSE_STDIO)
+CXXFLAGS          = -DDAEMON_NAME='"$(DAEMON_NAME)"'
+CXXFLAGS         += -DDAEMON_MAJOR_VERSION=$(DAEMON_MAJOR_VERSION)
+CXXFLAGS         += -DDAEMON_MINOR_VERSION=$(DAEMON_MINOR_VERSION)
+CXXFLAGS         += -DDAEMON_PATCH_VERSION=$(DAEMON_PATCH_VERSION)
+CXXFLAGS         += -DDAEMON_PID_FILE_NAME='"$(DAEMON_PID_FILE_NAME)"'
+CXXFLAGS         += -DDAEMON_LOG_FILE_NAME='"$(DAEMON_LOG_FILE_NAME)"'
+CXXFLAGS         += -DDAEMON_NO_CHDIR=$(DAEMON_NO_CHDIR)
+CXXFLAGS         += -DDAEMON_NO_CLOSE_STDIO=$(DAEMON_NO_CLOSE_STDIO)
 
-CFLAGS           += -I$(COMMON_DIR)
-CFLAGS           += -I$(GENERATED_DIR)
-CFLAGS           += -I$(GSOAP_DIR) -I$(GSOAP_CUSTOM_DIR) -I$(GSOAP_PLUGIN_DIR) -I$(GSOAP_IMPORT_DIR)
-CFLAGS           += -std=c++11 -O2  -Wall  -pipe
+CXXFLAGS         += -I$(COMMON_DIR)
+CXXFLAGS         += -I$(GENERATED_DIR)
+CXXFLAGS         += -I$(GSOAP_DIR) -I$(GSOAP_CUSTOM_DIR) -I$(GSOAP_PLUGIN_DIR) -I$(GSOAP_IMPORT_DIR)
+CXXFLAGS         += -std=c++11 -O2  -Wall  -pipe
 
-GCC              ?=  g++
-
-
+CXX              ?= g++
 
 
 
-# To build a daemon with WS-Security support, 
+
+
+# To build a daemon with WS-Security support,
 # call make with the WSSE_ON=1 parameter
 # example:
 # make WSSE_ON=1 all
 ifdef WSSE_ON
-CFLAGS       += -DWITH_OPENSSL -I$(OPENSSL_DIR)/include
-LDFLAGS      += openssl/libssl.a openssl/libcrypto.a -ldl
+CXXFLAGS        += -DWITH_OPENSSL -I$(OPENSSL_DIR)/include
+LDFLAGS         += openssl/libssl.a openssl/libcrypto.a -ldl
 
+WSSE_SOURCES     = $(GSOAP_PLUGIN_DIR)/wsseapi.c \
+                   $(GSOAP_PLUGIN_DIR)/mecevp.c  \
+                   $(GSOAP_PLUGIN_DIR)/smdevp.c  \
+                   $(GSOAP_PLUGIN_DIR)/wsaapi.c
 
-WSSE_SOURCES  = $(GSOAP_PLUGIN_DIR)/wsseapi.c \
-                $(GSOAP_PLUGIN_DIR)/mecevp.c  \
-                $(GSOAP_PLUGIN_DIR)/smdevp.c  \
-                $(GSOAP_PLUGIN_DIR)/wsaapi.c
-
-
-WSSE_IMPORT   = echo '\#import "wsse.h" ' >> $@
+WSSE_IMPORT      = echo '\#import "wsse.h" ' >> $@
+else
+GSOAP_CONFIGURE += --disable-ssl
 endif
 
 
@@ -125,14 +126,14 @@ all: debug release
 
 
 .PHONY: release
-release: CFLAGS := -s  $(CFLAGS)
+release: CXXFLAGS := -s  $(CXXFLAGS)
 release: $(DAEMON_NAME)
 
 
 
 .PHONY: debug
 debug: DAEMON_NO_CLOSE_STDIO = 1
-debug: CFLAGS := -DDEBUG  -g  $(CFLAGS)
+debug: CXXFLAGS := -DDEBUG  -g  $(CXXFLAGS)
 debug: $(DAEMON_NAME)_$(DEBUG_SUFFIX)
 
 
@@ -191,7 +192,7 @@ clean:
 .PHONY: distclean
 distclean: clean
 	-@rm -f -d -R SDK
-	-@rm -f -d -R gsoap-2.8
+	-@rm -f -d -R $(GSOAP_INSTALL_DIR)
 	-@rm -f RECV.log SENT.log TEST.log
 
 
@@ -202,7 +203,7 @@ distclean: clean
 	@echo "Generating dependencies..."
 	@for src in $(SOURCES) ; do \
         echo "  [depend]  $$src" ; \
-        $(GCC) $(CFLAGS) -MT ".depend $${src%.*}.o $${src%.*}_$(DEBUG_SUFFIX).o" -MM $$src >> .depend ; \
+        $(CXX) $(CXXFLAGS) -MT ".depend $${src%.*}.o $${src%.*}_$(DEBUG_SUFFIX).o" -MM $$src >> .depend ; \
     done
 
 
@@ -243,14 +244,14 @@ BUILD_ECHO = echo "\n  [build]  $@:"
 
 define build_object
     @$(BUILD_ECHO)
-    $(GCC) -c $< -o $@  $(CFLAGS)
+    $(CXX) -c $< -o $@  $(CXXFLAGS)
 endef
 
 
 
 define build_bin
     @$(BUILD_ECHO)
-    $(GCC)  $1 -o $@  $(CFLAGS) $(LDFLAGS)
+    $(CXX)  $1 -o $@  $(CXXFLAGS) $(LDFLAGS)
     @echo "\n---- Compiled $@ ver $(DAEMON_MAJOR_VERSION).$(DAEMON_MINOR_VERSION).$(DAEMON_PATCH_VERSION) ----\n"
 endef
 
@@ -261,19 +262,21 @@ define build_gsoap
     # get archive
     if [ ! -f SDK/gsoap.zip ]; then \
         mkdir -p SDK; \
-        wget -O ./SDK/gsoap.zip.tmp "https://sourceforge.net/projects/gsoap2/files/gsoap-2.8/gsoap_2.8.92.zip/download" && \
+        wget -O ./SDK/gsoap.zip.tmp "https://sourceforge.net/projects/gsoap2/files/gsoap-2.8/gsoap_$(GSOAP_VERSION).zip/download"   || \
+        wget -O ./SDK/gsoap.zip.tmp "https://sourceforge.net/projects/gsoap2/files/oldreleases/gsoap_$(GSOAP_VERSION).zip/download" || \
+        wget -O ./SDK/gsoap.zip.tmp "https://master.dl.sourceforge.net/project/gsoap2/oldreleases/gsoap_$(GSOAP_VERSION).zip"       && \
         mv ./SDK/gsoap.zip.tmp ./SDK/gsoap.zip; \
     fi
 
     # unzip
-    if [ ! -f gsoap-2.8/README.txt ]; then \
+    if [ ! -f $(GSOAP_INSTALL_DIR)/README.txt ]; then \
          unzip ./SDK/gsoap.zip; \
     fi
 
     # build
     if [ ! -f $(SOAPCPP2) ] || [ ! -f $(WSDL2H) ]; then \
-         cd gsoap-2.8; \
-         ./configure --disable-c-locale && \
+         cd $(GSOAP_INSTALL_DIR); \
+         ./configure $(GSOAP_CONFIGURE) && \
          make -j1; \
          cd ..;\
     fi

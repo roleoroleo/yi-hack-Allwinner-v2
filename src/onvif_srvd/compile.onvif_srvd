@@ -8,7 +8,7 @@ export BUILD=x86_64-pc-linux-gnu
 
 export CROSSPREFIX=${CROSS}-
 
-export GCC=${CROSSPREFIX}g++
+export CXX=${CROSSPREFIX}g++
 
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR

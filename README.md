@@ -90,6 +90,8 @@ Currently this project supports only the following cameras:
 
 | Camera | Firmware | File prefix | Remarks |
 | --- | --- | --- | --- |
+| Yi 1080p Home BFUS | 9.0.19* | y21ga | --- |
+| Yi 1080p Dome * | 9.0.05* | r30gb | --- |
 
 USE AT YOUR OWN RISK.
 

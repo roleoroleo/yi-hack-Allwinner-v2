@@ -236,7 +236,7 @@ if [[ $(get_config RTSP) == "yes" ]] ; then
     $YI_HACK_PREFIX/script/wd_rtsp.sh &
 fi
 
-SERIAL_NUMBER=$(dd bs=1 count=20 skip=592 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
+SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
 HW_ID=$(dd bs=1 count=4 skip=592 if=/tmp/mmap.info 2>/dev/null | cut -c1-4)
 
 if [[ $(get_config ONVIF) == "yes" ]] ; then

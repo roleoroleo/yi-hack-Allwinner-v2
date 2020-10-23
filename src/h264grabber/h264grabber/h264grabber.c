@@ -50,10 +50,10 @@
 
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
 
-int BUF_OFFSET;
-int BUF_SIZE;
-int FRAME_HEADER_SIZE;
-int DATA_OFFSET;
+int buf_offset;
+int buf_size;
+int frame_header_size;
+int data_offset;
 
 unsigned char IDR[]               = {0x65, 0xB8};
 unsigned char NAL_START[]         = {0x00, 0x00, 0x00, 0x01};
@@ -76,17 +76,17 @@ int resolution;
 unsigned char * cb_memmem(unsigned char *src, int src_len, unsigned char *what, int what_len)
 {
     unsigned char *p;
-    unsigned char *buf = addr + BUF_OFFSET;
-    int buf_size = BUF_SIZE;
+    unsigned char *buffer = addr + buf_offset;
+    int buffer_size = buf_size;
 
     if (src_len >= 0) {
         p = (unsigned char*) memmem(src, src_len, what, what_len);
     } else {
         // From src to the end of the buffer
-        p = (unsigned char*) memmem(src, buf + buf_size - src, what, what_len);
+        p = (unsigned char*) memmem(src, buffer + buffer_size - src, what, what_len);
         if (p == NULL) {
             // And from the start of the buffer size src_len
-            p = (unsigned char*) memmem(buf, src + src_len - buf, what, what_len);
+            p = (unsigned char*) memmem(buffer, src + src_len - buffer, what, what_len);
         }
     }
     return p;
@@ -95,10 +95,10 @@ unsigned char * cb_memmem(unsigned char *src, int src_len, unsigned char *what, 
 unsigned char * cb_move(unsigned char *buf, int offset)
 {
     buf += offset;
-    if ((offset > 0) && (buf > addr + BUF_SIZE))
-        buf -= (BUF_SIZE - BUF_OFFSET);
-    if ((offset < 0) && (buf < addr + BUF_OFFSET))
-        buf += (BUF_SIZE - BUF_OFFSET);
+    if ((offset > 0) && (buf > addr + buf_size))
+        buf -= (buf_size - buf_offset);
+    if ((offset < 0) && (buf < addr + buf_offset))
+        buf += (buf_size - buf_offset);
 
     return buf;
 }
@@ -108,10 +108,10 @@ int cb_memcmp(unsigned char *str1, unsigned char *str2, size_t n)
 {
     int ret;
 
-    if (str2 + n > addr + BUF_SIZE) {
-        ret = memcmp(str1, str2, addr + BUF_SIZE - str2);
+    if (str2 + n > addr + buf_size) {
+        ret = memcmp(str1, str2, addr + buf_size - str2);
         if (ret != 0) return ret;
-        ret = memcmp(str1 + (addr + BUF_SIZE - str2), addr + BUF_OFFSET, n - (addr + BUF_SIZE - str2));
+        ret = memcmp(str1 + (addr + buf_size - str2), addr + buf_offset, n - (addr + buf_size - str2));
     } else {
         ret = memcmp(str1, str2, n);
     }
@@ -122,9 +122,9 @@ int cb_memcmp(unsigned char *str1, unsigned char *str2, size_t n)
 // The second argument is the circular buffer
 void cb_memcpy(unsigned char *dest, unsigned char *src, size_t n)
 {
-    if (src + n > addr + BUF_SIZE) {
-        memcpy(dest, src, addr + BUF_SIZE - src);
-        memcpy(dest + (addr + BUF_SIZE - src), addr + BUF_OFFSET, n - (addr + BUF_SIZE - src));
+    if (src + n > addr + buf_size) {
+        memcpy(dest, src, addr + buf_size - src);
+        memcpy(dest + (addr + buf_size - src), addr + buf_offset, n - (addr + buf_size - src));
     } else {
         memcpy(dest, src, n);
     }
@@ -160,10 +160,10 @@ int main(int argc, char **argv) {
     resolution = RESOLUTION_HIGH;
     debug = 0;
 
-    BUF_OFFSET = BUF_OFFSET_Y21GA;
-    BUF_SIZE = BUF_SIZE_Y21GA;
-    FRAME_HEADER_SIZE = FRAME_HEADER_SIZE_Y21GA;
-    DATA_OFFSET = DATA_OFFSET_Y21GA;
+    buf_offset = BUF_OFFSET_Y21GA;
+    buf_size = BUF_SIZE_Y21GA;
+    frame_header_size = FRAME_HEADER_SIZE_Y21GA;
+    data_offset = DATA_OFFSET_Y21GA;
 
     while (1) {
         static struct option long_options[] =
@@ -187,15 +187,15 @@ int main(int argc, char **argv) {
         switch (c) {
         case 'm':
             if (strcasecmp("y21ga", optarg) == 0) {
-                BUF_OFFSET = BUF_OFFSET_Y21GA;
-                BUF_SIZE = BUF_SIZE_Y21GA;
-                FRAME_HEADER_SIZE = FRAME_HEADER_SIZE_Y21GA;
-                DATA_OFFSET = DATA_OFFSET_Y21GA;
+                buf_offset = BUF_OFFSET_Y21GA;
+                buf_size = BUF_SIZE_Y21GA;
+                frame_header_size = FRAME_HEADER_SIZE_Y21GA;
+                data_offset = DATA_OFFSET_Y21GA;
             } else if (strcasecmp("r30gb", optarg) == 0) {
-                BUF_OFFSET = BUF_OFFSET_R30GB;
-                BUF_SIZE = BUF_SIZE_R30GB;
-                FRAME_HEADER_SIZE = FRAME_HEADER_SIZE_R30GB;
-                DATA_OFFSET = DATA_OFFSET_R30GB;
+                buf_offset = BUF_OFFSET_R30GB;
+                buf_size = BUF_SIZE_R30GB;
+                frame_header_size = FRAME_HEADER_SIZE_R30GB;
+                data_offset = DATA_OFFSET_R30GB;
             }
             break;
 
@@ -243,25 +243,25 @@ int main(int argc, char **argv) {
     }
 
     // Map file to memory
-    addr = (unsigned char*) mmap(NULL, BUF_SIZE, PROT_READ, MAP_SHARED, fileno(fFid), 0);
+    addr = (unsigned char*) mmap(NULL, buf_size, PROT_READ, MAP_SHARED, fileno(fFid), 0);
     if (addr == MAP_FAILED) {
         if (debug) fprintf(stderr, "error mapping file %s\n", BUFFER_FILE);
             return -2;
         }
-    if (debug) fprintf(stderr, "mapping file %s, size %d, to %08x\n", BUFFER_FILE, BUF_SIZE, (unsigned int) addr);
+    if (debug) fprintf(stderr, "mapping file %s, size %d, to %08x\n", BUFFER_FILE, buf_size, (unsigned int) addr);
 
     // Closing the file
     if (debug) fprintf(stderr, "closing the file %s\n", BUFFER_FILE) ;
     fclose(fFid) ;
 
     memcpy(&i, addr + 16, sizeof(i));
-    buf_idx_w = addr + BUF_OFFSET + i;
+    buf_idx_w = addr + buf_offset + i;
     buf_idx_1 = buf_idx_w;
 
     // Infinite loop
     while (1) {
         memcpy(&i, addr + 16, sizeof(i));
-        buf_idx_w = addr + BUF_OFFSET + i;
+        buf_idx_w = addr + buf_offset + i;
 //        if (debug) fprintf(stderr, "buf_idx_w: %08x\n", (unsigned int) buf_idx_w);
         buf_idx_tmp = cb_memmem(buf_idx_1, buf_idx_w - buf_idx_1, NAL_START, sizeof(NAL_START));
         if (buf_idx_tmp == NULL) {
@@ -283,9 +283,9 @@ int main(int argc, char **argv) {
 
         if ((write_enable) && (!sync_lost)) {
             tb = time(NULL);
-            if (buf_idx_start + frame_len > addr + BUF_SIZE) {
-                fwrite(buf_idx_start, 1, addr + BUF_SIZE - buf_idx_start, stdout);
-                fwrite(addr + BUF_OFFSET, 1, frame_len - (addr + BUF_SIZE - buf_idx_start), stdout);
+            if (buf_idx_start + frame_len > addr + buf_size) {
+                fwrite(buf_idx_start, 1, addr + buf_size - buf_idx_start, stdout);
+                fwrite(addr + buf_offset, 1, frame_len - (addr + buf_size - buf_idx_start), stdout);
             } else {
                 fwrite(buf_idx_start, 1, frame_len, stdout);
             }
@@ -305,10 +305,10 @@ int main(int argc, char **argv) {
             // SPS frame
             write_enable = 1;
             sync_lost = 0;
-            buf_idx_1 = cb_move(buf_idx_1, - (6 + FRAME_HEADER_SIZE));
-            if (buf_idx_1[17 + DATA_OFFSET] == 8) {
+            buf_idx_1 = cb_move(buf_idx_1, - (6 + frame_header_size));
+            if (buf_idx_1[17 + data_offset] == 8) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17 + DATA_OFFSET] == 4) {
+            } else if (buf_idx_1[17 + data_offset] == 4) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;
@@ -316,8 +316,8 @@ int main(int argc, char **argv) {
             if (frame_res == resolution) {
                 cb_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
                 frame_len -= 6;                                                              // -6 only for SPS
-                frame_counter = (int) buf_idx_1[18 + DATA_OFFSET] + (int) buf_idx_1[19 + DATA_OFFSET] *256;
-                buf_idx_1 = cb_move(buf_idx_1, 6 + FRAME_HEADER_SIZE);
+                frame_counter = (int) buf_idx_1[18 + data_offset] + (int) buf_idx_1[19 + data_offset] *256;
+                buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
                 buf_idx_start = buf_idx_1;
                 if (debug) fprintf(stderr, "SPS detected - frame_res: %d - frame_len: %d - frame_counter: %d\n", frame_res, frame_len, frame_counter);
             } else {
@@ -328,18 +328,18 @@ int main(int argc, char **argv) {
                         (cb_memcmp(PFR_START, buf_idx_1, sizeof(PFR_START)) == 0)) {
             // PPS, IDR and PFR frames
             write_enable = 1;
-            buf_idx_1 = cb_move(buf_idx_1, -FRAME_HEADER_SIZE);
-            if (buf_idx_1[17 + DATA_OFFSET] == 8) {
+            buf_idx_1 = cb_move(buf_idx_1, -frame_header_size);
+            if (buf_idx_1[17 + data_offset] == 8) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17 + DATA_OFFSET] == 4) {
+            } else if (buf_idx_1[17 + data_offset] == 4) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;
             }
             if (frame_res == resolution) {
                 cb_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
-                frame_counter = (int) buf_idx_1[18 + DATA_OFFSET] + (int) buf_idx_1[19 + DATA_OFFSET] *256;
-                buf_idx_1 = cb_move(buf_idx_1, FRAME_HEADER_SIZE);
+                frame_counter = (int) buf_idx_1[18 + data_offset] + (int) buf_idx_1[19 + data_offset] *256;
+                buf_idx_1 = cb_move(buf_idx_1, frame_header_size);
                 buf_idx_start = buf_idx_1;
                 if (debug) fprintf(stderr, "frame detected - frame_res: %d - frame_len: %d - frame_counter: %d\n", frame_res, frame_len, frame_counter);
             } else {
@@ -355,10 +355,10 @@ int main(int argc, char **argv) {
     // Unreacheable path
 
     // Unmap file from memory
-    if (munmap(addr, BUF_SIZE) == -1) {
+    if (munmap(addr, buf_size) == -1) {
         if (debug) fprintf(stderr, "error munmapping file");
     } else {
-        if (debug) fprintf(stderr, "unmapping file %s, size %d, from %08x\n", BUFFER_FILE, BUF_SIZE, addr);
+        if (debug) fprintf(stderr, "unmapping file %s, size %d, from %08x\n", BUFFER_FILE, buf_size, addr);
     }
 
     return 0;

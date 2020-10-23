@@ -37,10 +37,10 @@
 
 #include "rRTSPServer.h"
 
-int BUF_OFFSET;
-int BUF_SIZE;
-int FRAME_HEADER_SIZE;
-int DATA_OFFSET;
+int buf_offset;
+int buf_size;
+int frame_header_size;
+int data_offset;
 
 unsigned char IDR[]               = {0x65, 0xB8};
 unsigned char NAL_START[]         = {0x00, 0x00, 0x00, 0x01};
@@ -133,17 +133,17 @@ int cb_memcmp(unsigned char *str1, unsigned char*str2, size_t n)
 unsigned char *cb_memmem(unsigned char *src, int src_len, unsigned char *what, int what_len)
 {
     unsigned char *p;
-    unsigned char *buf = input_buffer.buffer + input_buffer.offset;
-    int buf_size = input_buffer.size;
+    unsigned char *buffer = input_buffer.buffer + input_buffer.offset;
+    int buffer_size = input_buffer.size;
 
     if (src_len >= 0) {
         p = (unsigned char*) memmem(src, src_len, what, what_len);
     } else {
         // From src to the end of the buffer
-        p = (unsigned char*) memmem(src, buf + buf_size - src, what, what_len);
+        p = (unsigned char*) memmem(src, buffer + buffer_size - src, what, what_len);
         if (p == NULL) {
             // And from the start of the buffer size src_len
-            p = (unsigned char*) memmem(buf, src + src_len - buf, what, what_len);
+            p = (unsigned char*) memmem(buffer, src + src_len - buffer, what, what_len);
         }
     }
     return p;
@@ -257,17 +257,17 @@ void *capture(void *ptr)
             // SPS frame
             write_enable = 1;
             sync_lost = 0;
-            buf_idx_1 = cb_move(buf_idx_1, - (6 + FRAME_HEADER_SIZE));
-            if (buf_idx_1[17 + DATA_OFFSET] == 8) {
+            buf_idx_1 = cb_move(buf_idx_1, - (6 + frame_header_size));
+            if (buf_idx_1[17 + data_offset] == 8) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17 + DATA_OFFSET] == 4) {
+            } else if (buf_idx_1[17 + data_offset] == 4) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;
             }
             memcpy(&frame_len, buf_idx_1, 4);
             frame_len -= 6;                                                              // -6 only for SPS
-            buf_idx_1 = cb_move(buf_idx_1, 6 + FRAME_HEADER_SIZE);
+            buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
 //            if (debug) fprintf(stderr, "SPS   detected - frame_len_prev: %d - frame_counter: %d - buffer_filled: %d\n", frame_len_prev, frame_counter,
 //                                (output_buffer.write_index - output_buffer.read_index + output_buffer.size) % output_buffer.size + frame_len_prev);
             buf_idx_start = buf_idx_1;
@@ -276,16 +276,16 @@ void *capture(void *ptr)
                         (cb_memcmp(PFR_START, buf_idx_1, sizeof(PFR_START)) == 0)) {
             // PPS, IDR and PFR frames
             write_enable = 1;
-            buf_idx_1 = cb_move(buf_idx_1, -FRAME_HEADER_SIZE);
-            if (buf_idx_1[17 + DATA_OFFSET] == 8) {
+            buf_idx_1 = cb_move(buf_idx_1, -frame_header_size);
+            if (buf_idx_1[17 + data_offset] == 8) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17 + DATA_OFFSET] == 4) {
+            } else if (buf_idx_1[17 + data_offset] == 4) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;
             }
             memcpy(&frame_len, buf_idx_1, 4);
-            buf_idx_1 = cb_move(buf_idx_1, FRAME_HEADER_SIZE);
+            buf_idx_1 = cb_move(buf_idx_1, frame_header_size);
             buf_idx_start = buf_idx_1;
         } else {
             write_enable = 0;
@@ -519,15 +519,15 @@ int main(int argc, char** argv)
     }
 
     if (model == Y21GA) {
-        BUF_OFFSET = BUF_OFFSET_Y21GA;
-        BUF_SIZE = BUF_SIZE_Y21GA;
-        FRAME_HEADER_SIZE = FRAME_HEADER_SIZE_Y21GA;
-        DATA_OFFSET = DATA_OFFSET_Y21GA;
+        buf_offset = BUF_OFFSET_Y21GA;
+        buf_size = BUF_SIZE_Y21GA;
+        frame_header_size = FRAME_HEADER_SIZE_Y21GA;
+        data_offset = DATA_OFFSET_Y21GA;
     } else if (model == R30GB) {
-        BUF_OFFSET = BUF_OFFSET_R30GB;
-        BUF_SIZE = BUF_SIZE_R30GB;
-        FRAME_HEADER_SIZE = FRAME_HEADER_SIZE_R30GB;
-        DATA_OFFSET = DATA_OFFSET_R30GB;
+        buf_offset = BUF_OFFSET_R30GB;
+        buf_size = BUF_SIZE_R30GB;
+        frame_header_size = FRAME_HEADER_SIZE_R30GB;
+        data_offset = DATA_OFFSET_R30GB;
     }
 
     // If fifo doesn't exist, disable audio
@@ -537,8 +537,8 @@ int main(int argc, char** argv)
 
     // Fill input and output buffer struct
     strcpy(input_buffer.filename, BUFFER_FILE);
-    input_buffer.size = BUF_SIZE;
-    input_buffer.offset = BUF_OFFSET;
+    input_buffer.size = buf_size;
+    input_buffer.offset = buf_offset;
 
     output_buffer_low.resolution = RESOLUTION_LOW;
     output_buffer_low.size = OUTPUT_BUFFER_SIZE_LOW;

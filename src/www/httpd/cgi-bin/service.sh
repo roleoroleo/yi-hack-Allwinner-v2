@@ -51,7 +51,7 @@ init_config()
 
 start_rtsp()
 {
-    RRTSP_RES=$1 RRTSP_PORT=$RTSP_PORT RRTSP_USER=$USERNAME RRTSP_PWD=$PASSWORD rRTSPServer >/dev/null &
+    RRTSP_MODEL=$MODEL_SUFFIX RRTSP_RES=$1 RRTSP_PORT=$RTSP_PORT RRTSP_USER=$USERNAME RRTSP_PWD=$PASSWORD rRTSPServer >/dev/null &
     $YI_HACK_PREFIX/script/wd_rtsp.sh >/dev/null &
 }
 

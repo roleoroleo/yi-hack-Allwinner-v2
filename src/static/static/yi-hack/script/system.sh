@@ -3,7 +3,6 @@
 CONF_FILE="etc/system.conf"
 
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
-#YI_PREFIX="/home/app"
 
 YI_HACK_VER=$(cat /tmp/sd/yi-hack/version)
 MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
@@ -37,11 +36,6 @@ ulimit -s 1024
 # Remove core files, if any
 rm -f $YI_HACK_PREFIX/bin/core
 rm -f $YI_HACK_PREFIX/www/cgi-bin/core
-#rm -f $YI_PREFIX/core
-
-#if [ ! -L /tmp/sd/yi-hack-v4 ]; then
-#    ln -s $YI_HACK_PREFIX /tmp/sd/yi-hack-v4
-#fi
 
 touch /tmp/httpd.conf
 
@@ -224,7 +218,7 @@ if [[ $(get_config ONVIF_WM_SNAPSHOT) == "yes" ]] ; then
 fi
 
 if [[ $(get_config RTSP) == "yes" ]] ; then
-    RRTSP_RES=$(get_config RTSP_STREAM) RRTSP_AUDIO=$(get_config RTSP_AUDIO) RRTSP_PORT=$RTSP_PORT RRTSP_USER=$USERNAME RRTSP_PWD=$PASSWORD rRTSPServer &
+    RRTSP_MODEL=$MODEL_SUFFIX RRTSP_RES=$(get_config RTSP_STREAM) RRTSP_AUDIO=$(get_config RTSP_AUDIO) RRTSP_PORT=$RTSP_PORT RRTSP_USER=$USERNAME RRTSP_PWD=$PASSWORD rRTSPServer &
     if [[ $(get_config RTSP_STREAM) == "low" ]]; then
         ONVIF_PROFILE_1="--name Profile_1 --width 640 --height 360 --url rtsp://%s$D_RTSP_PORT/ch0_1.h264 --snapurl http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK --type H264"
     fi
@@ -256,7 +250,7 @@ if [[ $(get_config ONVIF) == "yes" ]] ; then
     fi
 fi
 
-framefinder &
+framefinder $MODEL_SUFFIX &
 
 FREE_SPACE=$(get_config FREE_SPACE)
 if [[ $FREE_SPACE != "0" ]] ; then

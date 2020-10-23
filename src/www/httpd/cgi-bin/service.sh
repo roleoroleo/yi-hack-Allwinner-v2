@@ -78,7 +78,7 @@ start_onvif()
     fi
 
     if [[ $MODEL_SUFFIX == "r30gb" ]] ; then
-        onvif_srvd --pid_file /var/run/onvif_srvd.pid --model "Yi Hack" --manufacturer "Yi" --firmware_ver $YI_HACK_VER --hardware_id $HW_ID --serial_num $SERIAL_NUMBER --ifs wlan0 --port $ONVIF_PORT --scope onvif://www.onvif.org/Profile/S $ONVIF_PROFILE_0 $ONVIF_PROFILE_1 $ONVIF_USERPWD --ptz --move_left "/tmp/sd/yi-hack/bin/ipc_cmd -m left" --move_right "/tmp/sd/yi-hack/bin/ipc_cmd -m right" --move_up "/tmp/sd/yi-hack/bin/ipc_cmd -m up" --move_down "/tmp/sd/yi-hack/bin/ipc_cmd -m down" --move_stop "/tmp/sd/yi-hack/bin/ipc_cmd -m stop" --move_preset "/tmp/sd/yi-hack/bin/ipc_cmd -p"
+        onvif_srvd --pid_file /var/run/onvif_srvd.pid --model "Yi Hack" --manufacturer "Yi" --firmware_ver $YI_HACK_VER --hardware_id $HW_ID --serial_num $SERIAL_NUMBER --ifs wlan0 --port $ONVIF_PORT --scope onvif://www.onvif.org/Profile/S $ONVIF_PROFILE_0 $ONVIF_PROFILE_1 $ONVIF_USERPWD --ptz --move_left "/tmp/sd/yi-hack/bin/ipc_cmd -m left" --move_right "/tmp/sd/yi-hack/bin/ipc_cmd -m right" --move_up "/tmp/sd/yi-hack/bin/ipc_cmd -m up" --move_down "/tmp/sd/yi-hack/bin/ipc_cmd -m down" --move_stop "/tmp/sd/yi-hack/bin/ipc_cmd -m stop" --move_preset "/tmp/sd/yi-hack/bin/ipc_cmd -p %t"
     else
         onvif_srvd --pid_file /var/run/onvif_srvd.pid --model "Yi Hack" --manufacturer "Yi" --firmware_ver $YI_HACK_VER --hardware_id $HW_ID --serial_num $SERIAL_NUMBER --ifs wlan0 --port $ONVIF_PORT --scope onvif://www.onvif.org/Profile/S $ONVIF_PROFILE_0 $ONVIF_PROFILE_1 $ONVIF_USERPWD
     fi

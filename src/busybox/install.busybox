@@ -5,13 +5,16 @@ cd $SCRIPT_DIR
 
 #rsync -a ./_install/* ../../build/yi-hack
 mkdir -p ../../build/yi-hack/bin
+mkdir -p ../../build/yi-hack/sbin
 mkdir -p ../../build/yi-hack/usr/bin
 mkdir -p ../../build/yi-hack/usr/sbin
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/base64
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/gzip
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/hostname
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/tar
+cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/sbin/mkswap
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/bzip2
+cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/find
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/free
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/tail
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/xargs

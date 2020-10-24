@@ -41,6 +41,8 @@ int buf_offset;
 int buf_size;
 int frame_header_size;
 int data_offset;
+int lowres_byte;
+int highres_byte;
 
 unsigned char IDR[]               = {0x65, 0xB8};
 unsigned char NAL_START[]         = {0x00, 0x00, 0x00, 0x01};
@@ -258,9 +260,9 @@ void *capture(void *ptr)
             write_enable = 1;
             sync_lost = 0;
             buf_idx_1 = cb_move(buf_idx_1, - (6 + frame_header_size));
-            if (buf_idx_1[17 + data_offset] == 8) {
+            if (buf_idx_1[17 + data_offset] == lowres_byte) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17 + data_offset] == 4) {
+            } else if (buf_idx_1[17 + data_offset] == highres_byte) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;
@@ -277,9 +279,9 @@ void *capture(void *ptr)
             // PPS, IDR and PFR frames
             write_enable = 1;
             buf_idx_1 = cb_move(buf_idx_1, -frame_header_size);
-            if (buf_idx_1[17 + data_offset] == 8) {
+            if (buf_idx_1[17 + data_offset] == lowres_byte) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17 + data_offset] == 4) {
+            } else if (buf_idx_1[17 + data_offset] == highres_byte) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;
@@ -523,11 +525,15 @@ int main(int argc, char** argv)
         buf_size = BUF_SIZE_Y21GA;
         frame_header_size = FRAME_HEADER_SIZE_Y21GA;
         data_offset = DATA_OFFSET_Y21GA;
+        lowres_byte = LOWRES_BYTE_Y21GA;
+        highres_byte = HIGHRES_BYTE_Y21GA;
     } else if (model == R30GB) {
         buf_offset = BUF_OFFSET_R30GB;
         buf_size = BUF_SIZE_R30GB;
         frame_header_size = FRAME_HEADER_SIZE_R30GB;
         data_offset = DATA_OFFSET_R30GB;
+        lowres_byte = LOWRES_BYTE_R30GB;
+        highres_byte = HIGHRES_BYTE_R30GB;
     }
 
     // If fifo doesn't exist, disable audio
@@ -592,7 +598,7 @@ int main(int argc, char** argv)
         // access to the server.
     }
 
-    StreamReplicator* replicator;
+    StreamReplicator* replicator = NULL;
     if (audio) {
         // Create and start the replicator that will be given to each subsession
         replicator = startReplicatorStream(inputAudioFileName, convertToULaw);

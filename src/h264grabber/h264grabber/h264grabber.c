@@ -37,11 +37,15 @@
 #define BUF_SIZE_Y21GA 1786224
 #define FRAME_HEADER_SIZE_Y21GA 28
 #define DATA_OFFSET_Y21GA 4
+#define LOWRES_BYTE_Y21GA 8
+#define HIGHRES_BYTE_Y21GA 4
 
 #define BUF_OFFSET_R30GB 300
 #define BUF_SIZE_R30GB 1786156
 #define FRAME_HEADER_SIZE_R30GB 22
 #define DATA_OFFSET_R30GB 0
+#define LOWRES_BYTE_R30GB 8
+#define HIGHRES_BYTE_R30GB 16
 
 #define USLEEP 100000
 
@@ -54,6 +58,8 @@ int buf_offset;
 int buf_size;
 int frame_header_size;
 int data_offset;
+int lowres_byte;
+int highres_byte;
 
 unsigned char IDR[]               = {0x65, 0xB8};
 unsigned char NAL_START[]         = {0x00, 0x00, 0x00, 0x01};
@@ -61,6 +67,7 @@ unsigned char IDR_START[]         = {0x00, 0x00, 0x00, 0x01, 0x65, 0x88};
 unsigned char PFR_START[]         = {0x00, 0x00, 0x00, 0x01, 0x41};
 unsigned char SPS_START[]         = {0x00, 0x00, 0x00, 0x01, 0x67};
 unsigned char PPS_START[]         = {0x00, 0x00, 0x00, 0x01, 0x68};
+unsigned char SPS_COMMON[]        = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00};
 unsigned char SPS_640X360[]       = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
                                        0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
                                        0x01, 0x01, 0x02};
@@ -164,6 +171,8 @@ int main(int argc, char **argv) {
     buf_size = BUF_SIZE_Y21GA;
     frame_header_size = FRAME_HEADER_SIZE_Y21GA;
     data_offset = DATA_OFFSET_Y21GA;
+    lowres_byte = LOWRES_BYTE_Y21GA;
+    highres_byte = HIGHRES_BYTE_Y21GA;
 
     while (1) {
         static struct option long_options[] =
@@ -191,11 +200,15 @@ int main(int argc, char **argv) {
                 buf_size = BUF_SIZE_Y21GA;
                 frame_header_size = FRAME_HEADER_SIZE_Y21GA;
                 data_offset = DATA_OFFSET_Y21GA;
+                lowres_byte = LOWRES_BYTE_Y21GA;
+                highres_byte = HIGHRES_BYTE_Y21GA;
             } else if (strcasecmp("r30gb", optarg) == 0) {
                 buf_offset = BUF_OFFSET_R30GB;
                 buf_size = BUF_SIZE_R30GB;
                 frame_header_size = FRAME_HEADER_SIZE_R30GB;
                 data_offset = DATA_OFFSET_R30GB;
+                lowres_byte = LOWRES_BYTE_R30GB;
+                highres_byte = HIGHRES_BYTE_R30GB;
             }
             break;
 
@@ -227,6 +240,7 @@ int main(int argc, char **argv) {
         }
     }
 
+/*
     if (resolution == RESOLUTION_LOW) {
         sps_addr = SPS_640X360;
         sps_len = sizeof(SPS_640X360);
@@ -234,6 +248,9 @@ int main(int argc, char **argv) {
         sps_addr = SPS_1920X1080;
         sps_len = sizeof(SPS_1920X1080);
     }
+*/
+    sps_addr = SPS_COMMON;
+    sps_len = sizeof(SPS_COMMON);
 
     // Opening an existing file
     fFid = fopen(BUFFER_FILE, "r") ;
@@ -306,9 +323,9 @@ int main(int argc, char **argv) {
             write_enable = 1;
             sync_lost = 0;
             buf_idx_1 = cb_move(buf_idx_1, - (6 + frame_header_size));
-            if (buf_idx_1[17 + data_offset] == 8) {
+            if (buf_idx_1[17 + data_offset] == lowres_byte) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17 + data_offset] == 4) {
+            } else if (buf_idx_1[17 + data_offset] == highres_byte) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;
@@ -329,9 +346,9 @@ int main(int argc, char **argv) {
             // PPS, IDR and PFR frames
             write_enable = 1;
             buf_idx_1 = cb_move(buf_idx_1, -frame_header_size);
-            if (buf_idx_1[17 + data_offset] == 8) {
+            if (buf_idx_1[17 + data_offset] == lowres_byte) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17 + data_offset] == 4) {
+            } else if (buf_idx_1[17 + data_offset] == highres_byte) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 write_enable = 0;

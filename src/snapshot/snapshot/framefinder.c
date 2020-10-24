@@ -35,10 +35,16 @@
 #define BUF_OFFSET_Y21GA 368
 #define BUF_SIZE_Y21GA 1786224
 #define FRAME_HEADER_SIZE_Y21GA 28
+#define DATA_OFFSET_Y21GA 4
+#define LOWRES_BYTE_Y21GA 8
+#define HIGHRES_BYTE_Y21GA 4
 
 #define BUF_OFFSET_R30GB 300
 #define BUF_SIZE_R30GB 1786156
 #define FRAME_HEADER_SIZE_R30GB 22
+#define DATA_OFFSET_R30GB 0
+#define LOWRES_BYTE_R30GB 8
+#define HIGHRES_BYTE_R30GB 16
 
 #define USLEEP 100000
 
@@ -65,6 +71,9 @@ typedef struct {
 int buf_offset;
 int buf_size;
 int frame_header_size;
+int data_offset;
+int lowres_byte;
+int highres_byte;
 
 unsigned char IDR[]               = {0x65, 0xB8};
 unsigned char NAL_START[]         = {0x00, 0x00, 0x00, 0x01};
@@ -72,6 +81,7 @@ unsigned char IDR_START[]         = {0x00, 0x00, 0x00, 0x01, 0x65, 0x88};
 unsigned char PFR_START[]         = {0x00, 0x00, 0x00, 0x01, 0x41};
 unsigned char SPS_START[]         = {0x00, 0x00, 0x00, 0x01, 0x67};
 unsigned char PPS_START[]         = {0x00, 0x00, 0x00, 0x01, 0x68};
+unsigned char SPS_COMMON[]        = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00};
 unsigned char SPS_640X360[]       = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
                                        0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01};
 unsigned char SPS_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
@@ -157,15 +167,25 @@ int main(int argc, char **argv) {
     buf_offset = BUF_OFFSET_Y21GA;
     buf_size = BUF_SIZE_Y21GA;
     frame_header_size = FRAME_HEADER_SIZE_Y21GA;
+    data_offset = DATA_OFFSET_Y21GA;
+    lowres_byte = LOWRES_BYTE_Y21GA;
+    highres_byte = HIGHRES_BYTE_Y21GA;
+
     if (argc > 1) {
         if (strcasecmp("y21ga", argv[1]) == 0) {
             buf_offset = BUF_OFFSET_Y21GA;
             buf_size = BUF_SIZE_Y21GA;
             frame_header_size = FRAME_HEADER_SIZE_Y21GA;
+            data_offset = DATA_OFFSET_Y21GA;
+            lowres_byte = LOWRES_BYTE_Y21GA;
+            highres_byte = HIGHRES_BYTE_Y21GA;
         } else if (strcasecmp("r30gb", argv[1]) == 0) {
             buf_offset = BUF_OFFSET_R30GB;
             buf_size = BUF_SIZE_R30GB;
             frame_header_size = FRAME_HEADER_SIZE_R30GB;
+            data_offset = DATA_OFFSET_R30GB;
+            lowres_byte = LOWRES_BYTE_R30GB;
+            highres_byte = HIGHRES_BYTE_R30GB;
         }
     }
 
@@ -280,23 +300,23 @@ int main(int argc, char **argv) {
                     }
                 }
                 break;
-//            case STATE_IDR_LOW:
-//                state = STATE_NONE;
-//                if (debug) fprintf(stderr, "state = STATE_NONE\n");
-//                buf_idx_end = buf_idx_1;
-//                sequence_size = buf_idx_end - buf_idx_start;
-//                if (sequence_size < 0)
-//                    sequence_size = (addrh + sizeh) - buf_idx_start + buf_idx_end - addrh;
-//                // Write IDR address and size to the file
-//                utmp[2] = (uint32_t) (buf_idx_start - addr);
-//                utmp[3] = (uint32_t) sequence_size;
-//                if (memcmp(utmp, utmp_old, sizeof(utmp)) != 0) {
-//                    writeFile(I_FILE, (char *) utmp, sizeof(utmp));
-//                    memcpy(utmp_old, utmp, sizeof(utmp));
-//                }
-//                break;
 
             case STATE_NONE:
+                if (memcmp(buf_idx_1, SPS_COMMON, sizeof(SPS_COMMON)) == 0) {
+                    buf_idx_1 = cb_move(buf_idx_1, - (6 + frame_header_size));
+                    if (buf_idx_1[17 + data_offset] == lowres_byte) {
+                        buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
+                        state = STATE_SPS_LOW;
+                        hl_frame[0].sps_addr = buf_idx_1 - addr;
+                        hl_frame[0].sps_len = getFrameLen(buf_idx_1, 6);
+                    } else if (buf_idx_1[17 + data_offset] == highres_byte) {
+                        buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
+                        state = STATE_SPS_HIGH;
+                        hl_frame[1].sps_addr = buf_idx_1 - addr;
+                        hl_frame[1].sps_len = getFrameLen(buf_idx_1, 6);
+                    }
+                }
+/*
                 if (memcmp(buf_idx_1, SPS_1920X1080, sizeof(SPS_1920X1080)) == 0) {
                     state = STATE_SPS_HIGH;
                     if (debug) fprintf(stderr, "state = STATE_SPS_HIGH\n");
@@ -308,6 +328,7 @@ int main(int argc, char **argv) {
                     hl_frame[1].sps_addr = buf_idx_1 - addr;
                     hl_frame[1].sps_len = getFrameLen(buf_idx_1, 6);
                 }
+*/
                 break;
 
             default:

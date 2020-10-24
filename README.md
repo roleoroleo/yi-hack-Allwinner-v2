@@ -14,6 +14,7 @@ yi-hack-Allwinner-v2 is a modification of the firmware for the Allwinner-based Y
 - [Features](#features)
 - [Performance](#performance)
 - [Supported cameras](#supported-cameras)
+- [Is my cam supported?](#is-my-cam-supported)
 - [Build your own firmware](#build-your-own-firmware)
 - [Unbricking](#unbricking)
 - [License](#license)
@@ -90,14 +91,24 @@ Currently this project supports only the following cameras:
 
 | Camera | Firmware | File prefix | Remarks |
 | --- | --- | --- | --- |
-| Yi 1080p Home BFUS | 9.0.19* | y21ga | --- |
-| Yi 1080p Dome * | 9.0.05* | r30gb | --- |
+| Yi 1080p Home BFUS | 9.0.19* | y21ga | - |
+| Yi 1080p Dome * | 9.0.05* | r30gb | beta version |
 
 USE AT YOUR OWN RISK.
 
 **Do not try to use a fw on an unlisted model**
 
 **Do not try to force the fw loading renaming the files**
+
+
+## Is my cam supported?
+
+If you want to know if your cam is supported, please check the serial number (first 4 letters) and the firmware version.
+If both numbers appear in the same row in the table above, your cam is supported.
+If not, check the other projects related to Yi cams:
+- https://github.com/TheCrypt0/yi-hack-v4 and previous
+- https://github.com/roleoroleo/yi-hack-MStar
+- https://github.com/roleoroleo/yi-hack-Allwinner
 
 
 ## Build your own firmware

@@ -24,9 +24,13 @@ yi-hack-Allwinner-v2 is a modification of the firmware for the Allwinner-based Y
 
 ## Installation
 
+### Backup
+It's not easy to brick the cam but it can happen.
+So please, make your backup copy: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Dump-your-backup-firmware-(SD-card)
+
 ### Update Procedure
 1. Format an SD Card as FAT32. It's recommended to format the card in the camera using the camera's native format function. If the card is already formatted, remove all the files.
-2. Download the latest release from the Releases page (Todo).
+2. Download the latest release from the Releases page.
 3. Extract the contents of the archive to the root of your SD card.
 4. Insert the SD Card and reboot the camera
 5. Wait for the camera to update. It will reboot a couple of times as the camera is rooted and the new firmware is applied. Once the light is solid blue for at least a minute it is complete.
@@ -72,7 +76,7 @@ This custom firmware contains features replicated from the [yi-hack-MStar](https
   - PTZ support through a web page (if the cam supports it).
   - The possibility to disable all the cloud features.
   - Swap File on SD.
-  - Online firmware upgrade (Todo).
+  - Online firmware upgrade.
   - Load/save/reset configuration.
 
 
@@ -125,7 +129,7 @@ If you want to build your own firmware, clone this git and compile using a linux
 ## Unbricking
 
 If your camera doesn't start, no panic. This hack is not a permanent change, remove your SD card and the cam will come back to the original state.
-If the camera still won't start, try the "Unbrick the cam" procedure (Todo).
+If the camera still won't start, try the "Unbrick the cam" procedure https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Unbrick-the-cam.
 
 ----
 

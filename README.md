@@ -24,6 +24,10 @@ yi-hack-Allwinner-v2 is a modification of the firmware for the Allwinner-based Y
 
 ## Installation
 
+### Backup
+It's not easy to brick the cam but it can happen.
+So please, make your backup copy: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Dump-your-backup-firmware-(SD-card)
+
 ### Update Procedure
 1. Format an SD Card as FAT32. It's recommended to format the card in the camera using the camera's native format function. If the card is already formatted, remove all the files.
 2. Download the latest release from the Releases page (Todo).

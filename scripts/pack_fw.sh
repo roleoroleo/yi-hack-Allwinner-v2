@@ -84,6 +84,8 @@ CAMERA_ID=$(get_camera_id $CAMERA_NAME)
 
 BASE_DIR=$(get_script_dir)/../
 BASE_DIR=$(normalize_path $BASE_DIR)
+SYSROOT_DIR=$BASE_DIR/sysroot/$CAMERA_NAME
+
 
 SDHACK_DIR=$BASE_DIR/sdhack
 STATIC_DIR=$BASE_DIR/static
@@ -98,6 +100,7 @@ echo "------------------------------------------------------------------------"
 printf " camera_name      : %s\n" $CAMERA_NAME
 printf " camera_id        : %s\n" $CAMERA_ID
 printf "                      \n"
+printf " sysroot_dir      : %s\n" $SYSROOT_DIR
 printf " static_dir       : %s\n" $STATIC_DIR
 printf " build_dir        : %s\n" $BUILD_DIR
 printf " out_dir          : %s\n" $OUT_DIR
@@ -116,6 +119,11 @@ echo -n ">>> Creating the tmp directory... "
 TMP_DIR=$(create_tmp_dir)
 echo "${TMP_DIR} created!"
 mkdir -p ${TMP_DIR}/yi-hack
+
+# Copy the sysroot to the tmp dir
+echo ">>> Copying the sysroot contents to ${TMP_DIR}... "
+rsync -a ${SYSROOT_DIR}/* ${TMP_DIR}/ || exit 1
+echo "    done!"
 
 # Copy the build files to the tmp dir
 echo -n ">>> Copying files from the build directory to ${TMP_DIR}... "

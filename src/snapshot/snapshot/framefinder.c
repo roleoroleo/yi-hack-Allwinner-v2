@@ -29,9 +29,6 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#define Y21GA 0
-#define R30GB 1
-
 #define BUF_OFFSET_Y21GA 368
 #define BUF_SIZE_Y21GA 1786224
 #define FRAME_HEADER_SIZE_Y21GA 28
@@ -304,14 +301,16 @@ int main(int argc, char **argv) {
             case STATE_NONE:
                 if (memcmp(buf_idx_1, SPS_COMMON, sizeof(SPS_COMMON)) == 0) {
                     buf_idx_1 = cb_move(buf_idx_1, - (6 + frame_header_size));
-                    if (buf_idx_1[17 + data_offset] == lowres_byte) {
-                        buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
-                        state = STATE_SPS_LOW;
-                        hl_frame[0].sps_addr = buf_idx_1 - addr;
-                        hl_frame[0].sps_len = getFrameLen(buf_idx_1, 6);
-                    } else if (buf_idx_1[17 + data_offset] == highres_byte) {
+                    if (buf_idx_1[17 + data_offset] == highres_byte) {
                         buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
                         state = STATE_SPS_HIGH;
+                        if (debug) fprintf(stderr, "state = STATE_SPS_HIGH\n");
+                        hl_frame[0].sps_addr = buf_idx_1 - addr;
+                        hl_frame[0].sps_len = getFrameLen(buf_idx_1, 6);
+                    } else if (buf_idx_1[17 + data_offset] == lowres_byte) {
+                        buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
+                        state = STATE_SPS_LOW;
+                        if (debug) fprintf(stderr, "state = STATE_SPS_LOW\n");
                         hl_frame[1].sps_addr = buf_idx_1 - addr;
                         hl_frame[1].sps_len = getFrameLen(buf_idx_1, 6);
                     }

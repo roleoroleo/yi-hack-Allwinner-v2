@@ -128,6 +128,11 @@
                             <input class="u-full-width" type="text" placeholder="" id="motion_start_msg" data-key="MOTION_START_MSG"/>
                             <label for="motion_stop_msg">Motion Stop Message</label>
                             <input class="u-full-width" type="text" placeholder="" id="motion_stop_msg" data-key="MOTION_STOP_MSG"/>
+                            <label for="topic_motion_image">Topic Suffix for jpeg image</label>
+                            <input class="u-full-width" type="text" placeholder="" id="topic_motion_image" data-key="TOPIC_MOTION_IMAGE"/>
+                            <span class="switch-description">
+                                A raw jpeg image is sent to this topic when a motion is detected.
+                            </span>
                             <label for="topic_motion_files">Topic Suffix for video list message</label>
                             <input class="u-full-width" type="text" placeholder="" id="topic_motion_files" data-key="TOPIC_MOTION_FILES">
                         </td>
@@ -193,6 +198,15 @@
                         <td>Retain for motion messages</td>
                         <td>
                             <input class="u-full-width" type="text" placeholder="1" data-key="MQTT_RETAIN_MOTION"/>
+                            <span class="switch-description">
+                                A retained message is a normal MQTT message with the retained flag set to true. The broker stores the last retained message and the corresponding QoS for that topic. (1 = enabled, 0 = disabled)
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Retain for motion image messages</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="1" data-key="MQTT_RETAIN_MOTION_IMAGE"/>
                             <span class="switch-description">
                                 A retained message is a normal MQTT message with the retained flag set to true. The broker stores the last retained message and the corresponding QoS for that topic. (1 = enabled, 0 = disabled)
                             </span>

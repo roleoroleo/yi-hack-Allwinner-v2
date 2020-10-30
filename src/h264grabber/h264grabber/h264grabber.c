@@ -30,9 +30,6 @@
 #include <sys/mman.h>
 #include <getopt.h>
 
-#define Y21GA 0
-#define R30GB 1
-
 #define BUF_OFFSET_Y21GA 368
 #define BUF_SIZE_Y21GA 1786224
 #define FRAME_HEADER_SIZE_Y21GA 28
@@ -45,7 +42,8 @@
 #define FRAME_HEADER_SIZE_R30GB 22
 #define DATA_OFFSET_R30GB 0
 #define LOWRES_BYTE_R30GB 8
-#define HIGHRES_BYTE_R30GB 16
+#define HIGHRES_BYTE_R30GB 4
+//#define HIGHRES_BYTE_R30GB 16
 
 #define USLEEP 100000
 
@@ -61,13 +59,18 @@ int data_offset;
 int lowres_byte;
 int highres_byte;
 
-unsigned char IDR[]               = {0x65, 0xB8};
-unsigned char NAL_START[]         = {0x00, 0x00, 0x00, 0x01};
-unsigned char IDR_START[]         = {0x00, 0x00, 0x00, 0x01, 0x65, 0x88};
-unsigned char PFR_START[]         = {0x00, 0x00, 0x00, 0x01, 0x41};
-unsigned char SPS_START[]         = {0x00, 0x00, 0x00, 0x01, 0x67};
-unsigned char PPS_START[]         = {0x00, 0x00, 0x00, 0x01, 0x68};
-unsigned char SPS_COMMON[]        = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00};
+unsigned char IDR4[]               = {0x65, 0xB8};
+unsigned char NALx_START[]         = {0x00, 0x00, 0x00, 0x01};
+unsigned char IDR4_START[]         = {0x00, 0x00, 0x00, 0x01, 0x65, 0x88};
+unsigned char IDR5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x26};
+unsigned char PFR4_START[]         = {0x00, 0x00, 0x00, 0x01, 0x41};
+unsigned char PFR5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x02};
+unsigned char SPS4_START[]         = {0x00, 0x00, 0x00, 0x01, 0x67};
+unsigned char SPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x42};
+unsigned char PPS4_START[]         = {0x00, 0x00, 0x00, 0x01, 0x68};
+unsigned char PPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x44};
+unsigned char VPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x40};
+
 unsigned char SPS_640X360[]       = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
                                        0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
                                        0x01, 0x01, 0x02};
@@ -240,18 +243,6 @@ int main(int argc, char **argv) {
         }
     }
 
-/*
-    if (resolution == RESOLUTION_LOW) {
-        sps_addr = SPS_640X360;
-        sps_len = sizeof(SPS_640X360);
-    } else if (resolution == RESOLUTION_HIGH) {
-        sps_addr = SPS_1920X1080;
-        sps_len = sizeof(SPS_1920X1080);
-    }
-*/
-    sps_addr = SPS_COMMON;
-    sps_len = sizeof(SPS_COMMON);
-
     // Opening an existing file
     fFid = fopen(BUFFER_FILE, "r") ;
     if ( fFid == NULL ) {
@@ -280,7 +271,7 @@ int main(int argc, char **argv) {
         memcpy(&i, addr + 16, sizeof(i));
         buf_idx_w = addr + buf_offset + i;
 //        if (debug) fprintf(stderr, "buf_idx_w: %08x\n", (unsigned int) buf_idx_w);
-        buf_idx_tmp = cb_memmem(buf_idx_1, buf_idx_w - buf_idx_1, NAL_START, sizeof(NAL_START));
+        buf_idx_tmp = cb_memmem(buf_idx_1, buf_idx_w - buf_idx_1, NALx_START, sizeof(NALx_START));
         if (buf_idx_tmp == NULL) {
             usleep(USLEEP);
             continue;
@@ -289,7 +280,7 @@ int main(int argc, char **argv) {
         }
 //        if (debug) fprintf(stderr, "found buf_idx_1: %08x\n", (unsigned int) buf_idx_1);
 
-        buf_idx_tmp = cb_memmem(buf_idx_1 + 1, buf_idx_w - (buf_idx_1 + 1), NAL_START, sizeof(NAL_START));
+        buf_idx_tmp = cb_memmem(buf_idx_1 + 1, buf_idx_w - (buf_idx_1 + 1), NALx_START, sizeof(NALx_START));
         if (buf_idx_tmp == NULL) {
             usleep(USLEEP);
             continue;
@@ -318,7 +309,8 @@ int main(int argc, char **argv) {
             frame_counter_prev = frame_counter;
         }
 
-        if (cb_memcmp(sps_addr, buf_idx_1, sps_len) == 0) {
+        if ((cb_memcmp(SPS4_START, buf_idx_1, sizeof(SPS4_START)) == 0) ||
+                (cb_memcmp(SPS5_START, buf_idx_1, sizeof(SPS5_START)) == 0)) {
             // SPS frame
             write_enable = 1;
             sync_lost = 0;
@@ -340,10 +332,14 @@ int main(int argc, char **argv) {
             } else {
                 write_enable = 0;
             }
-        } else if ((cb_memcmp(PPS_START, buf_idx_1, sizeof(PPS_START)) == 0) ||
-                        (cb_memcmp(IDR_START, buf_idx_1, sizeof(IDR_START)) == 0) ||
-                        (cb_memcmp(PFR_START, buf_idx_1, sizeof(PFR_START)) == 0)) {
-            // PPS, IDR and PFR frames
+        } else if ((cb_memcmp(PPS4_START, buf_idx_1, sizeof(PPS4_START)) == 0) ||
+                        (cb_memcmp(PPS5_START, buf_idx_1, sizeof(PPS5_START)) == 0) ||
+                        (cb_memcmp(VPS5_START, buf_idx_1, sizeof(VPS5_START)) == 0) ||
+                        (cb_memcmp(IDR4_START, buf_idx_1, sizeof(IDR4_START)) == 0) ||
+                        (cb_memcmp(IDR5_START, buf_idx_1, sizeof(IDR5_START)) == 0) ||
+                        (cb_memcmp(PFR4_START, buf_idx_1, sizeof(PFR4_START)) == 0) ||
+                        (cb_memcmp(PFR5_START, buf_idx_1, sizeof(PFR5_START)) == 0)) {
+            // PPS, VPS, IDR and PFR frames
             write_enable = 1;
             buf_idx_1 = cb_move(buf_idx_1, -frame_header_size);
             if (buf_idx_1[17 + data_offset] == lowres_byte) {
@@ -355,7 +351,7 @@ int main(int argc, char **argv) {
             }
             if (frame_res == resolution) {
                 cb_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
-                frame_counter = (int) buf_idx_1[18 + data_offset] + (int) buf_idx_1[19 + data_offset] *256;
+                frame_counter = (int) buf_idx_1[18 + data_offset] + (int) buf_idx_1[19 + data_offset] * 256;
                 buf_idx_1 = cb_move(buf_idx_1, frame_header_size);
                 buf_idx_start = buf_idx_1;
                 if (debug) fprintf(stderr, "frame detected - frame_res: %d - frame_len: %d - frame_counter: %d\n", frame_res, frame_len, frame_counter);

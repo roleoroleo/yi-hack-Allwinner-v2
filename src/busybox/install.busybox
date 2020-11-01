@@ -16,6 +16,7 @@ cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/sbin/mkswap
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/bzip2
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/find
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/free
+cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/sort
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/tail
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/xargs
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/wget

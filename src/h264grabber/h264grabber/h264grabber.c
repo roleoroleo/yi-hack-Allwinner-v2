@@ -71,12 +71,12 @@ unsigned char PPS4_START[]         = {0x00, 0x00, 0x00, 0x01, 0x68};
 unsigned char PPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x44};
 unsigned char VPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x40};
 
-unsigned char SPS_640X360[]       = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
-                                       0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
-                                       0x01, 0x01, 0x02};
-unsigned char SPS_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
-                                       0x96, 0x54, 0x03, 0xC0, 0x11, 0x2F, 0x2C, 0xDC,
-                                       0x04, 0x04, 0x04, 0x08};
+unsigned char SPS4_640X360[]       = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
+                                        0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
+                                        0x01, 0x01, 0x02};
+unsigned char SPS4_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
+                                        0x96, 0x54, 0x03, 0xC0, 0x11, 0x2F, 0x2C, 0xDC,
+                                        0x04, 0x04, 0x04, 0x08};
 
 unsigned char *addr;                      /* Pointer to shared memory region (header) */
 int debug = 0;                            /* Set to 1 to debug this .c */
@@ -86,17 +86,15 @@ int resolution;
 unsigned char * cb_memmem(unsigned char *src, int src_len, unsigned char *what, int what_len)
 {
     unsigned char *p;
-    unsigned char *buffer = addr + buf_offset;
-    int buffer_size = buf_size;
 
     if (src_len >= 0) {
         p = (unsigned char*) memmem(src, src_len, what, what_len);
     } else {
         // From src to the end of the buffer
-        p = (unsigned char*) memmem(src, buffer + buffer_size - src, what, what_len);
+        p = (unsigned char*) memmem(src, addr + buf_size - src, what, what_len);
         if (p == NULL) {
             // And from the start of the buffer size src_len
-            p = (unsigned char*) memmem(buffer, src + src_len - buffer, what, what_len);
+            p = (unsigned char*) memmem(addr + buf_offset, src + src_len - (addr + buf_offset), what, what_len);
         }
     }
     return p;
@@ -246,16 +244,17 @@ int main(int argc, char **argv) {
     // Opening an existing file
     fFid = fopen(BUFFER_FILE, "r") ;
     if ( fFid == NULL ) {
-        if (debug) fprintf(stderr, "could not open file %s\n", BUFFER_FILE) ;
+        fprintf(stderr, "could not open file %s\n", BUFFER_FILE) ;
         return -1;
     }
 
     // Map file to memory
     addr = (unsigned char*) mmap(NULL, buf_size, PROT_READ, MAP_SHARED, fileno(fFid), 0);
     if (addr == MAP_FAILED) {
-        if (debug) fprintf(stderr, "error mapping file %s\n", BUFFER_FILE);
-            return -2;
-        }
+        fprintf(stderr, "error mapping file %s\n", BUFFER_FILE);
+        fclose(fFid);
+        return -2;
+    }
     if (debug) fprintf(stderr, "mapping file %s, size %d, to %08x\n", BUFFER_FILE, buf_size, (unsigned int) addr);
 
     // Closing the file
@@ -265,6 +264,8 @@ int main(int argc, char **argv) {
     memcpy(&i, addr + 16, sizeof(i));
     buf_idx_w = addr + buf_offset + i;
     buf_idx_1 = buf_idx_w;
+
+    if (debug) fprintf(stderr, "starting capture main loop\n");
 
     // Infinite loop
     while (1) {
@@ -325,7 +326,7 @@ int main(int argc, char **argv) {
             if (frame_res == resolution) {
                 cb_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
                 frame_len -= 6;                                                              // -6 only for SPS
-                frame_counter = (int) buf_idx_1[18 + data_offset] + (int) buf_idx_1[19 + data_offset] *256;
+                frame_counter = (int) buf_idx_1[18 + data_offset] + (int) buf_idx_1[19 + data_offset] * 256;
                 buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
                 buf_idx_start = buf_idx_1;
                 if (debug) fprintf(stderr, "SPS detected - frame_res: %d - frame_len: %d - frame_counter: %d\n", frame_res, frame_len, frame_counter);

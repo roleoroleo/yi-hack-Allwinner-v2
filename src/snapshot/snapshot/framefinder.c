@@ -29,6 +29,9 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
+#define Y21GA 0
+#define R30GB 1
+
 #define BUF_OFFSET_Y21GA 368
 #define BUF_SIZE_Y21GA 1786224
 #define FRAME_HEADER_SIZE_Y21GA 28
@@ -41,7 +44,8 @@
 #define FRAME_HEADER_SIZE_R30GB 22
 #define DATA_OFFSET_R30GB 0
 #define LOWRES_BYTE_R30GB 8
-#define HIGHRES_BYTE_R30GB 16
+#define HIGHRES_BYTE_R30GB 4
+//#define HIGHRES_BYTE_R30GB 16
 
 #define USLEEP 100000
 
@@ -53,14 +57,18 @@
 #define STATE_SPS_LOW 2                /* Last nalu is SPS low res */
 #define STATE_PPS_HIGH 3               /* Last nalu is PPS high res */
 #define STATE_PPS_LOW 4                /* Last nalu is PPS low res */
-#define STATE_IDR_HIGH 5               /* Last nalu is IDR high res */
-#define STATE_IDR_LOW 6                /* Last nalu is IDR low res */
+#define STATE_VPS_HIGH 5               /* Last nalu is VPS high res */
+#define STATE_VPS_LOW 6                /* Last nalu is VPS low res */
+#define STATE_IDR_HIGH 7               /* Last nalu is IDR high res */
+#define STATE_IDR_LOW 8                /* Last nalu is IDR low res */
 
 typedef struct {
     int sps_addr;
     int sps_len;
     int pps_addr;
     int pps_len;
+    int vps_addr;
+    int vps_len;
     int idr_addr;
     int idr_len;
 } frame;
@@ -72,13 +80,18 @@ int data_offset;
 int lowres_byte;
 int highres_byte;
 
-unsigned char IDR[]               = {0x65, 0xB8};
-unsigned char NAL_START[]         = {0x00, 0x00, 0x00, 0x01};
-unsigned char IDR_START[]         = {0x00, 0x00, 0x00, 0x01, 0x65, 0x88};
-unsigned char PFR_START[]         = {0x00, 0x00, 0x00, 0x01, 0x41};
-unsigned char SPS_START[]         = {0x00, 0x00, 0x00, 0x01, 0x67};
-unsigned char PPS_START[]         = {0x00, 0x00, 0x00, 0x01, 0x68};
-unsigned char SPS_COMMON[]        = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00};
+unsigned char IDR4[]               = {0x65, 0xB8};
+unsigned char NALx_START[]         = {0x00, 0x00, 0x00, 0x01};
+unsigned char IDR4_START[]         = {0x00, 0x00, 0x00, 0x01, 0x65, 0x88};
+unsigned char IDR5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x26};
+unsigned char PFR4_START[]         = {0x00, 0x00, 0x00, 0x01, 0x41};
+unsigned char PFR5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x02};
+unsigned char SPS4_START[]         = {0x00, 0x00, 0x00, 0x01, 0x67};
+unsigned char SPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x42};
+unsigned char PPS4_START[]         = {0x00, 0x00, 0x00, 0x01, 0x68};
+unsigned char PPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x44};
+unsigned char VPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x40};
+
 unsigned char SPS_640X360[]       = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
                                        0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01};
 unsigned char SPS_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
@@ -220,7 +233,7 @@ int main(int argc, char **argv) {
         buf_idx_w = addrh + i;
         if (debug) fprintf(stderr, "buf_idx_w: %08x\n", (unsigned int) buf_idx_w);
 
-        buf_idx_tmp = cb_memmem(buf_idx_1, buf_idx_w - buf_idx_1, NAL_START, sizeof(NAL_START), addrh, sizeh);
+        buf_idx_tmp = cb_memmem(buf_idx_1, buf_idx_w - buf_idx_1, NALx_START, sizeof(NALx_START), addrh, sizeh);
         if (buf_idx_tmp == NULL) {
             usleep(USLEEP);
             continue;
@@ -229,7 +242,7 @@ int main(int argc, char **argv) {
         }
         if (debug) fprintf(stderr, "found buf_idx_1: %08x\n", (unsigned int) buf_idx_1);
 
-        buf_idx_tmp = cb_memmem(buf_idx_1 + 1, buf_idx_w - (buf_idx_1 + 1), NAL_START, sizeof(NAL_START), addrh, sizeh);
+        buf_idx_tmp = cb_memmem(buf_idx_1 + 1, buf_idx_w - (buf_idx_1 + 1), NALx_START, sizeof(NALx_START), addrh, sizeh);
         if (buf_idx_tmp == NULL) {
             usleep(USLEEP);
             continue;
@@ -240,7 +253,8 @@ int main(int argc, char **argv) {
 
         switch (state) {
             case STATE_SPS_HIGH:
-                if (memcmp(buf_idx_1, PPS_START, sizeof(PPS_START)) == 0) {
+                if ((memcmp(buf_idx_1, PPS4_START, sizeof(PPS4_START)) == 0) ||
+                        (memcmp(buf_idx_1, PPS5_START, sizeof(PPS5_START)) == 0)) {
                     state = STATE_PPS_HIGH;
                     if (debug) fprintf(stderr, "state = STATE_PPS_HIGH\n");
                     hl_frame[0].pps_addr = buf_idx_1 - addr;
@@ -248,7 +262,28 @@ int main(int argc, char **argv) {
                 }
                 break;
             case STATE_PPS_HIGH:
-                if (memcmp(buf_idx_1, IDR_START, sizeof(IDR_START)) == 0) {
+                if (memcmp(buf_idx_1, IDR4_START, sizeof(IDR4_START)) == 0) {
+                    state = STATE_NONE;
+                    if (debug) fprintf(stderr, "state = STATE_IDR_HIGH\n");
+                    hl_frame[0].vps_addr = 0;
+                    hl_frame[0].vps_len = 0;
+                    hl_frame[0].idr_addr = buf_idx_1 - addr;
+                    hl_frame[0].idr_len = getFrameLen(buf_idx_1, 0);
+
+                    if (memcmp(hl_frame, hl_frame_old, 2 * sizeof(frame)) != 0) {
+                        writeFile(I_FILE, (unsigned char *) hl_frame, 2 * sizeof(frame));
+                        memcpy(hl_frame_old, hl_frame, 2 * sizeof(frame));
+                    }
+                }
+                if (memcmp(buf_idx_1, VPS5_START, sizeof(VPS5_START)) == 0) {
+                    state = STATE_VPS_HIGH;
+                    if (debug) fprintf(stderr, "state = STATE_VPS_HIGH\n");
+                    hl_frame[0].vps_addr = buf_idx_1 - addr;
+                    hl_frame[0].vps_len = getFrameLen(buf_idx_1, 0);
+                }
+                break;
+            case STATE_VPS_HIGH:
+                if (memcmp(buf_idx_1, IDR5_START, sizeof(IDR5_START)) == 0) {
                     state = STATE_NONE;
                     if (debug) fprintf(stderr, "state = STATE_IDR_HIGH\n");
                     hl_frame[0].idr_addr = buf_idx_1 - addr;
@@ -260,24 +295,9 @@ int main(int argc, char **argv) {
                     }
                 }
                 break;
-//            case STATE_IDR_HIGH:
-//                state = STATE_NONE;
-//                if (debug) fprintf(stderr, "state = STATE_NONE\n");
-//                buf_idx_end = buf_idx_1;
-//                sequence_size = buf_idx_end - buf_idx_start;
-//                if (sequence_size < 0)
-//                    sequence_size = (addrh + sizeh) - buf_idx_start + buf_idx_end - addrh;
-//                // Write IDR address and size to the file
-//                utmp[0] = (uint32_t) (buf_idx_start - addr);
-//                utmp[1] = (uint32_t) sequence_size;
-//                if (memcmp(utmp, utmp_old, sizeof(utmp)) != 0) {
-//                    writeFile(I_FILE, (char *) utmp, sizeof(utmp));
-//                    memcpy(utmp_old, utmp, sizeof(utmp));
-//                }
-//                break;
 
             case STATE_SPS_LOW:
-                if (memcmp(buf_idx_1, PPS_START, sizeof(PPS_START)) == 0) {
+                if (memcmp(buf_idx_1, PPS4_START, sizeof(PPS4_START)) == 0) {
                     state = STATE_PPS_LOW;
                     if (debug) fprintf(stderr, "state = STATE_PPS_LOW\n");
                     hl_frame[1].pps_addr = buf_idx_1 - addr;
@@ -285,9 +305,11 @@ int main(int argc, char **argv) {
                 }
                 break;
             case STATE_PPS_LOW:
-                if (memcmp(buf_idx_1, IDR_START, sizeof(IDR_START)) == 0) {
+                if (memcmp(buf_idx_1, IDR4_START, sizeof(IDR4_START)) == 0) {
                     state = STATE_NONE;
                     if (debug) fprintf(stderr, "state = STATE_IDR_LOW\n");
+                    hl_frame[1].vps_addr = 0;
+                    hl_frame[1].vps_len = 0;
                     hl_frame[1].idr_addr = buf_idx_1 - addr;
                     hl_frame[1].idr_len = getFrameLen(buf_idx_1, 0);
 
@@ -299,35 +321,21 @@ int main(int argc, char **argv) {
                 break;
 
             case STATE_NONE:
-                if (memcmp(buf_idx_1, SPS_COMMON, sizeof(SPS_COMMON)) == 0) {
+                if ((memcmp(buf_idx_1, SPS4_START, sizeof(SPS4_START)) == 0) ||
+                        (memcmp(buf_idx_1, SPS5_START, sizeof(SPS5_START)) == 0)) {
                     buf_idx_1 = cb_move(buf_idx_1, - (6 + frame_header_size));
                     if (buf_idx_1[17 + data_offset] == highres_byte) {
                         buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
                         state = STATE_SPS_HIGH;
-                        if (debug) fprintf(stderr, "state = STATE_SPS_HIGH\n");
                         hl_frame[0].sps_addr = buf_idx_1 - addr;
                         hl_frame[0].sps_len = getFrameLen(buf_idx_1, 6);
                     } else if (buf_idx_1[17 + data_offset] == lowres_byte) {
                         buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
                         state = STATE_SPS_LOW;
-                        if (debug) fprintf(stderr, "state = STATE_SPS_LOW\n");
                         hl_frame[1].sps_addr = buf_idx_1 - addr;
                         hl_frame[1].sps_len = getFrameLen(buf_idx_1, 6);
                     }
                 }
-/*
-                if (memcmp(buf_idx_1, SPS_1920X1080, sizeof(SPS_1920X1080)) == 0) {
-                    state = STATE_SPS_HIGH;
-                    if (debug) fprintf(stderr, "state = STATE_SPS_HIGH\n");
-                    hl_frame[0].sps_addr = buf_idx_1 - addr;
-                    hl_frame[0].sps_len = getFrameLen(buf_idx_1, 6);
-                } else if (memcmp(buf_idx_1, SPS_640X360, sizeof(SPS_640X360)) == 0) {
-                    state = STATE_SPS_LOW;
-                    if (debug) fprintf(stderr, "state = STATE_SPS_LOW\n");
-                    hl_frame[1].sps_addr = buf_idx_1 - addr;
-                    hl_frame[1].sps_len = getFrameLen(buf_idx_1, 6);
-                }
-*/
                 break;
 
             default:

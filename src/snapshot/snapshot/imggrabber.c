@@ -57,6 +57,8 @@ typedef struct {
     int sps_len;
     int pps_addr;
     int pps_len;
+    int vps_addr;
+    int vps_len;
     int idr_addr;
     int idr_len;
 } frame;
@@ -78,7 +80,7 @@ void *cb_memcpy(void * dest, const void * src, size_t n)
     return dest;
 }
 
-int frame_decode(unsigned char *outbuffer, unsigned char *p, int length)
+int frame_decode(unsigned char *outbuffer, unsigned char *p, int length, int h26x)
 {
     AVCodec *codec;
     AVCodecContext *c= NULL;
@@ -97,10 +99,18 @@ int frame_decode(unsigned char *outbuffer, unsigned char *p, int length)
 
     av_init_packet(&avpkt);
 
-    codec = avcodec_find_decoder(AV_CODEC_ID_H264);
-    if (!codec) {
-        if (debug) fprintf(stderr, "Codec h264 not found\n");
-        return -2;
+    if (h26x == 4) {
+        codec = avcodec_find_decoder(AV_CODEC_ID_H264);
+        if (!codec) {
+            if (debug) fprintf(stderr, "Codec h264 not found\n");
+            return -2;
+        }
+    } else {
+        codec = avcodec_find_decoder(AV_CODEC_ID_HEVC);
+        if (!codec) {
+            if (debug) fprintf(stderr, "Codec hevc not found\n");
+            return -2;
+        }
     }
 
     c = avcodec_alloc_context3(codec);
@@ -225,7 +235,7 @@ int main(int argc, char **argv)
     uint32_t offset, length;
     int res = RESOLUTION_HIGH;
     frame hl_frame[2];
-    unsigned char *bufferh264, *bufferyuv;
+    unsigned char *bufferh26x, *bufferyuv;
     int watermark = 0;
 
     int c;
@@ -293,8 +303,8 @@ int main(int argc, char **argv)
     // Closing the file
     fclose(fBuf) ;
 
-    bufferh264 = (unsigned char *) malloc(hl_frame[res].sps_len + hl_frame[res].pps_len + hl_frame[res].idr_len);
-    if (bufferh264 == NULL) {
+    bufferh26x = (unsigned char *) malloc(hl_frame[res].vps_len + hl_frame[res].sps_len + hl_frame[res].pps_len + hl_frame[res].idr_len);
+    if (bufferh26x == NULL) {
         fprintf(stderr, "Unable to allocate memory\n");
         exit -1;
     }
@@ -308,16 +318,27 @@ int main(int argc, char **argv)
         exit -1;
     }
 
-    memcpy(bufferh264, addr + hl_frame[res].sps_addr, hl_frame[res].sps_len);
-    memcpy(bufferh264 + hl_frame[res].sps_len, addr + hl_frame[res].pps_addr, hl_frame[res].pps_len);
-    memcpy(bufferh264 + hl_frame[res].sps_len + hl_frame[res].pps_len, addr + hl_frame[res].idr_addr, hl_frame[res].idr_len);
-
-    if (debug) fprintf(stderr, "Encoding h264 frame\n");
-    if(frame_decode(bufferyuv, bufferh264, hl_frame[res].sps_len + hl_frame[res].pps_len + hl_frame[res].idr_len) < 0) {
-        fprintf(stderr, "Error decoding h264 frame\n");
-        exit(-2);
+    if (hl_frame[res].vps_len != 0) {
+        memcpy(bufferh26x, addr + hl_frame[res].vps_addr, hl_frame[res].vps_len);
     }
-    free(bufferh264);
+    memcpy(bufferh26x + hl_frame[res].vps_len, addr + hl_frame[res].sps_addr, hl_frame[res].sps_len);
+    memcpy(bufferh26x + hl_frame[res].vps_len + hl_frame[res].sps_len, addr + hl_frame[res].pps_addr, hl_frame[res].pps_len);
+    memcpy(bufferh26x + hl_frame[res].vps_len + hl_frame[res].sps_len + hl_frame[res].pps_len, addr + hl_frame[res].idr_addr, hl_frame[res].idr_len);
+
+    if (hl_frame[res].vps_len == 0) {
+        if (debug) fprintf(stderr, "Encoding h264 frame\n");
+        if(frame_decode(bufferyuv, bufferh26x, hl_frame[res].sps_len + hl_frame[res].pps_len + hl_frame[res].idr_len, 4) < 0) {
+            fprintf(stderr, "Error encoding h264 frame\n");
+            exit(-2);
+        }
+    } else {
+        if (debug) fprintf(stderr, "Encoding h265 frame\n");
+        if(frame_decode(bufferyuv, bufferh26x, hl_frame[res].vps_len + hl_frame[res].sps_len + hl_frame[res].pps_len + hl_frame[res].idr_len, 5) < 0) {
+            fprintf(stderr, "Error encoding h265 frame\n");
+            exit(-2);
+        }
+    }
+    free(bufferh26x);
 
     if (watermark) {
         if (debug) fprintf(stderr, "Adding watermark\n");

@@ -63,7 +63,7 @@ define build_ffmpeg
    # build
     if [ ! -f $(FFMPEG)/libavcodec/libavcodec.a ] || [ ! -f $(FFMPEG)/libavutil/libavutil.a ]; then \
          cd $(FFMPEG); \
-        ./configure --enable-cross-compile --cross-prefix=$(CROSSPREFIX) --arch=armel --target-os=linux --prefix=$(CROSSPATH) --disable-ffplay --disable-ffprobe --disable-doc  --disable-decoders --enable-decoder=h264 --disable-encoders --disable-demuxers --enable-demuxer=h264 --disable-muxers --disable-protocols --disable-parsers --enable-parser=h264 --disable-filters --disable-bsfs --disable-indevs --disable-outdevs && \
+        ./configure --enable-cross-compile --cross-prefix=$(CROSSPREFIX) --arch=armel --target-os=linux --prefix=$(CROSSPATH) --disable-ffplay --disable-ffprobe --disable-doc  --disable-decoders --enable-decoder=h264 --enable-decoder=hevc --disable-encoders --disable-demuxers --enable-demuxer=h264 --enable-demuxer=hevc --disable-muxers --disable-protocols --disable-parsers --enable-parser=h264 --enable-parser=hevc --disable-filters --disable-bsfs --disable-indevs --disable-outdevs && \
          make; \
          cd ..;\
     fi

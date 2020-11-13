@@ -1,5 +1,5 @@
 ##### Change the following for your environment:
-COMPILE_OPTS =		$(INCLUDES) -I. -I./include -O2 -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DNO_OPENSSL=1
+COMPILE_OPTS =		$(INCLUDES) -I. -I./include -O1 -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DNO_OPENSSL=1
 C =			c
 C_COMPILER =		$(CC)
 C_FLAGS =		$(COMPILE_OPTS) $(CPPFLAGS) $(CFLAGS)
@@ -71,6 +71,7 @@ livemedia:
 
 rRTSPServer_OBJS	= src/rRTSPServer.$(OBJ) \
 				src/ByteStreamCBMemorySource.$(OBJ) src/H264VideoCBMemoryServerMediaSubsession.$(OBJ) \
+				src/H265VideoCBMemoryServerMediaSubsession.$(OBJ) \
 				src/CBMemoryServerMediaSubsession.$(OBJ) \
 				src/WAVAudioFifoSource.$(OBJ) src/WAVAudioFifoServerMediaSubsession.$(OBJ) \
 				src/DummySink.$(OBJ)

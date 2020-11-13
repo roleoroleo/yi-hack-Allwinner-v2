@@ -24,6 +24,7 @@
 #include "BasicUsageEnvironment.hh"
 
 #include "H264VideoCBMemoryServerMediaSubsession.hh"
+#include "H265VideoCBMemoryServerMediaSubsession.hh"
 #include "WAVAudioFifoServerMediaSubsession.hh"
 #include "WAVAudioFifoSource.hh"
 #include "StreamReplicator.hh"
@@ -34,8 +35,11 @@
 #include <errno.h>
 #include <limits.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 
 #include "rRTSPServer.h"
+
+//#define REORDER_VPS5 1
 
 int buf_offset;
 int buf_size;
@@ -44,19 +48,28 @@ int data_offset;
 int lowres_byte;
 int highres_byte;
 
-unsigned char IDR[]               = {0x65, 0xB8};
-unsigned char NAL_START[]         = {0x00, 0x00, 0x00, 0x01};
-unsigned char IDR_START[]         = {0x00, 0x00, 0x00, 0x01, 0x65, 0x88};
-unsigned char PFR_START[]         = {0x00, 0x00, 0x00, 0x01, 0x41};
-unsigned char SPS_START[]         = {0x00, 0x00, 0x00, 0x01, 0x67};
-unsigned char PPS_START[]         = {0x00, 0x00, 0x00, 0x01, 0x68};
-unsigned char SPS_COMMON[]        = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00};
-unsigned char SPS_640X360[]       = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
-                                       0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
-                                       0x01, 0x01, 0x02};
-unsigned char SPS_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
-                                       0x96, 0x54, 0x03, 0xC0, 0x11, 0x2F, 0x2C, 0xDC,
-                                       0x04, 0x04, 0x04, 0x08};
+unsigned char IDR4[]               = {0x65, 0xB8};
+unsigned char NALx_START[]         = {0x00, 0x00, 0x00, 0x01};
+unsigned char IDR4_START[]         = {0x00, 0x00, 0x00, 0x01, 0x65, 0x88};
+unsigned char IDR5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x26};
+unsigned char PFR4_START[]         = {0x00, 0x00, 0x00, 0x01, 0x41};
+unsigned char PFR5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x02};
+unsigned char SPS4_START[]         = {0x00, 0x00, 0x00, 0x01, 0x67};
+unsigned char SPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x42};
+unsigned char PPS4_START[]         = {0x00, 0x00, 0x00, 0x01, 0x68};
+unsigned char PPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x44};
+unsigned char VPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x40};
+
+unsigned char SPS4_640X360[]       = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
+                                        0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
+                                        0x01, 0x01, 0x02};
+unsigned char SPS4_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
+                                        0x96, 0x54, 0x03, 0xC0, 0x11, 0x2F, 0x2C, 0xDC,
+                                        0x04, 0x04, 0x04, 0x08};
+unsigned char VPS5_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
+                                        0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
+                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
+                                        0x00, 0x7B, 0xAC, 0x09};
 
 //unsigned char *addr;                      /* Pointer to shared memory region (header) */
 int debug;                                  /* Set to 1 to debug this .c */
@@ -84,7 +97,15 @@ Boolean reuseFirstSource = True;
 // change the following "False" to "True":
 Boolean iFramesOnly = False;
 
-void cb_dest_memcpy(cb_output_buffer *dest, unsigned char *src, size_t n)
+long long current_timestamp() {
+    struct timeval te; 
+    gettimeofday(&te, NULL); // get current time
+    long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // calculate milliseconds
+
+    return milliseconds;
+}
+
+void s2cb_memcpy(cb_output_buffer *dest, unsigned char *src, size_t n)
 {
     unsigned char *uc_dest = dest->write_index;
 
@@ -101,16 +122,16 @@ void cb_dest_memcpy(cb_output_buffer *dest, unsigned char *src, size_t n)
     }
 }
 
-void cb_memcpy(cb_output_buffer *dest, cb_input_buffer *src, size_t n)
+void cb2cb_memcpy(cb_output_buffer *dest, cb_input_buffer *src, size_t n)
 {
     unsigned char *uc_src = src->read_index;
 
     if (uc_src + n > src->buffer + src->size) {
-        cb_dest_memcpy(dest, uc_src, src->buffer + src->size - uc_src);
-        cb_dest_memcpy(dest, src->buffer + src->offset, n - (src->buffer + src->size - uc_src));
+        s2cb_memcpy(dest, uc_src, src->buffer + src->size - uc_src);
+        s2cb_memcpy(dest, src->buffer + src->offset, n - (src->buffer + src->size - uc_src));
         src->read_index = src->offset + n + uc_src - src->size;
     } else {
-        cb_dest_memcpy(dest, uc_src, n);
+        s2cb_memcpy(dest, uc_src, n);
         src->read_index += n;
     }
 }
@@ -123,7 +144,7 @@ int cb_memcmp(unsigned char *str1, unsigned char*str2, size_t n)
     if (str2 + n > input_buffer.buffer + input_buffer.size) {
         ret = memcmp(str1, str2, input_buffer.buffer + input_buffer.size - str2);
         if (ret != 0) return ret;
-        ret = memcmp(str1 + (input_buffer.buffer + input_buffer.size - str2), input_buffer.buffer, n - (input_buffer.buffer + input_buffer.size - str2));
+        ret = memcmp(str1 + (input_buffer.buffer + input_buffer.size - str2), input_buffer.buffer + input_buffer.offset, n - (input_buffer.buffer + input_buffer.size - str2));
     } else {
         ret = memcmp(str1, str2, n);
     }
@@ -135,17 +156,15 @@ int cb_memcmp(unsigned char *str1, unsigned char*str2, size_t n)
 unsigned char *cb_memmem(unsigned char *src, int src_len, unsigned char *what, int what_len)
 {
     unsigned char *p;
-    unsigned char *buffer = input_buffer.buffer + input_buffer.offset;
-    int buffer_size = input_buffer.size;
 
     if (src_len >= 0) {
         p = (unsigned char*) memmem(src, src_len, what, what_len);
     } else {
         // From src to the end of the buffer
-        p = (unsigned char*) memmem(src, buffer + buffer_size - src, what, what_len);
+        p = (unsigned char*) memmem(src, input_buffer.buffer + input_buffer.size - src, what, what_len);
         if (p == NULL) {
             // And from the start of the buffer size src_len
-            p = (unsigned char*) memmem(buffer, src + src_len - buffer, what, what_len);
+            p = (unsigned char*) memmem(input_buffer.buffer + input_buffer.offset, src + src_len - (input_buffer.buffer + input_buffer.offset), what, what_len);
         }
     }
     return p;
@@ -162,6 +181,17 @@ unsigned char *cb_move(unsigned char *buf, int offset)
     return buf;
 }
 
+// The second argument is the circular buffer
+void cb2s_memcpy(unsigned char *dest, unsigned char *src, size_t n)
+{
+    if (src + n > input_buffer.buffer + input_buffer.size) {
+        memcpy(dest, src, input_buffer.buffer + input_buffer.size - src);
+        memcpy(dest + (input_buffer.buffer + input_buffer.size - src), input_buffer.buffer + input_buffer.offset, n - (input_buffer.buffer + input_buffer.size - src));
+    } else {
+        memcpy(dest, src, n);
+    }
+}
+
 void *capture(void *ptr)
 {
     unsigned char *addr;
@@ -172,16 +202,22 @@ void *capture(void *ptr)
 
     int frame_len = -1;
     int frame_res = -1;
+    int frame_counter = -1;
+    int frame_counter_last_valid_low = -1;
+    int frame_counter_last_valid_high = -1;
 
     int i;
     cb_output_buffer *cb_current;
     int write_enable = 0;
-    int sync_lost = 1;
+    int sps_sync = 0;
+#ifdef REORDER_VPS5
+    int frame_is_sps5 = 0;
+#endif
 
     // Opening an existing file
     fFid = fopen(input_buffer.filename, "r");
     if ( fFid == NULL ) {
-        fprintf(stderr, "could not open file %s\n", input_buffer.filename);
+        fprintf(stderr, "%lld: could not open file %s\n", current_timestamp(), input_buffer.filename);
         free(output_buffer_low.buffer);
         free(output_buffer_high.buffer);
         exit(EXIT_FAILURE);
@@ -190,30 +226,30 @@ void *capture(void *ptr)
     // Map file to memory
     addr = (unsigned char*) mmap(NULL, input_buffer.size, PROT_READ, MAP_SHARED, fileno(fFid), 0);
     if (addr == MAP_FAILED) {
-        fprintf(stderr, "error mapping file %s\n", input_buffer.filename);
+        fprintf(stderr, "%lld: error mapping file %s\n", current_timestamp(), input_buffer.filename);
         fclose(fFid);
         free(output_buffer_low.buffer);
         free(output_buffer_high.buffer);
         exit(EXIT_FAILURE);
     }
     input_buffer.buffer = addr;
-    if (debug) fprintf(stderr, "mapping file %s, size %d, to %08x\n", input_buffer.filename, input_buffer.size, (unsigned int) addr);
+    if (debug) fprintf(stderr, "%lld: mapping file %s, size %d, to %08x\n", current_timestamp(), input_buffer.filename, input_buffer.size, (unsigned int) addr);
 
     // Closing the file
-    if (debug) fprintf(stderr, "closing the file %s\n", input_buffer.filename);
+    if (debug) fprintf(stderr, "%lld: closing the file %s\n", current_timestamp(), input_buffer.filename);
     fclose(fFid) ;
 
     buf_idx_1 = addr + input_buffer.offset;
     buf_idx_w = 0;
 
-    if (debug) fprintf(stderr, "starting capture main loop\n");
+    if (debug) fprintf(stderr, "%lld: starting capture main loop\n", current_timestamp());
 
     // Infinite loop
     while (1) {
         memcpy(&i, addr + 16, sizeof(i));
         buf_idx_w = addr + input_buffer.offset + i;
 //        if (debug) fprintf(stderr, "buf_idx_w: %08x\n", (unsigned int) buf_idx_w);
-        buf_idx_tmp = cb_memmem(buf_idx_1, buf_idx_w - buf_idx_1, NAL_START, sizeof(NAL_START));
+        buf_idx_tmp = cb_memmem(buf_idx_1, buf_idx_w - buf_idx_1, NALx_START, sizeof(NALx_START));
         if (buf_idx_tmp == NULL) {
             usleep(MILLIS_25);
             continue;
@@ -222,7 +258,7 @@ void *capture(void *ptr)
         }
 //        if (debug) fprintf(stderr, "found buf_idx_1: %08x\n", (unsigned int) buf_idx_1);
 
-        buf_idx_tmp = cb_memmem(buf_idx_1 + 1, buf_idx_w - (buf_idx_1 + 1), NAL_START, sizeof(NAL_START));
+        buf_idx_tmp = cb_memmem(buf_idx_1 + 1, buf_idx_w - (buf_idx_1 + 1), NALx_START, sizeof(NALx_START));
         if (buf_idx_tmp == NULL) {
             usleep(MILLIS_25);
             continue;
@@ -231,7 +267,7 @@ void *capture(void *ptr)
         }
 //        if (debug) fprintf(stderr, "found buf_idx_2: %08x\n", (unsigned int) buf_idx_2);
 
-        if ((write_enable) && (!sync_lost)) {
+        if ((write_enable) && (sps_sync)) {
             if (frame_res == RESOLUTION_LOW) {
                 cb_current = &output_buffer_low;
             } else if (frame_res == RESOLUTION_HIGH) {
@@ -239,44 +275,81 @@ void *capture(void *ptr)
             } else {
                 cb_current = NULL;
             }
-            if (debug) fprintf(stderr, "frame_len: %d - cb_current->size: %d\n", frame_len, cb_current->size);
 
             if (cb_current != NULL) {
+                if (debug) fprintf(stderr, "%lld: frame_len: %d - cb_current->size: %d\n", current_timestamp(), frame_len, cb_current->size);
                 if (frame_len > (signed) cb_current->size) {
-                    fprintf(stderr, "frame size exceeds buffer size\n");
+                    fprintf(stderr, "%lld: frame size exceeds buffer size\n", current_timestamp());
+                    sps_sync = 0;
                 } else {
                     pthread_mutex_lock(&(cb_current->mutex));
+#ifdef REORDER_VPS5
+                    if (frame_is_sps5 == 1) {
+                        if (debug) fprintf(stderr, "%lld: h265 SPS detected, writing VPS - frame_len: %d - resolution: %d\n", current_timestamp(), sizeof(VPS5_1920X1080), frame_res);
+                        s2cb_memcpy(cb_current, VPS5_1920X1080, sizeof(VPS5_1920X1080));
+                    }
+#endif
                     input_buffer.read_index = buf_idx_start;
-//                    if (debug) fprintf(stderr, "frame_len: %d - frame_counter: %d - buffer_filled: %d - resolution: %d\n", frame_len, frame_counter,
-//                                        (cb_current->write_index - cb_current->read_index + cb_current->size) % cb_current->size + frame_len, cb_current->resolution);
-                    cb_memcpy(cb_current, &input_buffer, frame_len);
+                    if (debug) fprintf(stderr, "%lld: frame_len: %d - frame_counter: %d - resolution: %d\n", current_timestamp(), frame_len, frame_counter, frame_res);
+                    cb2cb_memcpy(cb_current, &input_buffer, frame_len);
                     pthread_mutex_unlock(&(cb_current->mutex));
                 }
             }
         }
 
-        if (cb_memcmp(SPS_COMMON, buf_idx_1, sizeof(SPS_COMMON)) == 0) {
+        if ((cb_memcmp(SPS4_START, buf_idx_1, sizeof(SPS4_START)) == 0) ||
+                (cb_memcmp(SPS5_START, buf_idx_1, sizeof(SPS5_START)) == 0)) {
             // SPS frame
+#ifdef REORDER_VPS5
+            if (cb_memcmp(SPS5_START, buf_idx_1, sizeof(SPS5_START)) == 0) {
+                frame_is_sps5 = 1;
+            } else {
+                frame_is_sps5 = 0;
+            }
+#endif
             write_enable = 1;
-            sync_lost = 0;
+            sps_sync = 1;
             buf_idx_1 = cb_move(buf_idx_1, - (6 + frame_header_size));
             if (buf_idx_1[17 + data_offset] == lowres_byte) {
                 frame_res = RESOLUTION_LOW;
             } else if (buf_idx_1[17 + data_offset] == highres_byte) {
                 frame_res = RESOLUTION_HIGH;
             } else {
+                frame_res = RESOLUTION_NONE;
                 write_enable = 0;
             }
-            memcpy(&frame_len, buf_idx_1, 4);
+            cb2s_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
             frame_len -= 6;                                                              // -6 only for SPS
+            frame_counter = (int) buf_idx_1[18 + data_offset] + (int) buf_idx_1[19 + data_offset] * 256;
+            if ((frame_res == RESOLUTION_LOW) && (frame_counter - frame_counter_last_valid_low <= 0) && (frame_counter - frame_counter_last_valid_low > -65000)) {
+                write_enable = 0;
+            } else if ((frame_res == RESOLUTION_HIGH) && (frame_counter - frame_counter_last_valid_high <= 0) && (frame_counter - frame_counter_last_valid_high > -65000)) {
+                write_enable = 0;
+            } else {
+                if (frame_res == RESOLUTION_LOW) {
+                    frame_counter_last_valid_low = frame_counter;
+                } else if (frame_res == RESOLUTION_HIGH) {
+                    frame_counter_last_valid_high = frame_counter;
+                }
+            }
+            if (debug) fprintf(stderr, "%lld: SPS   detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
+                    current_timestamp(), frame_len, frame_counter,
+                    (resolution==RESOLUTION_LOW)?frame_counter_last_valid_low:frame_counter_last_valid_high, frame_res);
             buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
-//            if (debug) fprintf(stderr, "SPS   detected - frame_len_prev: %d - frame_counter: %d - buffer_filled: %d\n", frame_len_prev, frame_counter,
-//                                (output_buffer.write_index - output_buffer.read_index + output_buffer.size) % output_buffer.size + frame_len_prev);
             buf_idx_start = buf_idx_1;
-        } else if ((cb_memcmp(PPS_START, buf_idx_1, sizeof(PPS_START)) == 0) ||
-                        (cb_memcmp(IDR_START, buf_idx_1, sizeof(IDR_START)) == 0) ||
-                        (cb_memcmp(PFR_START, buf_idx_1, sizeof(PFR_START)) == 0)) {
+        } else if ((cb_memcmp(PPS4_START, buf_idx_1, sizeof(PPS4_START)) == 0) ||
+                        (cb_memcmp(PPS5_START, buf_idx_1, sizeof(PPS5_START)) == 0) ||
+#ifndef REORDER_VPS5
+                        (cb_memcmp(VPS5_START, buf_idx_1, sizeof(VPS5_START)) == 0) ||
+#endif
+                        (cb_memcmp(IDR4_START, buf_idx_1, sizeof(IDR4_START)) == 0) ||
+                        (cb_memcmp(IDR5_START, buf_idx_1, sizeof(IDR5_START)) == 0) ||
+                        (cb_memcmp(PFR4_START, buf_idx_1, sizeof(PFR4_START)) == 0) ||
+                        (cb_memcmp(PFR5_START, buf_idx_1, sizeof(PFR5_START)) == 0)) {
             // PPS, IDR and PFR frames
+#ifdef REORDER_VPS5
+            frame_is_sps5 = 0;
+#endif
             write_enable = 1;
             buf_idx_1 = cb_move(buf_idx_1, -frame_header_size);
             if (buf_idx_1[17 + data_offset] == lowres_byte) {
@@ -284,12 +357,31 @@ void *capture(void *ptr)
             } else if (buf_idx_1[17 + data_offset] == highres_byte) {
                 frame_res = RESOLUTION_HIGH;
             } else {
+                frame_res = RESOLUTION_NONE;
                 write_enable = 0;
             }
-            memcpy(&frame_len, buf_idx_1, 4);
+            cb2s_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
+            frame_counter = (int) buf_idx_1[18 + data_offset] + (int) buf_idx_1[19 + data_offset] * 256;
+            if ((frame_res == RESOLUTION_LOW) && (frame_counter - frame_counter_last_valid_low <= 0) && (frame_counter - frame_counter_last_valid_low > -65000)) {
+                write_enable = 0;
+            } else if ((frame_res == RESOLUTION_HIGH) && (frame_counter - frame_counter_last_valid_high <= 0) && (frame_counter - frame_counter_last_valid_high > -65000)) {
+                write_enable = 0;
+            } else {
+                if (frame_res == RESOLUTION_LOW) {
+                    frame_counter_last_valid_low = frame_counter;
+                } else if (frame_res == RESOLUTION_HIGH) {
+                    frame_counter_last_valid_high = frame_counter;
+                }
+            }
+            if (debug) fprintf(stderr, "%lld: frame detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
+                    current_timestamp(), frame_len, frame_counter,
+                    (resolution==RESOLUTION_LOW)?frame_counter_last_valid_low:frame_counter_last_valid_high, frame_res);
             buf_idx_1 = cb_move(buf_idx_1, frame_header_size);
             buf_idx_start = buf_idx_1;
         } else {
+#ifdef REORDER_VPS5
+            frame_is_sps5 = 0;
+#endif
             write_enable = 0;
         }
 
@@ -300,9 +392,9 @@ void *capture(void *ptr)
 
     // Unmap file from memory
     if (munmap(addr, input_buffer.size) == -1) {
-        fprintf(stderr, "error munmapping file");
+        fprintf(stderr, "%lld: error munmapping file\n", current_timestamp());
     } else {
-        if (debug) fprintf(stderr, "unmapping file %s, size %d, from %08x\n", BUFFER_FILE, input_buffer.size, (unsigned int) addr);
+        if (debug) fprintf(stderr, "%lld: unmapping file %s, size %d, from %08x\n", current_timestamp(), BUFFER_FILE, input_buffer.size, (unsigned int) addr);
     }
 
     return NULL;
@@ -618,7 +710,7 @@ int main(int argc, char** argv)
     // "ServerMediaSession" object, plus one or more
     // "ServerMediaSubsession" objects for each audio/video substream.
 
-    // A H.264 video elementary stream:
+    // A H.264/5 video elementary stream:
     if ((resolution == RESOLUTION_HIGH) || (resolution == RESOLUTION_BOTH))
     {
         char const* streamName = "ch0_0.h264";
@@ -629,8 +721,13 @@ int main(int argc, char** argv)
         ServerMediaSession* sms_high
             = ServerMediaSession::createNew(*env, streamName, streamName,
                                               descriptionString);
-        sms_high->addSubsession(H264VideoCBMemoryServerMediaSubsession
+        if (model == Y21GA) {
+            sms_high->addSubsession(H264VideoCBMemoryServerMediaSubsession
                                    ::createNew(*env, &output_buffer_high, reuseFirstSource));
+        } else {
+            sms_high->addSubsession(H265VideoCBMemoryServerMediaSubsession
+                                   ::createNew(*env, &output_buffer_high, reuseFirstSource));
+        }
         if (audio) {
             sms_high->addSubsession(WAVAudioFifoServerMediaSubsession
                                        ::createNew(*env, replicator, reuseFirstSource, convertToULaw));

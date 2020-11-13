@@ -2,7 +2,7 @@ diff -Naur live.ori/config.linux-cross live/config.linux-cross
 --- live.ori/config.linux-cross	1970-01-01 01:00:00.000000000 +0100
 +++ live/config.linux-cross	2020-04-08 19:11:20.000000000 +0200
 @@ -0,0 +1,17 @@
-+COMPILE_OPTS =		$(INCLUDES) -I. -O2 -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DNO_OPENSSL=1
++COMPILE_OPTS =		$(INCLUDES) -I. -O1 -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DNO_OPENSSL=1
 +C =			c
 +C_COMPILER =		$(CC)
 +C_FLAGS =		$(COMPILE_OPTS) $(CPPFLAGS) $(CFLAGS)

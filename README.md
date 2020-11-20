@@ -33,8 +33,9 @@ So please, make your backup copy: https://github.com/roleoroleo/yi-hack-Allwinne
 2. Download the latest release from the Releases page.
 3. Extract the contents of the archive to the root of your SD card.
 4. Insert the SD Card and reboot the camera
-5. Wait for the camera to update. It will reboot a couple of times as the camera is rooted and the new firmware is applied. Once the light is solid blue for at least a minute it is complete.
-6. Don't remove the microSD card (yes this hack requires a dedicated microSD card).
+5. Wait a minute for the camera to update.
+6. Check the hack opening the web interface http://IP-CAM:8080
+7. Don't remove the microSD card (yes this hack requires a dedicated microSD card).
 
 
 ## Contributing and Bug Reports
@@ -96,7 +97,7 @@ Currently this project supports only the following cameras:
 | Camera | Firmware | File prefix | Remarks |
 | --- | --- | --- | --- |
 | Yi 1080p Home BFUS | 9.0.19* | y21ga | - |
-| Yi 1080p Dome * | 9.0.05* | r30gb | beta version |
+| Yi 1080p Dome *FUS | 9.0.05* | r30gb | beta version |
 
 USE AT YOUR OWN RISK.
 

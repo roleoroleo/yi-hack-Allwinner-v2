@@ -113,7 +113,7 @@ APP.eventsdir = (function ($) {
                     for (var i = 0; i < data.records.length; i++) {
                         var record = data.records[i];
                         html += "<tr><td>" + record.datetime + "</td>";
-                        html += "<td><a href=\"/?page=eventsfile&dirname=" + record.dirname + "\">" + record.dirname + "</a></td>";
+                        html += "<td><a href=\"?page=eventsfile&dirname=" + record.dirname + "\">" + record.dirname + "</a></td>";
                         html += "<td><input class=\"button-primary\" type=\"button\" id=\"button-delete-" + record.dirname + "\" value=\"Delete\"/></td></tr>";
                     }
                 }

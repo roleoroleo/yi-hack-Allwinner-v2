@@ -62,7 +62,7 @@ APP.ptz = (function ($) {
         interval = 1000;
 
         (function p() {
-            jQuery.get('/cgi-bin/snapshot.sh?res=low&base64=yes', function(data) {
+            jQuery.get('cgi-bin/snapshot.sh?res=low&base64=yes', function(data) {
                 image = document.getElementById('imgSnap');
                 image.src = 'data:image/png;base64,' + data;
             })

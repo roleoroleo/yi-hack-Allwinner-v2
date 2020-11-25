@@ -69,7 +69,7 @@ APP.eventsfile = (function ($) {
                         var record = data.records[i];
                         html += "<tr><td>" + record.time + "</td>";
                         html += "<td><a href=\"record/" + getUrlVar('dirname') + "/" + record.filename + "\">" +  record.filename + "</a></td>";
-                        html += "<td><input class=\"button-primary button-play\" type=\"button\" id=\"button-play-" + "/record/" + getUrlVar('dirname') + "/" + record.filename + "\" value=\"Play\"/></td>";
+                        html += "<td><input class=\"button-primary button-play\" type=\"button\" id=\"button-play-" + "record/" + getUrlVar('dirname') + "/" + record.filename + "\" value=\"Play\"/></td>";
                         html += "<td><input class=\"button-primary button-delete\" type=\"button\" id=\"button-delete-" + getUrlVar('dirname') + "/" + record.filename + "\" value=\"Delete\"/></td></tr>";
                     }
                 }

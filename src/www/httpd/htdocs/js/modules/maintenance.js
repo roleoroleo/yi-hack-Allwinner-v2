@@ -91,12 +91,12 @@ APP.maintenance = (function ($) {
     function waitForBoot() {
         setInterval(function(){
             $.ajax({
-                url: '/',
+                url: 'index.html',
                 cache: false,
                 success: function(data) {
                     setRebootStatus("Camera is back online, redirecting to home.");
                     $('#button-reboot').attr("disabled", false);
-                    window.location.href="/";
+                    window.location.href="index.html";
                 },
                 error: function(data) {
                     setRebootStatus("Waiting for the camera to come back online.");
@@ -142,12 +142,12 @@ APP.maintenance = (function ($) {
     function waitForUpgrade() {
         setInterval(function(){
             $.ajax({
-                url: '/',
+                url: 'index.html',
                 cache: false,
                 success: function(data) {
                     setFwStatus("Camera is upgrading.");
                     $('#button-upgrade').attr("disabled", false);
-                    window.location.href="/";
+                    window.location.href="index.html";
                 },
                 error: function(data) {
                     setFwStatus("Waiting for the camera to come back online...");

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ARCHIVE=live.2020.05.15.tar.gz
+ARCHIVE=live.2020.11.05.tar.gz
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 

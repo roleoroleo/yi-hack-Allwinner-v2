@@ -1,12 +1,15 @@
 diff -Naur mqttv4.ori/include/mqttv4.h mqttv4/include/mqttv4.h
 --- mqttv4.ori/include/mqttv4.h	2020-10-05 14:31:11.000000000 +0200
 +++ mqttv4/include/mqttv4.h	2020-10-06 14:41:02.496440199 +0200
-@@ -15,7 +15,7 @@
+@@ -15,9 +15,9 @@
  #include "files.h"
  
  #define MQTTV4_VERSION      "0.0.3"
 -#define MQTTV4_CONF_FILE    "/home/yi-hack-v4/etc/mqttv4.conf"
 +#define MQTTV4_CONF_FILE    "/tmp/sd/yi-hack/etc/mqttv4.conf"
+ 
+-#define MQTTV4_SNAPSHOT     "/home/yi-hack/bin/imggrabber -r high -w"
++#define MQTTV4_SNAPSHOT     "/tmp/sd/yi-hack/bin/imggrabber -r high -w"
  
  typedef struct
  {

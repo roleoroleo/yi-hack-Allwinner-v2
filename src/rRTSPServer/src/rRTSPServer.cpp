@@ -40,6 +40,7 @@
 #include "rRTSPServer.h"
 
 //#define REORDER_VPS5 1
+#define RESYNC_INDEXES 1
 
 int buf_offset;
 int buf_size;
@@ -282,6 +283,19 @@ void *capture(void *ptr)
                     fprintf(stderr, "%lld: frame size exceeds buffer size\n", current_timestamp());
                     sps_sync = 0;
                 } else {
+#ifdef RESYNC_INDEXES
+                    if (cb_current->read_index < cb_current->write_index) {
+                        if (cb_current->write_index + frame_len - cb_current->size > cb_current->read_index) {
+                            fprintf(stderr, "%lld: frame_len overtakes read index\n", current_timestamp());
+                            cb_current->read_index = cb_current->write_index;
+                        }
+                    } else if (cb_current->read_index > cb_current->write_index) {
+                        if (cb_current->write_index + frame_len > cb_current->read_index) {
+                            fprintf(stderr, "%lld: frame_len overtakes read index\n", current_timestamp());
+                            cb_current->read_index = cb_current->write_index;
+                        }
+                    }
+#endif
                     pthread_mutex_lock(&(cb_current->mutex));
 #ifdef REORDER_VPS5
                     if (frame_is_sps5 == 1) {

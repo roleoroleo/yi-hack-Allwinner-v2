@@ -14,6 +14,7 @@ cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/hostname
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/tar
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/sbin/mkswap
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/bzip2
+cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/dirname
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/find
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/free
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/ftpget

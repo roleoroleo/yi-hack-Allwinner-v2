@@ -67,7 +67,10 @@ checkFiles ()
 	#
 	# Delete empty sub directories
 	if [ ! -z "${FOLDER_TO_WATCH}" ]; then
-		find "${FOLDER_TO_WATCH}/" -mindepth 1 -type d -empty -delete
+		for d in $(find "${FOLDER_TO_WATCH}/" -mindepth 1 -type d); do
+			#find "${FOLDER_TO_WATCH}/" -mindepth 1 -type d -empty -delete
+			[ -z "`find $d -type f`" ] && rmdir $d
+		done
 	fi
 	#
 	return 0

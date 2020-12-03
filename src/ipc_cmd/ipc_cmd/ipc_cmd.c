@@ -21,6 +21,7 @@
 
 #include "ipc_cmd.h"
 #include "getopt.h"
+#include "signal.h"
 
 mqd_t ipc_mq;
 
@@ -55,7 +56,7 @@ void ipc_stop()
 
 void print_usage(char *progname)
 {
-    fprintf(stderr, "\nUsage: %s [t ON/OFF] [-s SENS] [-l LED] [-v WHEN] [-i IR] [-r ROTATE] [-m MOVE] [-p NUM] [-d]\n\n", progname);
+    fprintf(stderr, "\nUsage: %s [t ON/OFF] [-s SENS] [-l LED] [-v WHEN] [-i IR] [-r ROTATE] [-a AIHUMANDETECTION] [-m MOVE] [-p NUM] [-f FILE] [-S] [-T] [-d]\n\n", progname);
     fprintf(stderr, "\t-t ON/OFF, --switch ON/OFF\n");
     fprintf(stderr, "\t\tswitch ON or OFF the cam\n");
     fprintf(stderr, "\t-s SENS, --sensitivity SENS\n");
@@ -78,11 +79,16 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tsend PTZ go to preset command: NUM = [0..7]\n");
     fprintf(stderr, "\t-f FILE, --file FILE\n");
     fprintf(stderr, "\t\tread binary command from FILE\n");
-    fprintf(stderr, "\t-x,     --xxx\n");
+    fprintf(stderr, "\t-x, --xxx\n");
     fprintf(stderr, "\t\tsend xxx message\n");
-    fprintf(stderr, "\t-d,     --debug\n");
+    fprintf(stderr, "\t-S TIME, --start_motion TIME\n");
+    fprintf(stderr, "\t\tstart a motion detection event that lasts TIME\n");
+    fprintf(stderr, "\t\t(0<TIME<=300 seconds)\n");
+    fprintf(stderr, "\t-T, --stop_motion\n");
+    fprintf(stderr, "\t\tstop a motion detection event\n");
+    fprintf(stderr, "\t-d, --debug\n");
     fprintf(stderr, "\t\tenable debug\n");
-    fprintf(stderr, "\t-h,     --help\n");
+    fprintf(stderr, "\t-h, --help\n");
     fprintf(stderr, "\t\tprint this help\n");
 }
 
@@ -103,6 +109,9 @@ int main(int argc, char ** argv)
     int preset = NONE;
     int debug = 0;
     unsigned char preset_msg[20];
+    int start = 0;
+    int stop = 0;
+    int time_to_stop = 60;
     char file[1024];
     unsigned char msg_file[1024];
     FILE *fIn;
@@ -125,6 +134,8 @@ int main(int argc, char ** argv)
             {"move",  required_argument, 0, 'm'},
             {"preset",  required_argument, 0, 'p'},
             {"file", required_argument, 0, 'f'},
+            {"start", required_argument, 0, 'S'},
+            {"stop", no_argument, 0, 'T'},
             {"xxx", no_argument, 0, 'x'},
             {"debug",  no_argument, 0, 'd'},
             {"help",  no_argument, 0, 'h'},
@@ -133,7 +144,7 @@ int main(int argc, char ** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:b:m:p:f:xdh",
+        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:b:m:p:f:S:Txdh",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -244,6 +255,30 @@ int main(int argc, char ** argv)
                 print_usage(argv[0]);
                 exit(EXIT_FAILURE);
             }
+            break;
+
+        case 'S':
+            errno = 0;    /* To distinguish success/failure after call */
+            time_to_stop = strtol(optarg, &endptr, 10);
+
+            /* Check for various possible errors */
+            if ((errno == ERANGE && (time_to_stop == LONG_MAX || time_to_stop == LONG_MIN)) || (errno != 0 && time_to_stop == 0)) {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            if ((time_to_stop <= 0) || (time_to_stop > 300)) {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            if (endptr == optarg) {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            start = 1;
+            break;
+
+        case 'T':
+            stop = 1;
             break;
 
         case 'd':
@@ -366,6 +401,52 @@ int main(int argc, char ** argv)
         }
         fclose(fIn);
         mq_send(ipc_mq, msg_file, nread, 0);
+    }
+
+    if (start == 1) {
+        mq_send(ipc_mq, IPC_MOTION_START, sizeof(IPC_MOTION_START) - 1, 0);
+
+        pid_t pid;
+
+        /* Fork off the parent process */
+        pid = fork();
+        /* An error occurred */
+        if (pid < 0)
+            exit(EXIT_FAILURE);
+         /* Success: Let the parent terminate */
+        if (pid > 0)
+            exit(EXIT_SUCCESS);
+        /* On success: The child process becomes session leader */
+        if (setsid() < 0)
+            exit(EXIT_FAILURE);
+        /* Catch, ignore and handle signals */
+        signal(SIGCHLD, SIG_IGN);
+        signal(SIGHUP, SIG_IGN);
+        /* Fork off for the second time*/
+        pid = fork();
+        /* An error occurred */
+        if (pid < 0)
+            exit(EXIT_FAILURE);
+        /* Success: Let the parent terminate */
+        if (pid > 0)
+            exit(EXIT_SUCCESS);
+        /* Set new file permissions */
+        umask(0);
+        /* Change the working directory to the root directory */
+        /* or another appropriated directory */
+        chdir("/");
+        /* Close all open file descriptors */
+        int x;
+        for (x = sysconf(_SC_OPEN_MAX); x>=0; x--) {
+            close (x);
+        }
+
+        sleep(time_to_stop);
+        mq_send(ipc_mq, IPC_MOTION_STOP, sizeof(IPC_MOTION_STOP) - 1, 0);
+    }
+
+    if (stop == 1) {
+        mq_send(ipc_mq, IPC_MOTION_STOP, sizeof(IPC_MOTION_STOP) - 1, 0);
     }
 
     if (xxx == 1) {

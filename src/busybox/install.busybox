@@ -11,6 +11,7 @@ mkdir -p ../../build/yi-hack/usr/sbin
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/base64
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/gzip
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/hostname
+cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/netstat
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/tar
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/sbin/mkswap
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/bzip2
@@ -19,6 +20,7 @@ cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/find
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/free
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/ftpget
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/ftpput
+cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/mkpasswd
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/nc
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/sort
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/tail

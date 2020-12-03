@@ -9,5 +9,6 @@ printf "}\n"
 sync
 sync
 sync
+killall -q mqttv4
 sleep 1
 reboot

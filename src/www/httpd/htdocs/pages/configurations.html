@@ -369,6 +369,38 @@
                 </table>
             </div>
         </div>
+
+        <h4 class="no-margin">Expert</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>Crontab</td>
+                        <td>
+                            <span class="switch-description" style="font-family:'Lucida Console', Courier, monospace; font-size:12px;">
+# +------------ Minute            (range: 0-59)<br/>
+# | +---------- Hour              (range: 0-23)<br/>
+# | | +-------- Day of the Month  (range: 1-31)<br/>
+# | | | +------ Month of the Year (range: 1-12)<br/>
+# | | | | +---- Day of the Week   (range: 0-6, sunday to saturday)<br/>
+# | | | | |<br/>
+# * * * * * &lt;command to execute&gt;<br/>
+                            </span>
+                            <textarea class="u-full-width" rows="4" cols="50" data-key="CRONTAB" id="CRONTAB"/>
+                            <span class="switch-description">
+                                Insert here your scheduled process using crontab syntax.
+                                <br/>
+                                Allowed special chars: \ | ! &quot; $ % &amp; / ( ) &apos; ? ^ [ ] @ &lt; &gt; , ; . : - _
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="align-right">
             <span class="strong">Any change will take effect after the reboot of the camera.</span>
         </div>

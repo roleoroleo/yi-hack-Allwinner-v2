@@ -31,6 +31,8 @@ APP.configurations = (function ($) {
                         $('select[data-key="' + key +'"]').prop('value', state);
                     else if(key=="PASSWORD" || key=="SSH_PASSWORD")
                         $('input[type="password"][data-key="' + key +'"]').prop('value', state);
+                    else if(key=="CRONTAB")
+                        $('textarea#' + key).prop('value', state);
                     else
                         $('input[type="checkbox"][data-key="' + key +'"]').prop('checked', state === 'yes');
                 });
@@ -72,6 +74,7 @@ APP.configurations = (function ($) {
         configs["USERNAME"] = $('input[type="text"][data-key="USERNAME"]').prop('value');
         configs["PASSWORD"] = $('input[type="password"][data-key="PASSWORD"]').prop('value');
         configs["SSH_PASSWORD"] = $('input[type="password"][data-key="SSH_PASSWORD"]').prop('value');
+        configs["CRONTAB"] = $('textarea#CRONTAB').prop('value');
 
         var configData = JSON.stringify(configs);
         var escapedConfigData = configData.replace(/\\/g,  "\\")

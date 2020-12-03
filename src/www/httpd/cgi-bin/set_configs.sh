@@ -2,14 +2,13 @@
 
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 
-#urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
-
-urldecode(){
-  echo -e "$(sed 's/+/ /g;s/%\(..\)/\\x\1/g;')"
+sedencode(){
+#  echo -e "$(sed 's/\\/\\\\\\/g;s/\&/\\\&/g;s/\//\\\//g;')"
+  echo "$(sed 's/\\/\\\\/g;s/\&/\\\&/g;s/\//\\\//g;')"
 }
 
-sedencode(){
-  echo -e "$(sed 's/\\/\\\\\\/g;s/\&/\\\&/g;s/\//\\\//g;')"
+removedoublequotes(){
+  echo "$(sed 's/^"//g;s/"$//g')"
 }
 
 get_conf_type()
@@ -31,22 +30,12 @@ else
     CONF_FILE="$YI_HACK_PREFIX/etc/$CONF_TYPE.conf"
 fi
 
-read POST_DATA
+read -r POST_DATA
 
-PARAMS=$(echo "$POST_DATA" | tr "\n\r" " " | tr -d " " | sed 's/{\"//g' | sed 's/\"}//g' | sed 's/\",\"/ /g')
-
-for S in $PARAMS ; do
-    PARAM=$(echo "$S" | sed 's/\":\"/ /g')
-    KEY=""
-    VALUE=""
-
-    for SP in $PARAM ; do
-        if [ -z $KEY ]; then
-            KEY=$SP
-        else
-            VALUE=$SP
-        fi
-    done
+KEYS=$(echo "$POST_DATA" | jq keys_unsorted[])
+for KEY in $KEYS; do
+    KEY=$(echo $KEY | removedoublequotes)
+    VALUE=$(echo "$POST_DATA" | jq .$KEY | removedoublequotes)
 
     if [ "$KEY" == "HOSTNAME" ] ; then
         if [ -z $VALUE ] ; then

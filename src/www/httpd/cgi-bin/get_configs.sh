@@ -26,9 +26,12 @@ fi
 printf "{\n"
 
 while IFS= read -r LINE ; do
-    if [ ! -z $LINE ] ; then
+    if [ ! -z "$LINE" ] ; then
         if [ "$LINE" == "${LINE#\#}" ] ; then # skip comments
-            printf "\"%s\",\n" $(echo "$LINE" | sed -r 's/\\/\\\\/g;s/"/\\"/g;s/=/":"/g;') # Format to json and replace = with ":"
+#            printf "\"%s\",\n" $(echo "$LINE" | sed -r 's/\\/\\\\/g;s/"/\\"/g;s/=/":"/g;') # Format to json and replace = with ":"
+            echo -n "\""
+            echo -n "$LINE" | sed -r 's/=/":"/g;'
+            echo "\","
         fi
     fi
 done < "$CONF_FILE"

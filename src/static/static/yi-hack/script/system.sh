@@ -252,10 +252,19 @@ fi
 
 framefinder $MODEL_SUFFIX &
 
+# Add crontab
+CRONTAB=$(get_config CRONTAB)
 FREE_SPACE=$(get_config FREE_SPACE)
-if [[ $FREE_SPACE != "0" ]] ; then
+if [ ! -z "$CRONTAB" ] || [ "$FREE_SPACE" != "0" ] ; then
     mkdir -p /var/spool/cron/crontabs/
-    echo "  0  *  *  *  *  /tmp/sd/yi-hack/script/clean_records.sh $FREE_SPACE" > /var/spool/cron/crontabs/root
+
+    if [ ! -z "$CRONTAB" ]; then
+        printf "$CRONTAB\n" > /var/spool/cron/crontabs/root
+    fi
+    if [ "$FREE_SPACE" != "0" ]; then
+        echo "0  *  *  *  *  /tmp/sd/yi-hack/script/clean_records.sh $FREE_SPACE" >> /var/spool/cron/crontabs/root
+    fi
+
     $YI_HACK_PREFIX/usr/sbin/crond -c /var/spool/cron/crontabs/
 fi
 

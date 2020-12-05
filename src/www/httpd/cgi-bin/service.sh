@@ -117,10 +117,21 @@ stop_ftpd()
     fi
 }
 
+ps_program()
+{
+    PS_PROGRAM=$(ps | grep $1 | grep -v grep | grep -c ^)
+    if [ $PS_PROGRAM -gt 0 ]; then
+        echo "started"
+    else
+        echo "stopped"
+    fi
+}
+
 NAME="none"
 ACTION="none"
 PARAM1="none"
 PARAM2="none"
+RES=""
 
 for I in 1 2 3 4
 do
@@ -169,9 +180,26 @@ elif [ "$ACTION" == "stop" ] ; then
     elif [ "$NAME" == "mp4record" ]; then
         killall mp4record
     fi
+elif [ "$ACTION" == "status" ] ; then
+    if [ "$NAME" == "rtsp" ]; then
+        RES=$(ps_program rRTSPServer)
+    elif [ "$NAME" == "onvif" ]; then
+        RES=$(ps_program onvif_srvd)
+    elif [ "$NAME" == "wsdd" ]; then
+        RES=$(ps_program wsdd)
+    elif [ "$NAME" == "ftpd" ]; then
+        RES=$(ps_program ftpd)
+    elif [ "$NAME" == "mqtt" ]; then
+        RES=$(ps_program mqttv4)
+    elif [ "$NAME" == "mp4record" ]; then
+        RES=$(ps_program mp4record)
+    fi
 fi
 
 printf "Content-type: application/json\r\n\r\n"
 
 printf "{\n"
+if [ ! -z "$RES" ]; then
+    printf "\"status\": \"$RES\"\n"
+fi
 printf "}"

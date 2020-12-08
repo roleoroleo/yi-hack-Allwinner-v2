@@ -30,11 +30,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class WAVAudioFifoServerMediaSubsession: public OnDemandServerMediaSubsession {
 public:
   static WAVAudioFifoServerMediaSubsession*
-  createNew(UsageEnvironment& env, StreamReplicator* replicator, Boolean reuseFirstSource, Boolean convertToULaw);
+  createNew(UsageEnvironment& env, StreamReplicator* replicator, Boolean reuseFirstSource, int convertToxLaw);
 
 protected:
   WAVAudioFifoServerMediaSubsession(UsageEnvironment& env, StreamReplicator* replicator,
-				    Boolean reuseFirstSource, Boolean convertToULaw);
+				    Boolean reuseFirstSource, int convertToxLaw);
       // called only by createNew();
   virtual ~WAVAudioFifoServerMediaSubsession();
 
@@ -61,7 +61,7 @@ protected:
   unsigned fNumChannels;
   float fFileDuration;
   StreamReplicator* fReplicator;
-  Boolean fConvertToULaw;
+  int fConvertToxLaw;
 };
 
 #endif

@@ -21,19 +21,19 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include "WAVAudioFifoServerMediaSubsession.hh"
 #include "WAVAudioFifoSource.hh"
-#include "uLawAudioFilter.hh"
+#include "aLawAudioFilter.hh"
 #include "SimpleRTPSink.hh"
 
 WAVAudioFifoServerMediaSubsession* WAVAudioFifoServerMediaSubsession
-::createNew(UsageEnvironment& env, StreamReplicator* replicator, Boolean reuseFirstSource, Boolean convertToULaw) {
-  return new WAVAudioFifoServerMediaSubsession(env, replicator, reuseFirstSource, convertToULaw);
+::createNew(UsageEnvironment& env, StreamReplicator* replicator, Boolean reuseFirstSource, int convertToxLaw) {
+  return new WAVAudioFifoServerMediaSubsession(env, replicator, reuseFirstSource, convertToxLaw);
 }
 
 WAVAudioFifoServerMediaSubsession
-::WAVAudioFifoServerMediaSubsession(UsageEnvironment& env, StreamReplicator* replicator, Boolean reuseFirstSource, Boolean convertToULaw)
+::WAVAudioFifoServerMediaSubsession(UsageEnvironment& env, StreamReplicator* replicator, Boolean reuseFirstSource, int convertToxLaw)
   : OnDemandServerMediaSubsession(env, reuseFirstSource),
     fReplicator(replicator),
-    fConvertToULaw(convertToULaw) {
+    fConvertToxLaw(convertToxLaw) {
 }
 
 WAVAudioFifoServerMediaSubsession
@@ -123,7 +123,7 @@ FramedSource* WAVAudioFifoServerMediaSubsession
     fAudioFormat = originalSource->getAudioFormat();
     fBitsPerSample = originalSource->bitsPerSample();
     fSamplingFrequency = originalSource->samplingFrequency();
-    fConvertToULaw = True;
+//    fConvertToxLaw = WA_PCMU;
     fNumChannels = originalSource->numChannels();
     unsigned bitsPerSecond = fSamplingFrequency*fBitsPerSample*fNumChannels;
 #ifdef DEBUG    
@@ -133,7 +133,7 @@ FramedSource* WAVAudioFifoServerMediaSubsession
 
     estBitrate = (bitsPerSecond+500)/1000; // kbps
 
-    if (fConvertToULaw)
+    if ((fConvertToxLaw == WA_PCMA) || (fConvertToxLaw == WA_PCMU))
         estBitrate /= 2;
 
     return resultSource;
@@ -149,7 +149,12 @@ RTPSink* WAVAudioFifoServerMediaSubsession
     unsigned char payloadFormatCode = rtpPayloadTypeIfDynamic; // by default, unless a static RTP payload type can be used
     if (fAudioFormat == WA_PCM) {
       if (fBitsPerSample == 16) {
-	if (fConvertToULaw) {
+	if (fConvertToxLaw == WA_PCMA) {
+	  mimeType = "PCMA";
+	  if (fSamplingFrequency == 8000 && fNumChannels == 1) {
+	    payloadFormatCode = 8; // a static RTP payload type
+	  }
+	} else if (fConvertToxLaw == WA_PCMU) {
 	  mimeType = "PCMU";
 	  if (fSamplingFrequency == 8000 && fNumChannels == 1) {
 	    payloadFormatCode = 0; // a static RTP payload type

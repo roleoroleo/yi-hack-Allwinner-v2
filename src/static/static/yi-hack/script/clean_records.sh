@@ -28,7 +28,7 @@ fi
 
 while [ "$USED_SPACE" -gt "$USED_SPACE_LIMIT" ]
 do
-    OLD_DIR=`ls -lt | grep -v tmp | tail -n1 | awk '{print $9}'`
+    OLD_DIR=`ls -lt | grep -v tmp | awk 'END{print}' | awk '{print $9}'`
     if [ ! -z "$OLD_DIR" ]; then
         echo "Deleting dir $OLD_DIR"
         rm -rf $OLD_DIR

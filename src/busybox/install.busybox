@@ -26,5 +26,6 @@ cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/sort
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/tail
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/xargs
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/wget
+cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/sbin/crond
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/sbin/httpd
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/sbin/ntpd

@@ -41,7 +41,7 @@
 #include "rRTSPServer.h"
 
 //#define REORDER_VPS5 1
-#define RESYNC_INDEXES 1
+//#define RESYNC_INDEXES 1
 
 int buf_offset;
 int buf_size;

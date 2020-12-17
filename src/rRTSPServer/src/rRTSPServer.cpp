@@ -196,7 +196,6 @@ void cb2s_memcpy(unsigned char *dest, unsigned char *src, size_t n)
 
 void *capture(void *ptr)
 {
-    unsigned char *addr;
     unsigned char *buf_idx_1, *buf_idx_2;
     unsigned char *buf_idx_w, *buf_idx_tmp;
     unsigned char *buf_idx_start = NULL;
@@ -226,30 +225,29 @@ void *capture(void *ptr)
     }
 
     // Map file to memory
-    addr = (unsigned char*) mmap(NULL, input_buffer.size, PROT_READ, MAP_SHARED, fileno(fFid), 0);
-    if (addr == MAP_FAILED) {
+    input_buffer.buffer = (unsigned char*) mmap(NULL, input_buffer.size, PROT_READ, MAP_SHARED, fileno(fFid), 0);
+    if (input_buffer.buffer == MAP_FAILED) {
         fprintf(stderr, "%lld: error mapping file %s\n", current_timestamp(), input_buffer.filename);
         fclose(fFid);
         free(output_buffer_low.buffer);
         free(output_buffer_high.buffer);
         exit(EXIT_FAILURE);
     }
-    input_buffer.buffer = addr;
-    if (debug) fprintf(stderr, "%lld: mapping file %s, size %d, to %08x\n", current_timestamp(), input_buffer.filename, input_buffer.size, (unsigned int) addr);
+    if (debug) fprintf(stderr, "%lld: mapping file %s, size %d, to %08x\n", current_timestamp(), input_buffer.filename, input_buffer.size, (unsigned int) input_buffer.buffer);
 
     // Closing the file
     if (debug) fprintf(stderr, "%lld: closing the file %s\n", current_timestamp(), input_buffer.filename);
     fclose(fFid) ;
 
-    buf_idx_1 = addr + input_buffer.offset;
+    buf_idx_1 = input_buffer.buffer + input_buffer.offset;
     buf_idx_w = 0;
 
     if (debug) fprintf(stderr, "%lld: starting capture main loop\n", current_timestamp());
 
     // Infinite loop
     while (1) {
-        memcpy(&i, addr + 16, sizeof(i));
-        buf_idx_w = addr + input_buffer.offset + i;
+        memcpy(&i, input_buffer.buffer + 16, sizeof(i));
+        buf_idx_w = input_buffer.buffer + input_buffer.offset + i;
 //        if (debug) fprintf(stderr, "buf_idx_w: %08x\n", (unsigned int) buf_idx_w);
         buf_idx_tmp = cb_memmem(buf_idx_1, buf_idx_w - buf_idx_1, NALx_START, sizeof(NALx_START));
         if (buf_idx_tmp == NULL) {
@@ -406,10 +404,10 @@ void *capture(void *ptr)
     // Unreacheable path
 
     // Unmap file from memory
-    if (munmap(addr, input_buffer.size) == -1) {
+    if (munmap(input_buffer.buffer, input_buffer.size) == -1) {
         fprintf(stderr, "%lld: error munmapping file\n", current_timestamp());
     } else {
-        if (debug) fprintf(stderr, "%lld: unmapping file %s, size %d, from %08x\n", current_timestamp(), BUFFER_FILE, input_buffer.size, (unsigned int) addr);
+        if (debug) fprintf(stderr, "%lld: unmapping file %s, size %d, from %08x\n", current_timestamp(), BUFFER_FILE, input_buffer.size, (unsigned int) input_buffer.buffer);
     }
 
     return NULL;

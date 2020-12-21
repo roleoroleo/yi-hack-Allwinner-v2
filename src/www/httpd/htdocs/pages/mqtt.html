@@ -149,6 +149,15 @@
                         </td>
                     </tr>
                     <tr class="row">
+                        <td>Sound Detection</td>
+                        <td>
+                            <label for="topic_sound_detection">Topic Suffix</label>
+                            <input class="u-full-width" type="text" placeholder="" id="topic_sound_detection" data-key="TOPIC_SOUND_DETECTION"/>
+                            <label for="sound_detection_msg">Sound Detection Message</label>
+                            <input class="u-full-width" type="text" placeholder="" id="sound_detection_msg" data-key="SOUND_DETECTION_MSG"/>
+                        </td>
+                    </tr>
+                    <tr class="row">
                         <td>Baby Crying</td>
                         <td>
                             <label for="topic_baby_crying">Topic Suffix</label>
@@ -231,9 +240,9 @@
                         </td>
                     </tr>
                     <tr class="row">
-                        <td>Retain for baby crying messages</td>
+                        <td>Retain for Sound Detection messages</td>
                         <td>
-                            <input class="u-full-width" type="text" placeholder="1" data-key="MQTT_RETAIN_BABY_CRYING"/>
+                            <input class="u-full-width" type="text" placeholder="1" data-key="MQTT_RETAIN_SOUND_DETECTION"/>
                             <span class="switch-description">
                                 A retained message is a normal MQTT message with the retained flag set to true. The broker stores the last retained message and the corresponding QoS for that topic. (1 = enabled, 0 = disabled)
                             </span>

@@ -93,9 +93,9 @@ int parse_message(char *msg, ssize_t len)
     {
         strcpy(fwd_msg, "BABY_CRYING");
     }
-    else if((len >= sizeof(IPC_BABY_CRYING_2) - 1) && (memcmp(msg, IPC_BABY_CRYING_2, sizeof(IPC_BABY_CRYING_2) - 1)==0))
+    else if((len >= sizeof(IPC_SOUND_DETECTION) - 1) && (memcmp(msg, IPC_SOUND_DETECTION, sizeof(IPC_SOUND_DETECTION) - 1)==0))
     {
-        strcpy(fwd_msg, "BABY_CRYING");
+        strcpy(fwd_msg, "SOUND_DETECTION");
     }
 
     if (fwd_msg[0] == '\0') return 0;

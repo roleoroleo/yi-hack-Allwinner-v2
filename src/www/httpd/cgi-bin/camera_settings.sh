@@ -5,7 +5,7 @@ CONF_FILE="$YI_HACK_PREFIX/etc/camera.conf"
 
 CONF_LAST="CONF_LAST"
 
-for I in 1 2 3 4 5 6 7 8
+for I in 1 2 3 4 5 6 7 8 9
 do
     CONF="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f1)"
     VAL="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f2)"
@@ -38,11 +38,15 @@ do
         else
             ipc_cmd -a on
         fi
-    elif [ "$CONF" == "baby_crying_detect" ] ; then
+    elif [ "$CONF" == "sound_detection" ] ; then
         if [ "$VAL" == "no" ] ; then
             ipc_cmd -b off
         else
             ipc_cmd -b on
+        fi
+    elif [ "$CONF" == "sound_sensitivity" ] ; then
+        if [ "$VAL" == "50" ] || [ "$VAL" == "60" ] || [ "$VAL" == "70" ] || [ "$VAL" == "80" ] || [ "$VAL" == "90" ] ; then
+            ipc_cmd -n $VAL
         fi
     elif [ "$CONF" == "led" ] ; then
         if [ "$VAL" == "no" ] ; then

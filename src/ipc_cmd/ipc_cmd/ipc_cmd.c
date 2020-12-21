@@ -71,8 +71,10 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tset rotate: ON or OFF\n");
     fprintf(stderr, "\t-a AIHUMANDETECTION, --aihumandetection AIHUMANDETECTION\n");
     fprintf(stderr, "\t\tset AI Human Detection: ON or OFF\n");
-    fprintf(stderr, "\t-b BABYCRYING, --babycrying BABYCRYING\n");
-    fprintf(stderr, "\t\tset baby crying detection: ON or OFF\n");
+    fprintf(stderr, "\t-b SOUNDDETECTION, --sounddetection SOUNDDETECTION\n");
+    fprintf(stderr, "\t\tset Sound Detection: ON or OFF\n");
+//    fprintf(stderr, "\t-b BABYCRYING, --babycrying BABYCRYING\n");
+//    fprintf(stderr, "\t\tset baby crying detection: ON or OFF\n");
     fprintf(stderr, "\t-m MOVE, --move MOVE\n");
     fprintf(stderr, "\t\tsend PTZ command: RIGHT, LEFT, DOWN, UP or STOP\n");
     fprintf(stderr, "\t-p NUM, --preset NUM\n");
@@ -104,7 +106,9 @@ int main(int argc, char ** argv)
     int ir = NONE;
     int rotate = NONE;
     int aihumandetection = NONE;
-    int babycrying = NONE;
+    int sounddetection = NONE;
+    int soundsensitivity = NONE;
+//    int babycrying = NONE;
     int move = NONE;
     int preset = NONE;
     int debug = 0;
@@ -130,7 +134,8 @@ int main(int argc, char ** argv)
             {"ir",  required_argument, 0, 'i'},
             {"rotate",  required_argument, 0, 'r'},
             {"aihumandetection",  required_argument, 0, 'a'},
-            {"babycrying",  required_argument, 0, 'b'},
+            {"sounddetection",  required_argument, 0, 'b'},
+            {"soundsensitivity",  required_argument, 0, 'n'},
             {"move",  required_argument, 0, 'm'},
             {"preset",  required_argument, 0, 'p'},
             {"file", required_argument, 0, 'f'},
@@ -144,7 +149,7 @@ int main(int argc, char ** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:b:m:p:f:S:Txdh",
+        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:b:n:m:p:f:S:Txdh",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -212,9 +217,23 @@ int main(int argc, char ** argv)
 
         case 'b':
             if (strcasecmp("off", optarg) == 0) {
-                babycrying = BABYCRYING_OFF;
+                sounddetection = SOUND_DETECTION_OFF;
             } else if (strcasecmp("on", optarg) == 0) {
-                babycrying = BABYCRYING_ON;
+                sounddetection = SOUND_DETECTION_ON;
+            }
+            break;
+
+        case 'n':
+            if (strcasecmp("50", optarg) == 0) {
+                soundsensitivity = SOUND_SENS_50;
+            } else if (strcasecmp("60", optarg) == 0) {
+                soundsensitivity = SOUND_SENS_60;
+            } else if (strcasecmp("70", optarg) == 0) {
+                soundsensitivity = SOUND_SENS_70;
+            } else if (strcasecmp("80", optarg) == 0) {
+                soundsensitivity = SOUND_SENS_80;
+            } else if (strcasecmp("90", optarg) == 0) {
+                soundsensitivity = SOUND_SENS_90;
             }
             break;
 
@@ -359,10 +378,22 @@ int main(int argc, char ** argv)
         mq_send(ipc_mq, IPC_AI_HUMAN_DETECTION_ON, sizeof(IPC_AI_HUMAN_DETECTION_ON) - 1, 0);
     }
 
-    if (babycrying == BABYCRYING_OFF) {
-        mq_send(ipc_mq, IPC_BABYCRYING_OFF, sizeof(IPC_BABYCRYING_OFF) - 1, 0);
-    } else if (babycrying == BABYCRYING_ON) {
-        mq_send(ipc_mq, IPC_BABYCRYING_ON, sizeof(IPC_BABYCRYING_ON) - 1, 0);
+    if (sounddetection == SOUND_DETECTION_OFF) {
+        mq_send(ipc_mq, IPC_SOUND_DETECTION_OFF, sizeof(IPC_SOUND_DETECTION_OFF) - 1, 0);
+    } else if (sounddetection == SOUND_DETECTION_ON) {
+        mq_send(ipc_mq, IPC_SOUND_DETECTION_ON, sizeof(IPC_SOUND_DETECTION_ON) - 1, 0);
+    }
+
+    if (soundsensitivity == SOUND_SENS_50) {
+        mq_send(ipc_mq, IPC_SOUND_SENS_50, sizeof(IPC_SOUND_SENS_50) - 1, 0);
+    } else if (soundsensitivity == SOUND_SENS_60) {
+        mq_send(ipc_mq, IPC_SOUND_SENS_60, sizeof(IPC_SOUND_SENS_60) - 1, 0);
+    } else if (soundsensitivity == SOUND_SENS_70) {
+        mq_send(ipc_mq, IPC_SOUND_SENS_70, sizeof(IPC_SOUND_SENS_70) - 1, 0);
+    } else if (soundsensitivity == SOUND_SENS_80) {
+        mq_send(ipc_mq, IPC_SOUND_SENS_80, sizeof(IPC_SOUND_SENS_80) - 1, 0);
+    } else if (soundsensitivity == SOUND_SENS_90) {
+        mq_send(ipc_mq, IPC_SOUND_SENS_90, sizeof(IPC_SOUND_SENS_90) - 1, 0);
     }
 
     if (move == MOVE_RIGHT) {

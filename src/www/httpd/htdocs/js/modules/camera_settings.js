@@ -25,7 +25,7 @@ APP.camera_settings = (function ($) {
                 loadingStatusElem.fadeOut(500);
 
                 $.each(response, function (key, state) {
-                    if(key=="SENSITIVITY")
+                    if(key=="SENSITIVITY" || key=="SOUND_SENSITIVITY")
                         $('select[data-key="' + key +'"]').prop('value', state);
                     else
                         $('input[type="checkbox"][data-key="' + key +'"]').prop('checked', state === 'yes');
@@ -50,6 +50,7 @@ APP.camera_settings = (function ($) {
         });
 
         configs["SENSITIVITY"] = $('select[data-key="SENSITIVITY"]').prop('value');
+        configs["SOUND_SENSITIVITY"] = $('select[data-key="SOUND_SENSITIVITY"]').prop('value');
 
         $.ajax({
             type: "GET",
@@ -57,7 +58,8 @@ APP.camera_settings = (function ($) {
                 'save_video_on_motion=' + configs["SAVE_VIDEO_ON_MOTION"] +
                 '&sensitivity=' + configs["SENSITIVITY"] +
                 '&ai_human_detection=' + configs["AI_HUMAN_DETECTION"] +
-                '&baby_crying_detect=' + configs["BABY_CRYING_DETECT"] +
+                '&sound_detection=' + configs["SOUND_DETECTION"] +
+                '&sound_sensitivity=' + configs["SOUND_SENSITIVITY"] +
                 '&led=' + configs["LED"] +
                 '&ir=' + configs["IR"] +
                 '&rotate=' + configs["ROTATE"] +

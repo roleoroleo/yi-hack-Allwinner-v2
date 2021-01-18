@@ -206,6 +206,8 @@ void *capture(void *ptr)
     int frame_counter = -1;
     int frame_counter_last_valid_low = -1;
     int frame_counter_last_valid_high = -1;
+    int frame_counter_invalid_low = 0;
+    int frame_counter_invalid_high = 0;
 
     int i;
     cb_output_buffer *cb_current;
@@ -334,20 +336,37 @@ void *capture(void *ptr)
             cb2s_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
             frame_len -= 6;                                                              // -6 only for SPS
             frame_counter = (int) buf_idx_1[18 + data_offset] + (int) buf_idx_1[19 + data_offset] * 256;
-            if ((frame_res == RESOLUTION_LOW) && (frame_counter - frame_counter_last_valid_low <= 0) && (frame_counter - frame_counter_last_valid_low > -65000)) {
+            if ((frame_res == RESOLUTION_LOW) && ((frame_counter - frame_counter_last_valid_low > 20) ||
+                    ((frame_counter < frame_counter_last_valid_low) && (frame_counter - frame_counter_last_valid_low > -65515)))) {
+                frame_counter_invalid_low++;
+                // Check if sync is lost
+                if (frame_counter_invalid_low > 40) {
+                    frame_counter_last_valid_low = frame_counter;
+                    frame_counter_invalid_low = 0;
+                }
                 write_enable = 0;
-            } else if ((frame_res == RESOLUTION_HIGH) && (frame_counter - frame_counter_last_valid_high <= 0) && (frame_counter - frame_counter_last_valid_high > -65000)) {
+
+            } else if ((frame_res == RESOLUTION_HIGH) && ((frame_counter - frame_counter_last_valid_high > 20) ||
+                    ((frame_counter < frame_counter_last_valid_high) && (frame_counter - frame_counter_last_valid_high > -65515)))) {
+                frame_counter_invalid_high++;
+                // Check if sync is lost
+                if (frame_counter_invalid_high > 40) {
+                    frame_counter_last_valid_high = frame_counter;
+                    frame_counter_invalid_high = 0;
+                }
                 write_enable = 0;
             } else {
                 if (frame_res == RESOLUTION_LOW) {
+                    frame_counter_invalid_low = 0;
                     frame_counter_last_valid_low = frame_counter;
                 } else if (frame_res == RESOLUTION_HIGH) {
+                    frame_counter_invalid_high = 0;
                     frame_counter_last_valid_high = frame_counter;
                 }
             }
             if (debug) fprintf(stderr, "%lld: SPS   detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
                     current_timestamp(), frame_len, frame_counter,
-                    (resolution==RESOLUTION_LOW)?frame_counter_last_valid_low:frame_counter_last_valid_high, frame_res);
+                    (frame_res == RESOLUTION_LOW)? frame_counter_last_valid_low: frame_counter_last_valid_high, frame_res);
             buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
             buf_idx_start = buf_idx_1;
         } else if ((cb_memcmp(PPS4_START, buf_idx_1, sizeof(PPS4_START)) == 0) ||
@@ -375,20 +394,36 @@ void *capture(void *ptr)
             }
             cb2s_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
             frame_counter = (int) buf_idx_1[18 + data_offset] + (int) buf_idx_1[19 + data_offset] * 256;
-            if ((frame_res == RESOLUTION_LOW) && (frame_counter - frame_counter_last_valid_low <= 0) && (frame_counter - frame_counter_last_valid_low > -65000)) {
+            if ((frame_res == RESOLUTION_LOW) && ((frame_counter - frame_counter_last_valid_low > 20) ||
+                    ((frame_counter < frame_counter_last_valid_low) && (frame_counter - frame_counter_last_valid_low > -65515)))) {
+                frame_counter_invalid_low++;
+                // Check if sync is lost
+                if (frame_counter_invalid_low > 40) {
+                    frame_counter_last_valid_low = frame_counter;
+                    frame_counter_invalid_low = 0;
+                }
                 write_enable = 0;
-            } else if ((frame_res == RESOLUTION_HIGH) && (frame_counter - frame_counter_last_valid_high <= 0) && (frame_counter - frame_counter_last_valid_high > -65000)) {
+            } else if ((frame_res == RESOLUTION_HIGH) && ((frame_counter - frame_counter_last_valid_high > 20) ||
+                    ((frame_counter < frame_counter_last_valid_high) && (frame_counter - frame_counter_last_valid_high > -65515)))) {
+                frame_counter_invalid_high++;
+                // Check if sync is lost
+                if (frame_counter_invalid_high > 40) {
+                    frame_counter_last_valid_high = frame_counter;
+                    frame_counter_invalid_high = 0;
+                }
                 write_enable = 0;
             } else {
                 if (frame_res == RESOLUTION_LOW) {
+                    frame_counter_invalid_low = 0;
                     frame_counter_last_valid_low = frame_counter;
                 } else if (frame_res == RESOLUTION_HIGH) {
+                    frame_counter_invalid_high = 0;
                     frame_counter_last_valid_high = frame_counter;
                 }
             }
             if (debug) fprintf(stderr, "%lld: frame detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
                     current_timestamp(), frame_len, frame_counter,
-                    (resolution==RESOLUTION_LOW)?frame_counter_last_valid_low:frame_counter_last_valid_high, frame_res);
+                    (frame_res == RESOLUTION_LOW)? frame_counter_last_valid_low: frame_counter_last_valid_high, frame_res);
             buf_idx_1 = cb_move(buf_idx_1, frame_header_size);
             buf_idx_start = buf_idx_1;
         } else {

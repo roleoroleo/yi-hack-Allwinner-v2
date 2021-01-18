@@ -3,6 +3,7 @@
 CONF_FILE="etc/system.conf"
 
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
+YI_HACK_UPGRADE_PATH="/tmp/sd/.fw_upgrade"
 
 YI_HACK_VER=$(cat /tmp/sd/yi-hack/version)
 MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
@@ -39,15 +40,21 @@ rm -f $YI_HACK_PREFIX/www/cgi-bin/core
 
 touch /tmp/httpd.conf
 
-# Restore configuration after a firmware upgrade
-if [ -f $YI_HACK_PREFIX/fw_upgrade_in_progress ]; then
-    cp -f /tmp/sd/fw_upgrade/*.conf $YI_HACK_PREFIX/etc/
-    chmod 0644 $YI_HACK_PREFIX/etc/*.conf
-    if [ -f /tmp/sd/fw_upgrade/hostname ]; then
-        cp -f /tmp/sd/fw_upgrade/hostname $YI_HACK_PREFIX/etc/
-        chmod 0644 $YI_HACK_PREFIX/etc/hostname
-    fi
-    rm $YI_HACK_PREFIX/fw_upgrade_in_progress
+if [ -f $YI_HACK_UPGRADE_PATH/yi-hack/fw_upgrade_in_progress ]; then
+    echo "#!/bin/sh" > /tmp/fw_upgrade_2p.sh
+    echo "# Complete fw upgrade and restore configuration" >> /tmp/fw_upgrade_2p.sh
+    echo "sleep 1" >> /tmp/fw_upgrade_2p.sh
+    echo "cd $YI_HACK_UPGRADE_PATH" >> /tmp/fw_upgrade_2p.sh
+    echo "cp -rf * .." >> /tmp/fw_upgrade_2p.sh
+    echo "cd .." >> /tmp/fw_upgrade_2p.sh
+    echo "rm -rf $YI_HACK_UPGRADE_PATH" >> /tmp/fw_upgrade_2p.sh
+    echo "rm $YI_HACK_PREFIX/fw_upgrade_in_progress" >> /tmp/fw_upgrade_2p.sh
+    echo "sync" >> /tmp/fw_upgrade_2p.sh
+    echo "sync" >> /tmp/fw_upgrade_2p.sh
+    echo "sync" >> /tmp/fw_upgrade_2p.sh
+    echo "reboot" >> /tmp/fw_upgrade_2p.sh
+    sh /tmp/fw_upgrade_2p.sh
+    exit
 fi
 
 $YI_HACK_PREFIX/script/check_conf.sh

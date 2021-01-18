@@ -40,37 +40,45 @@ elif [ "$VAL" == "upgrade" ] ; then
     fi
 
     # Clean old upgrades
-    rm -rf /tmp/sd/fw_upgrade
+    rm -rf /tmp/sd/.fw_upgrade
+    rm -rf /tmp/sd/.fw_upgrade.conf
     rm -rf /tmp/sd/Factory
     rm -rf /tmp/sd/newhome
 
-    mkdir -p /tmp/sd/fw_upgrade
-    cd /tmp/sd/fw_upgrade
+    mkdir -p /tmp/sd/.fw_upgrade
+    mkdir -p /tmp/sd/.fw_upgrade.conf
+    cd /tmp/sd/.fw_upgrade
 
     MODEL_SUFFIX=`cat $YI_HACK_PREFIX/model_suffix`
     FW_VERSION=`cat /tmp/sd/yi-hack/version`
-    LATEST_FW=`/tmp/sd/yi-hack/usr/bin/wget -O -  https://api.github.com/repos/roleoroleo/yi-hack-Allwinner-v2/releases/latest 2>&1 | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
-    if [ "$FW_VERSION" == "$LATEST_FW" ]; then
-        printf "Content-type: text/html\r\n\r\n"
-        printf "No new firmware available."
-        exit
+    if [ -f /tmp/sd/$MODEL_SUFFIX_x.x.x.tgz ]; then
+        mv /tmp/sd/$MODEL_SUFFIX_x.x.x.tgz /tmp/sd/.fw_upgrade/$MODEL_SUFFIX_x.x.x.tgz
+        LATEST_FW="x.x.x"
+    else
+        LATEST_FW=`/tmp/sd/yi-hack/usr/bin/wget -O -  https://api.github.com/repos/roleoroleo/yi-hack-Allwinner-v2/releases/latest 2>&1 | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
+        if [ "$FW_VERSION" == "$LATEST_FW" ]; then
+            printf "Content-type: text/html\r\n\r\n"
+            printf "No new firmware available."
+            exit
+        fi
+
+        /tmp/sd/yi-hack/usr/bin/wget https://github.com/roleoroleo/yi-hack-Allwinner-v2/releases/download/$LATEST_FW/${MODEL_SUFFIX}_${LATEST_FW}.tgz
+        if [ ! -f ${MODEL_SUFFIX}_${LATEST_FW}.tgz ]; then
+            printf "Content-type: text/html\r\n\r\n"
+            printf "Unable to download firmware file."
+            exit
+        fi
     fi
 
-    /tmp/sd/yi-hack/usr/bin/wget https://github.com/roleoroleo/yi-hack-Allwinner-v2/releases/download/$LATEST_FW/${MODEL_SUFFIX}_${LATEST_FW}.tgz
-    if [ ! -f ${MODEL_SUFFIX}_${LATEST_FW}.tgz ]; then
-        printf "Content-type: text/html\r\n\r\n"
-        printf "Unable to download firmware file."
-        exit
-    fi
+    # Backup configuration
+    cp -rf $YI_HACK_PREFIX/etc/* /tmp/sd/.fw_upgrade.conf/
+    rm /tmp/sd/.fw_upgrade.conf/*.tar.gz
 
+    # Prepare new hack
     tar zxvf ${MODEL_SUFFIX}_${LATEST_FW}.tgz
     rm ${MODEL_SUFFIX}_${LATEST_FW}.tgz
-    cp -rf * ..
-    rm -rf /tmp/sd/fw_upgrade/*
-    cp -f $YI_HACK_PREFIX/etc/*.conf .
-    if [ -f $YI_HACK_PREFIX/etc/hostname ]; then
-        cp -f $YI_HACK_PREFIX/etc/hostname .
-    fi
+    mkdir -p /tmp/sd/.fw_upgrade/yi-hack/etc
+    cp -rf /tmp/sd/.fw_upgrade.conf/* /tmp/sd/.fw_upgrade/yi-hack/etc/
 
     # Report the status to the caller
     printf "Content-type: text/html\r\n\r\n"

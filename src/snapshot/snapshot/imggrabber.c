@@ -326,15 +326,15 @@ int main(int argc, char **argv)
     memcpy(bufferh26x + hl_frame[res].vps_len + hl_frame[res].sps_len + hl_frame[res].pps_len, addr + hl_frame[res].idr_addr, hl_frame[res].idr_len);
 
     if (hl_frame[res].vps_len == 0) {
-        if (debug) fprintf(stderr, "Encoding h264 frame\n");
+        if (debug) fprintf(stderr, "Decoding h264 frame\n");
         if(frame_decode(bufferyuv, bufferh26x, hl_frame[res].sps_len + hl_frame[res].pps_len + hl_frame[res].idr_len, 4) < 0) {
-            fprintf(stderr, "Error encoding h264 frame\n");
+            fprintf(stderr, "Error decoding h264 frame\n");
             exit(-2);
         }
     } else {
-        if (debug) fprintf(stderr, "Encoding h265 frame\n");
+        if (debug) fprintf(stderr, "Decoding h265 frame\n");
         if(frame_decode(bufferyuv, bufferh26x, hl_frame[res].vps_len + hl_frame[res].sps_len + hl_frame[res].pps_len + hl_frame[res].idr_len, 5) < 0) {
-            fprintf(stderr, "Error encoding h265 frame\n");
+            fprintf(stderr, "Error decoding h265 frame\n");
             exit(-2);
         }
     }

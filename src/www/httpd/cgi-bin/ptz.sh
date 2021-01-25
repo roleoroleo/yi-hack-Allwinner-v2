@@ -9,7 +9,7 @@ do
     VAL="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f2)"
 
     if [ "$CONF" == "dir" ] ; then
-        DIR="-m $VAL"
+        DIR="-M $VAL"
     elif [ "$CONF" == "time" ] ; then
         TIME="$VAL"
     fi
@@ -18,7 +18,7 @@ done
 if [ "$DIR" != "none" ] ; then
     ipc_cmd $DIR
     sleep $TIME
-    ipc_cmd -m stop
+    ipc_cmd -M stop
 fi
 
 printf "Content-type: application/json\r\n\r\n"

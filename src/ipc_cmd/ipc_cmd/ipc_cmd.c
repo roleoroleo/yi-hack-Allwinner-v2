@@ -137,6 +137,7 @@ int main(int argc, char ** argv)
             {"sounddetection",  required_argument, 0, 'b'},
             {"soundsensitivity",  required_argument, 0, 'n'},
             {"move",  required_argument, 0, 'm'},
+            {"move-reverse",  required_argument, 0, 'M'},
             {"preset",  required_argument, 0, 'p'},
             {"file", required_argument, 0, 'f'},
             {"start", required_argument, 0, 'S'},
@@ -149,7 +150,7 @@ int main(int argc, char ** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:b:n:m:p:f:S:Txdh",
+        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:b:n:m:M:p:f:S:Txdh",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -246,6 +247,20 @@ int main(int argc, char ** argv)
                 move = MOVE_DOWN;
             } else if (strcasecmp("up", optarg) == 0) {
                 move = MOVE_UP;
+            } else if (strcasecmp("stop", optarg) == 0) {
+                move = MOVE_STOP;
+            }
+            break;
+
+        case 'M':
+            if (strcasecmp("right", optarg) == 0) {
+                move = MOVE_LEFT;
+            } else if (strcasecmp("left", optarg) == 0) {
+                move = MOVE_RIGHT;
+            } else if (strcasecmp("down", optarg) == 0) {
+                move = MOVE_UP;
+            } else if (strcasecmp("up", optarg) == 0) {
+                move = MOVE_DOWN;
             } else if (strcasecmp("stop", optarg) == 0) {
                 move = MOVE_STOP;
             }

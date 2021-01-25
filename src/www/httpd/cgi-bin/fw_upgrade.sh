@@ -51,8 +51,8 @@ elif [ "$VAL" == "upgrade" ] ; then
 
     MODEL_SUFFIX=`cat $YI_HACK_PREFIX/model_suffix`
     FW_VERSION=`cat /tmp/sd/yi-hack/version`
-    if [ -f /tmp/sd/$MODEL_SUFFIX_x.x.x.tgz ]; then
-        mv /tmp/sd/$MODEL_SUFFIX_x.x.x.tgz /tmp/sd/.fw_upgrade/$MODEL_SUFFIX_x.x.x.tgz
+    if [ -f /tmp/sd/${MODEL_SUFFIX}_x.x.x.tgz ]; then
+        mv /tmp/sd/${MODEL_SUFFIX}_x.x.x.tgz /tmp/sd/.fw_upgrade/${MODEL_SUFFIX}_x.x.x.tgz
         LATEST_FW="x.x.x"
     else
         LATEST_FW=`/tmp/sd/yi-hack/usr/bin/wget -O -  https://api.github.com/repos/roleoroleo/yi-hack-Allwinner-v2/releases/latest 2>&1 | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`

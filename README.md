@@ -1,5 +1,3 @@
-## This fw is work in progress.
-
 <p align="center">
 	<img height="200" src="https://user-images.githubusercontent.com/39277388/96489837-43d26180-1240-11eb-9d0e-5cfa84040fe1.png">
 </p>

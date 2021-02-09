@@ -27,7 +27,7 @@ APP.configurations = (function ($) {
                 $.each(response, function (key, state) {
                     if(key=="HOSTNAME" || key=="TIMEZONE" || key=="NTP_SERVER" || key=="HTTPD_PORT" || key=="RTSP_PORT" || key=="ONVIF_PORT" || key=="USERNAME")
                         $('input[type="text"][data-key="' + key +'"]').prop('value', state);
-                    else if(key=="RTSP_STREAM" || key=="ONVIF_PROFILE" || key=="ONVIF_NETIF")
+                    else if(key=="RTSP_STREAM" || key=="RTSP_AUDIO" || key=="ONVIF_PROFILE" || key=="ONVIF_NETIF")
                         $('select[data-key="' + key +'"]').prop('value', state);
                     else if(key=="PASSWORD" || key=="SSH_PASSWORD")
                         $('input[type="password"][data-key="' + key +'"]').prop('value', state);
@@ -68,6 +68,7 @@ APP.configurations = (function ($) {
         configs["NTP_SERVER"] = $('input[type="text"][data-key="NTP_SERVER"]').prop('value');
         configs["HTTPD_PORT"] = $('input[type="text"][data-key="HTTPD_PORT"]').prop('value');
         configs["RTSP_STREAM"] = $('select[data-key="RTSP_STREAM"]').prop('value');
+        configs["RTSP_AUDIO"] = $('select[data-key="RTSP_AUDIO"]').prop('value');
         configs["RTSP_PORT"] = $('input[type="text"][data-key="RTSP_PORT"]').prop('value');
         configs["ONVIF_PORT"] = $('input[type="text"][data-key="ONVIF_PORT"]').prop('value');
         configs["ONVIF_PROFILE"] = $('select[data-key="ONVIF_PROFILE"]').prop('value');

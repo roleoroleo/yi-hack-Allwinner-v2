@@ -21,6 +21,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "WAVAudioFifoSource.hh"
 #include "InputFile.hh"
 #include "GroupsockHelper.hh"
+#include "presentationTime.hh"
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -242,7 +243,7 @@ void WAVAudioFifoSource::doReadFromFile() {
     }
   }
 
-#if 0
+#ifndef PRES_TIME_CLOCK
   // Set the 'presentation time' and 'duration' of this frame:
   if (fPresentationTime.tv_sec == 0 && fPresentationTime.tv_usec == 0) {
     // This is the first frame, so use the current time:

@@ -93,11 +93,15 @@
                     <tr class="row">
                         <td>RTSP Audio</td>
                         <td>
-                            <label class="switch small">
-                                <input type="checkbox" data-key="RTSP_AUDIO"/>
-                                <span class="slider round"></span>
-                                <span class="switch-text"></span>
-                            </label>
+                            <div class="standard-select">
+                                <select data-key="RTSP_AUDIO" id="RTSP_AUDIO">
+                                    <option value="no">Disabled (default)</option>
+                                    <option value="pcm">pcm</option>
+                                    <option value="alaw">alaw</option>
+                                    <option value="ulaw">ulaw</option>
+                                    <option value="aac">aac (cpu expensive)</option>
+                                </select>
+                            </div>
                             <span class="switch-description">
                                 Enable/disable audio for RTSP stream.
                                 <br/>

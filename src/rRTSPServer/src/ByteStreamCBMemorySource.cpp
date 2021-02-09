@@ -20,6 +20,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include "ByteStreamCBMemorySource.hh"
 #include "GroupsockHelper.hh"
+#include "presentationTime.hh"
 
 #include <pthread.h>
 
@@ -109,6 +110,7 @@ void ByteStreamCBMemorySource::doGetNextFrame() {
         fBuffer->read_index = fBuffer->buffer;
     }
 
+#ifndef PRES_TIME_CLOCK
     // Set the 'presentation time':
     if (fPlayTimePerFrame > 0 && fPreferredFrameSize > 0) {
         if (fPresentationTime.tv_sec == 0 && fPresentationTime.tv_usec == 0) {
@@ -129,6 +131,10 @@ void ByteStreamCBMemorySource::doGetNextFrame() {
         // so just record the current time as being the 'presentation time':
         gettimeofday(&fPresentationTime, NULL);
     }
+#else
+    // Use system clock to set presentation time
+    gettimeofday(&fPresentationTime, NULL);
+#endif
 
     // Inform the downstream object that it has data:
     FramedSource::afterGetting(this);

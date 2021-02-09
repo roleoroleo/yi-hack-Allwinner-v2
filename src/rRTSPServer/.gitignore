@@ -2,3 +2,5 @@
 _install/
 live/
 live.*.tar.gz
+fdk-aac/
+v*.tar.gz

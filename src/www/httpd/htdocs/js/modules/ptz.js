@@ -78,7 +78,7 @@ APP.ptz = (function ($) {
             success: function(data) {
                 for (let key in data) {
                     if (key == "model_suffix") {
-                        if (data[key] == "r30gb") {
+                        if ((data[key] == "r30gb") || (data[key] == "h52ga")) {
                             $('#ptz_description').show();
                             $('#ptz_available').hide();
                             $('#ptz_main').show();

@@ -521,7 +521,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-r RES] [-p PORT] [-d]\n\n", progname);
     fprintf(stderr, "\t-m MODEL,  --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga or r30gb (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, r30gb or h52ga (default y21ga)\n");
     fprintf(stderr, "\t-r RES,  --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: low, high or both (default high)\n");
     fprintf(stderr, "\t-a AUDIO,  --audio AUDIO\n");
@@ -584,6 +584,8 @@ int main(int argc, char** argv)
                 model = Y21GA;
             } else if (strcasecmp("r30gb", optarg) == 0) {
                 model = R30GB;
+            } else if (strcasecmp("h52ga", optarg) == 0) {
+                model = H52GA;
             }
             break;
 
@@ -659,6 +661,8 @@ int main(int argc, char** argv)
             model = Y21GA;
         } else if (strcasecmp("r30gb", str) == 0) {
             model = R30GB;
+        } else if (strcasecmp("h52ga", str) == 0) {
+            model = H52GA;
         }
     }
 
@@ -730,6 +734,13 @@ int main(int argc, char** argv)
         data_offset = DATA_OFFSET_R30GB;
         lowres_byte = LOWRES_BYTE_R30GB;
         highres_byte = HIGHRES_BYTE_R30GB;
+    } else if (model == H52GA) {
+        buf_offset = BUF_OFFSET_H52GA;
+        buf_size = BUF_SIZE_H52GA;
+        frame_header_size = FRAME_HEADER_SIZE_H52GA;
+        data_offset = DATA_OFFSET_H52GA;
+        lowres_byte = LOWRES_BYTE_H52GA;
+        highres_byte = HIGHRES_BYTE_H52GA;
     }
 
     // If fifo doesn't exist, disable audio
@@ -829,7 +840,7 @@ int main(int argc, char** argv)
         ServerMediaSession* sms_high
             = ServerMediaSession::createNew(*env, streamName, streamName,
                                               descriptionString);
-        if (model == Y21GA) {
+        if ((model == Y21GA) || (model == H52GA)) {
             sms_high->addSubsession(H264VideoCBMemoryServerMediaSubsession
                                    ::createNew(*env, &output_buffer_high, reuseFirstSource));
         } else {

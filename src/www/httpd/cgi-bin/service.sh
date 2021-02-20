@@ -77,7 +77,7 @@ start_onvif()
         ONVIF_PROFILE_1="--name Profile_1 --width 640 --height 360 --url rtsp://%s$D_RTSP_PORT/ch0_1.h264 --snapurl http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK --type H264"
     fi
 
-    if [[ $MODEL_SUFFIX == "r30gb" ]] ; then
+    if [[ $MODEL_SUFFIX == "r30gb" ]] || [[ $MODEL_SUFFIX == "h52ga" ]] ; then
         onvif_srvd --pid_file /var/run/onvif_srvd.pid --model "Yi Hack" --manufacturer "Yi" --firmware_ver $YI_HACK_VER --hardware_id $HW_ID --serial_num $SERIAL_NUMBER --ifs wlan0 --port $ONVIF_PORT --scope onvif://www.onvif.org/Profile/S $ONVIF_PROFILE_0 $ONVIF_PROFILE_1 $ONVIF_USERPWD --ptz --move_left "/tmp/sd/yi-hack/bin/ipc_cmd -M left" --move_right "/tmp/sd/yi-hack/bin/ipc_cmd -M right" --move_up "/tmp/sd/yi-hack/bin/ipc_cmd -M up" --move_down "/tmp/sd/yi-hack/bin/ipc_cmd -M down" --move_stop "/tmp/sd/yi-hack/bin/ipc_cmd -M stop" --move_preset "/tmp/sd/yi-hack/bin/ipc_cmd -p %t"
     else
         onvif_srvd --pid_file /var/run/onvif_srvd.pid --model "Yi Hack" --manufacturer "Yi" --firmware_ver $YI_HACK_VER --hardware_id $HW_ID --serial_num $SERIAL_NUMBER --ifs wlan0 --port $ONVIF_PORT --scope onvif://www.onvif.org/Profile/S $ONVIF_PROFILE_0 $ONVIF_PROFILE_1 $ONVIF_USERPWD

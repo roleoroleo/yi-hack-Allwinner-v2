@@ -45,7 +45,13 @@
 #define DATA_OFFSET_R30GB 0
 #define LOWRES_BYTE_R30GB 8
 #define HIGHRES_BYTE_R30GB 4
-//#define HIGHRES_BYTE_R30GB 16
+
+#define BUF_OFFSET_H52GA 368
+#define BUF_SIZE_H52GA 1048944
+#define FRAME_HEADER_SIZE_H52GA 28
+#define DATA_OFFSET_H52GA 4
+#define LOWRES_BYTE_H52GA 8
+#define HIGHRES_BYTE_H52GA 4
 
 #define USLEEP 100000
 
@@ -196,6 +202,13 @@ int main(int argc, char **argv) {
             data_offset = DATA_OFFSET_R30GB;
             lowres_byte = LOWRES_BYTE_R30GB;
             highres_byte = HIGHRES_BYTE_R30GB;
+        } else if (strcasecmp("h52ga", argv[1]) == 0) {
+            buf_offset = BUF_OFFSET_H52GA;
+            buf_size = BUF_SIZE_H52GA;
+            frame_header_size = FRAME_HEADER_SIZE_H52GA;
+            data_offset = DATA_OFFSET_H52GA;
+            lowres_byte = LOWRES_BYTE_H52GA;
+            highres_byte = HIGHRES_BYTE_H52GA;
         }
     }
 

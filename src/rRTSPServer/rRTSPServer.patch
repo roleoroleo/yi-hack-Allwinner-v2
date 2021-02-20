@@ -1,6 +1,6 @@
 diff -Naur live.ori/config.linux-cross live/config.linux-cross
 --- live.ori/config.linux-cross	1970-01-01 01:00:00.000000000 +0100
-+++ live/config.linux-cross	2020-04-08 19:11:20.000000000 +0200
++++ live/config.linux-cross	2021-02-18 10:39:28.103846011 +0100
 @@ -0,0 +1,17 @@
 +COMPILE_OPTS =		$(INCLUDES) -I. -O1 -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DNO_OPENSSL=1
 +C =			c
@@ -20,9 +20,17 @@ diff -Naur live.ori/config.linux-cross live/config.linux-cross
 +LIBS_FOR_GUI_APPLICATION =
 +EXE =
 diff -Naur live.ori/liveMedia/H264or5VideoStreamFramer.cpp live/liveMedia/H264or5VideoStreamFramer.cpp
---- live.ori/liveMedia/H264or5VideoStreamFramer.cpp	2020-04-06 15:57:15.000000000 +0200
-+++ live/liveMedia/H264or5VideoStreamFramer.cpp	2020-04-08 19:14:51.000000000 +0200
-@@ -86,7 +86,7 @@
+--- live.ori/liveMedia/H264or5VideoStreamFramer.cpp	2021-01-29 16:48:41.000000000 +0100
++++ live/liveMedia/H264or5VideoStreamFramer.cpp	2021-02-18 10:48:26.500721004 +0100
+@@ -21,6 +21,7 @@
+ #include "H264or5VideoStreamFramer.hh"
+ #include "MPEGVideoStreamParser.hh"
+ #include "BitVector.hh"
++#include "../include/presentationTime.hh"
+ #include <GroupsockHelper.hh> // for "gettimeofday()"
+ 
+ ////////// H264or5VideoStreamParser definition //////////
+@@ -86,7 +87,7 @@
    fParser = createParser
      ? new H264or5VideoStreamParser(hNumber, this, inputSource, includeStartCodeInOutput)
      : NULL;
@@ -31,11 +39,16 @@ diff -Naur live.ori/liveMedia/H264or5VideoStreamFramer.cpp live/liveMedia/H264or
  }
  
  H264or5VideoStreamFramer::~H264or5VideoStreamFramer() {
-@@ -1195,8 +1195,13 @@
+@@ -1190,6 +1191,7 @@
+       usingSource()->fPictureEndMarker = True;
+       ++usingSource()->fPictureCount;
+ 
++#ifndef PRES_TIME_CLOCK
+       // Note that the presentation time for the next NAL unit will be different:
+       struct timeval& nextPT = usingSource()->fNextPresentationTime; // alias
        nextPT = usingSource()->fPresentationTime;
-       double nextFraction = nextPT.tv_usec/1000000.0 + 1/usingSource()->fFrameRate;
+@@ -1197,6 +1199,10 @@
        unsigned nextSecsIncrement = (long)nextFraction;
-+#if 0
        nextPT.tv_sec += (long)nextSecsIncrement;
        nextPT.tv_usec = (long)((nextFraction - nextSecsIncrement)*1000000);
 +#else
@@ -44,3 +57,4 @@ diff -Naur live.ori/liveMedia/H264or5VideoStreamFramer.cpp live/liveMedia/H264or
 +#endif
      }
      setParseState();
+ 

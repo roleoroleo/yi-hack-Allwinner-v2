@@ -42,6 +42,7 @@ imggrabber: $(OBJECTS_B)
 clean:
 	rm -f framefinder imggrabber
 	rm -f $(OBJECTS)
+	rm -rf $(FFMPEG)
 
 distclean: clean
 	rm -rf SDK

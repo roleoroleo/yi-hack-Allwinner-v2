@@ -8,8 +8,7 @@ DAEMON_NO_CHDIR       = 1
 DAEMON_NO_CLOSE_STDIO = 0
 
 
-
-
+GSOAP_VERSION     = 2.8.92
 GSOAP_DIR         = ./gsoap-2.8/gsoap
 GSOAP_PLUGIN_DIR  = $(GSOAP_DIR)/plugin
 GSOAP_IMPORT_DIR  = $(GSOAP_DIR)/import

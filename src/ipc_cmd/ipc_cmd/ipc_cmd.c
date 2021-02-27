@@ -482,10 +482,10 @@ int main(int argc, char ** argv)
         /* or another appropriated directory */
         chdir("/");
         /* Close all open file descriptors */
-        int x;
-        for (x = sysconf(_SC_OPEN_MAX); x>=0; x--) {
-            close (x);
-        }
+//        int x;
+//        for (x = sysconf(_SC_OPEN_MAX); x>=0; x--) {
+//            close (x);
+//        }
 
         sleep(time_to_stop);
         mq_send(ipc_mq, IPC_MOTION_STOP, sizeof(IPC_MOTION_STOP) - 1, 0);

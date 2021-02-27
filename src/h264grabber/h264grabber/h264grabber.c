@@ -52,13 +52,15 @@
 #define LOWRES_BYTE_H52GA 8
 #define HIGHRES_BYTE_H52GA 4
 
-#define USLEEP 100000
+#define MILLIS_25 25000
 
 #define RESOLUTION_NONE 0
 #define RESOLUTION_LOW  360
 #define RESOLUTION_HIGH 1080
 
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
+
+#define SPS_TIMING_INFO 1
 
 int buf_offset;
 int buf_size;
@@ -82,9 +84,26 @@ unsigned char VPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x40};
 unsigned char SPS4_640X360[]       = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
                                         0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
                                         0x01, 0x01, 0x02};
+unsigned char SPS4_640X360_TI[]    = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
+                                        0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
+                                        0x01, 0x01, 0x40, 0x00, 0x00, 0x7D, 0x00, 0x00,
+                                        0x13, 0x88, 0x21};
 unsigned char SPS4_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
                                         0x96, 0x54, 0x03, 0xC0, 0x11, 0x2F, 0x2C, 0xDC,
                                         0x04, 0x04, 0x04, 0x08};
+unsigned char SPS4_1920X1080_TI[]  = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
+                                        0x96, 0x54, 0x03, 0xC0, 0x11, 0x2F, 0x2C, 0xDC,
+                                        0x04, 0x04, 0x05, 0x00, 0x00, 0x03, 0x01, 0xF4,
+                                        0x00, 0x00, 0x4E, 0x20, 0x84};
+unsigned char VPS5_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
+                                        0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
+                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
+                                        0x00, 0x7B, 0xAC, 0x09};
+unsigned char VPS5_1920X1080_TI[]  = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
+                                        0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
+                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
+                                        0x00, 0x7B, 0xAC, 0x0C, 0x00, 0x00, 0x0F, 0xA4,
+                                        0x00, 0x01, 0x38, 0x81, 0x40};
 
 unsigned char *addr;                      /* Pointer to shared memory region (header) */
 int debug = 0;                            /* Set to 1 to debug this .c */
@@ -282,8 +301,9 @@ int main(int argc, char **argv) {
     if (debug) fprintf(stderr, "closing the file %s\n", BUFFER_FILE) ;
     fclose(fFid) ;
 
-    buf_idx_1 = addr + buf_offset;
-    buf_idx_w = 0;
+    memcpy(&i, addr + 16, sizeof(i));
+    buf_idx_w = addr + buf_offset + i;
+    buf_idx_1 = buf_idx_w;
 
     if (debug) fprintf(stderr, "starting capture main loop\n");
 
@@ -294,7 +314,7 @@ int main(int argc, char **argv) {
 //        if (debug) fprintf(stderr, "buf_idx_w: %08x\n", (unsigned int) buf_idx_w);
         buf_idx_tmp = cb_memmem(buf_idx_1, buf_idx_w - buf_idx_1, NALx_START, sizeof(NALx_START));
         if (buf_idx_tmp == NULL) {
-            usleep(USLEEP);
+            usleep(MILLIS_25);
             continue;
         } else {
             buf_idx_1 = buf_idx_tmp;
@@ -303,7 +323,7 @@ int main(int argc, char **argv) {
 
         buf_idx_tmp = cb_memmem(buf_idx_1 + 1, buf_idx_w - (buf_idx_1 + 1), NALx_START, sizeof(NALx_START));
         if (buf_idx_tmp == NULL) {
-            usleep(USLEEP);
+            usleep(MILLIS_25);
             continue;
         } else {
             buf_idx_2 = buf_idx_tmp;
@@ -311,12 +331,24 @@ int main(int argc, char **argv) {
 //        if (debug) fprintf(stderr, "found buf_idx_2: %08x\n", (unsigned int) buf_idx_2);
 
         if ((write_enable) && (sps_sync)) {
-            if (buf_idx_start + frame_len > addr + buf_size) {
-                fwrite(buf_idx_start, 1, addr + buf_size - buf_idx_start, stdout);
-                fwrite(addr + buf_offset, 1, frame_len - (addr + buf_size - buf_idx_start), stdout);
+#ifdef SPS_TIMING_INFO
+            if (cb_memcmp(SPS4_640X360, buf_idx_start, sizeof(SPS4_640X360)) == 0) {
+                fwrite(SPS4_640X360_TI, 1, sizeof(SPS4_640X360_TI), stdout);
+            } else if (cb_memcmp(SPS4_1920X1080, buf_idx_start, sizeof(SPS4_1920X1080)) == 0) {
+                fwrite(SPS4_1920X1080_TI, 1, sizeof(SPS4_1920X1080_TI), stdout);
+            } else if (cb_memcmp(VPS5_1920X1080, buf_idx_start, sizeof(VPS5_1920X1080)) == 0) {
+                fwrite(VPS5_1920X1080_TI, 1, sizeof(VPS5_1920X1080_TI), stdout);
             } else {
-                fwrite(buf_idx_start, 1, frame_len, stdout);
+#endif
+                if (buf_idx_start + frame_len > addr + buf_size) {
+                    fwrite(buf_idx_start, 1, addr + buf_size - buf_idx_start, stdout);
+                    fwrite(addr + buf_offset, 1, frame_len - (addr + buf_size - buf_idx_start), stdout);
+                } else {
+                    fwrite(buf_idx_start, 1, frame_len, stdout);
+                }
+#ifdef SPS_TIMING_INFO
             }
+#endif
         }
 
         if ((cb_memcmp(SPS4_START, buf_idx_1, sizeof(SPS4_START)) == 0) ||
@@ -331,7 +363,6 @@ int main(int argc, char **argv) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 frame_res = RESOLUTION_NONE;
-                write_enable = 0;
             }
             if (frame_res == resolution) {
                 cb2s_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
@@ -379,7 +410,6 @@ int main(int argc, char **argv) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 frame_res = RESOLUTION_NONE;
-                write_enable = 0;
             }
             if (frame_res == resolution) {
                 cb2s_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);

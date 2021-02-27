@@ -19,35 +19,35 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // on demand, from a H264 video circular buffer.
 // Implementation
 
-#include "H264VideoCBMemoryServerMediaSubsession.hh"
+#include "H264VideoFramedMemoryServerMediaSubsession.hh"
 #include "H264VideoRTPSink.hh"
-#include "ByteStreamCBMemorySource.hh"
-#include "H264VideoStreamFramer.hh"
+#include "FramedMemorySource.hh"
+#include "H264VideoStreamDiscreteFramer.hh"
 
-H264VideoCBMemoryServerMediaSubsession*
-H264VideoCBMemoryServerMediaSubsession::createNew(UsageEnvironment& env,
+H264VideoFramedMemoryServerMediaSubsession*
+H264VideoFramedMemoryServerMediaSubsession::createNew(UsageEnvironment& env,
                                                 cb_output_buffer *cbBuffer,
                                                 Boolean reuseFirstSource) {
-    return new H264VideoCBMemoryServerMediaSubsession(env, cbBuffer, reuseFirstSource);
+    return new H264VideoFramedMemoryServerMediaSubsession(env, cbBuffer, reuseFirstSource);
 }
 
-H264VideoCBMemoryServerMediaSubsession::H264VideoCBMemoryServerMediaSubsession(UsageEnvironment& env,
+H264VideoFramedMemoryServerMediaSubsession::H264VideoFramedMemoryServerMediaSubsession(UsageEnvironment& env,
                                                                         cb_output_buffer *cbBuffer,
                                                                         Boolean reuseFirstSource)
-    : CBMemoryServerMediaSubsession(env, cbBuffer, reuseFirstSource),
+    : FramedMemoryServerMediaSubsession(env, cbBuffer, reuseFirstSource),
       fAuxSDPLine(NULL), fDoneFlag(0), fDummyRTPSink(NULL) {
 }
 
-H264VideoCBMemoryServerMediaSubsession::~H264VideoCBMemoryServerMediaSubsession() {
+H264VideoFramedMemoryServerMediaSubsession::~H264VideoFramedMemoryServerMediaSubsession() {
     delete[] fAuxSDPLine;
 }
 
 static void afterPlayingDummy(void* clientData) {
-    H264VideoCBMemoryServerMediaSubsession* subsess = (H264VideoCBMemoryServerMediaSubsession*)clientData;
+    H264VideoFramedMemoryServerMediaSubsession* subsess = (H264VideoFramedMemoryServerMediaSubsession*)clientData;
     subsess->afterPlayingDummy1();
 }
 
-void H264VideoCBMemoryServerMediaSubsession::afterPlayingDummy1() {
+void H264VideoFramedMemoryServerMediaSubsession::afterPlayingDummy1() {
     // Unschedule any pending 'checking' task:
     envir().taskScheduler().unscheduleDelayedTask(nextTask());
     // Signal the event loop that we're done:
@@ -55,11 +55,11 @@ void H264VideoCBMemoryServerMediaSubsession::afterPlayingDummy1() {
 }
 
 static void checkForAuxSDPLine(void* clientData) {
-    H264VideoCBMemoryServerMediaSubsession* subsess = (H264VideoCBMemoryServerMediaSubsession*)clientData;
+    H264VideoFramedMemoryServerMediaSubsession* subsess = (H264VideoFramedMemoryServerMediaSubsession*)clientData;
     subsess->checkForAuxSDPLine1();
 }
 
-void H264VideoCBMemoryServerMediaSubsession::checkForAuxSDPLine1() {
+void H264VideoFramedMemoryServerMediaSubsession::checkForAuxSDPLine1() {
     nextTask() = NULL;
 
     char const* dasl;
@@ -80,7 +80,7 @@ void H264VideoCBMemoryServerMediaSubsession::checkForAuxSDPLine1() {
     }
 }
 
-char const* H264VideoCBMemoryServerMediaSubsession::getAuxSDPLine(RTPSink* rtpSink, FramedSource* inputSource) {
+char const* H264VideoFramedMemoryServerMediaSubsession::getAuxSDPLine(RTPSink* rtpSink, FramedSource* inputSource) {
     if (fAuxSDPLine != NULL) return fAuxSDPLine; // it's already been set up (for a previous client)
 
     if (fDummyRTPSink == NULL) { // we're not already setting it up for another, concurrent stream
@@ -101,18 +101,18 @@ char const* H264VideoCBMemoryServerMediaSubsession::getAuxSDPLine(RTPSink* rtpSi
     return fAuxSDPLine;
 }
 
-FramedSource* H264VideoCBMemoryServerMediaSubsession::createNewStreamSource(unsigned /*clientSessionId*/, unsigned& estBitrate) {
+FramedSource* H264VideoFramedMemoryServerMediaSubsession::createNewStreamSource(unsigned /*clientSessionId*/, unsigned& estBitrate) {
     estBitrate = 500; // kbps, estimate
 
     // Create the video source:
-    ByteStreamCBMemorySource* memorySource = ByteStreamCBMemorySource::createNew(envir(), fBuffer);
+    FramedMemorySource* memorySource = FramedMemorySource::createNew(envir(), fBuffer);
     if (memorySource == NULL) return NULL;
 
     // Create a framer for the Video Elementary Stream:
-    return H264VideoStreamFramer::createNew(envir(), memorySource);
+    return H264VideoStreamDiscreteFramer::createNew(envir(), memorySource, true, false);
 }
 
-RTPSink* H264VideoCBMemoryServerMediaSubsession
+RTPSink* H264VideoFramedMemoryServerMediaSubsession
 ::createNewRTPSink(Groupsock* rtpGroupsock,
                     unsigned char rtpPayloadTypeIfDynamic,
                     FramedSource* /*inputSource*/) {

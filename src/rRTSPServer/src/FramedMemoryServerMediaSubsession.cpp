@@ -16,30 +16,16 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // "liveMedia"
 // Copyright (c) 1996-2020 Live Networks, Inc.  All rights reserved.
 // A 'ServerMediaSubsession' object that creates new, unicast, "RTPSink"s
-// on demand, from circular buffer.
-// C++ header
+// on demand, from a circular buffer.
+// Implementation
 
-#ifndef _CB_MEMORY_SERVER_MEDIA_SUBSESSION_HH
-#define _CB_MEMORY_SERVER_MEDIA_SUBSESSION_HH
+#include "FramedMemoryServerMediaSubsession.hh"
 
-#ifndef _SERVER_MEDIA_SESSION_HH
-#include "ServerMediaSession.hh"
-#endif
-#ifndef _ON_DEMAND_SERVER_MEDIA_SUBSESSION_HH
-#include "OnDemandServerMediaSubsession.hh"
-#endif
-
-#include "rRTSPServer.h"
-
-class CBMemoryServerMediaSubsession: public OnDemandServerMediaSubsession {
-protected: // we're a virtual base class
-    CBMemoryServerMediaSubsession(UsageEnvironment& env,
+FramedMemoryServerMediaSubsession
+::FramedMemoryServerMediaSubsession(UsageEnvironment& env,
                             cb_output_buffer *cbBuffer,
-                            Boolean reuseFirstSource);
-    virtual ~CBMemoryServerMediaSubsession();
+                            Boolean reuseFirstSource)
+    : OnDemandServerMediaSubsession(env, reuseFirstSource),
+    fBuffer(cbBuffer) {}
 
-protected:
-    cb_output_buffer *fBuffer;
-};
-
-#endif
+FramedMemoryServerMediaSubsession::~FramedMemoryServerMediaSubsession() {}

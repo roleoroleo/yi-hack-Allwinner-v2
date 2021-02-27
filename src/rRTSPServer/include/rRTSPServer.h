@@ -76,21 +76,33 @@
 
 typedef struct
 {
-    unsigned char *buffer;
-    char filename[256];
-    unsigned int size;
-    unsigned int offset;
-    unsigned char *read_index;               // absolute index
+    unsigned char *buffer;                  // pointer to the base of the input buffer
+    char filename[256];                     // name of the buffer file
+    unsigned int size;                      // size of the buffer file
+    unsigned int offset;                    // offset where stream starts
+    unsigned char *read_index;              // read absolute index
 } cb_input_buffer;
+
+// Frame position inside the output buffer, needed to use DiscreteFramer instead Framer.
+typedef struct
+{
+    unsigned char *ptr;                     // pointer to the frame start
+    unsigned char *partial;                 // pointer to the remaining frame when the it's truncated
+    unsigned int counter;                   // frame counter
+    unsigned int size;                      // frame size
+} cb_output_frame;
 
 typedef struct
 {
-    unsigned char *buffer;
-    unsigned int size;
-    int resolution;
-    unsigned char *write_index;             // absolute index
-    unsigned char *read_index;              // absolute index
-    pthread_mutex_t mutex;
+    unsigned char *buffer;                  // pointer to the base of the output buffer
+    unsigned int size;                      // size of the output buffer
+    int resolution;                         // resolution of the stream in this buffer
+    unsigned char *write_index;             // write absolute index
+    cb_output_frame output_frame[128];      // array of frames that buffer contains
+    int output_frame_size;                  // number of frames that buffer contains
+    unsigned int frame_read_index;          // index to the next frame to read
+    unsigned int frame_write_index;         // index to the next frame to write
+    pthread_mutex_t mutex;                  // mutex of the structure
 } cb_output_buffer;
 
 #endif

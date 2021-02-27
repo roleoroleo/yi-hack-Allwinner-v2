@@ -19,18 +19,18 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // on demand, from a H264 Elementary Stream video memory.
 // C++ header
 
-#ifndef _H264_VIDEO_CB_MEMORY_SERVER_MEDIA_SUBSESSION_HH
-#define _H264_VIDEO_CB_MEMORY_SERVER_MEDIA_SUBSESSION_HH
+#ifndef _H264_VIDEO_FRAMED_MEMORY_SERVER_MEDIA_SUBSESSION_HH
+#define _H264_VIDEO_FRAMED_MEMORY_SERVER_MEDIA_SUBSESSION_HH
 
-#ifndef _CB_MEMORY_SERVER_MEDIA_SUBSESSION_HH
-#include "CBMemoryServerMediaSubsession.hh"
+#ifndef _FRAMED_MEMORY_SERVER_MEDIA_SUBSESSION_HH
+#include "FramedMemoryServerMediaSubsession.hh"
 #endif
 
 #include "rRTSPServer.h"
 
-class H264VideoCBMemoryServerMediaSubsession: public CBMemoryServerMediaSubsession {
+class H264VideoFramedMemoryServerMediaSubsession: public FramedMemoryServerMediaSubsession {
 public:
-    static H264VideoCBMemoryServerMediaSubsession*
+    static H264VideoFramedMemoryServerMediaSubsession*
     createNew(UsageEnvironment& env, cb_output_buffer *cbBuffer,
                                 Boolean reuseFirstSource);
 
@@ -39,11 +39,11 @@ public:
     void afterPlayingDummy1();
 
 protected:
-    H264VideoCBMemoryServerMediaSubsession(UsageEnvironment& env,
+    H264VideoFramedMemoryServerMediaSubsession(UsageEnvironment& env,
                                         cb_output_buffer *cbBuffer,
                                         Boolean reuseFirstSource);
         // called only by createNew();
-    virtual ~H264VideoCBMemoryServerMediaSubsession();
+    virtual ~H264VideoFramedMemoryServerMediaSubsession();
 
     void setDoneFlag() { fDoneFlag = ~0; }
 

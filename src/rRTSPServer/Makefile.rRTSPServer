@@ -71,9 +71,9 @@ livemedia:
 	$(CPLUSPLUS_COMPILER) -c $(CPLUSPLUS_FLAGS) -o $@ $<
 
 rRTSPServer_OBJS	= src/rRTSPServer.$(OBJ) \
-				src/ByteStreamCBMemorySource.$(OBJ) src/H264VideoCBMemoryServerMediaSubsession.$(OBJ) \
-				src/H265VideoCBMemoryServerMediaSubsession.$(OBJ) \
-				src/CBMemoryServerMediaSubsession.$(OBJ) \
+				src/FramedMemorySource.$(OBJ) src/H264VideoFramedMemoryServerMediaSubsession.$(OBJ) \
+				src/H265VideoFramedMemoryServerMediaSubsession.$(OBJ) \
+				src/FramedMemoryServerMediaSubsession.$(OBJ) \
 				src/WAVAudioFifoSource.$(OBJ) src/WAVAudioFifoServerMediaSubsession.$(OBJ) \
 				src/ADTSFromWAVAudioFifoSource.$(OBJ) src/ADTSFromWAVAudioFifoServerMediaSubsession.$(OBJ) \
 				src/aLawAudioFilter.$(OBJ) \

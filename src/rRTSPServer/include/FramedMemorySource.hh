@@ -18,8 +18,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // A class for streaming data from a circular buffer.
 // C++ header
 
-#ifndef _BYTE_STREAM_CB_MEMORY_SOURCE_HH
-#define _BYTE_STREAM_CB_MEMORY_SOURCE_HH
+#ifndef _FRAMED_MEMORY_SOURCE_HH
+#define _FRAMED_MEMORY_SOURCE_HH
 
 #ifndef _FRAMED_SOURCE_HH
 #include "FramedSource.hh"
@@ -27,9 +27,9 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include <rRTSPServer.h>
 
-class ByteStreamCBMemorySource: public FramedSource {
+class FramedMemorySource: public FramedSource {
 public:
-    static ByteStreamCBMemorySource* createNew(UsageEnvironment& env,
+    static FramedMemorySource* createNew(UsageEnvironment& env,
                                                 cb_output_buffer *cbBuffer,
                                                 unsigned preferredFrameSize = 0,
                                                 unsigned playTimePerFrame = 0);
@@ -41,13 +41,13 @@ public:
     void seekToByteRelative(int64_t offset, u_int64_t numBytesToStream = 0);
 
 protected:
-    ByteStreamCBMemorySource(UsageEnvironment& env,
+    FramedMemorySource(UsageEnvironment& env,
                                 cb_output_buffer *cbBuffer,
                                 unsigned preferredFrameSize,
                                 unsigned playTimePerFrame);
         // called only by createNew()
 
-    virtual ~ByteStreamCBMemorySource();
+    virtual ~FramedMemorySource();
 
 private:
     // redefined virtual functions:

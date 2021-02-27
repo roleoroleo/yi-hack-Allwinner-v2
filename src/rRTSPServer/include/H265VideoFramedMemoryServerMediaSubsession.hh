@@ -19,16 +19,16 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // on demand, from a H265 Elementary Stream video memory.
 // C++ header
 
-#ifndef _H265_VIDEO_CB_MEMORY_SERVER_MEDIA_SUBSESSION_HH
-#define _H265_VIDEO_CB_MEMORY_SERVER_MEDIA_SUBSESSION_HH
+#ifndef _H265_VIDEO_FRAMED_MEMORY_SERVER_MEDIA_SUBSESSION_HH
+#define _H265_VIDEO_FRAMED_MEMORY_SERVER_MEDIA_SUBSESSION_HH
 
-#ifndef _CB_MEMORY_SERVER_MEDIA_SUBSESSION_HH
-#include "CBMemoryServerMediaSubsession.hh"
+#ifndef _FRAMED_MEMORY_SERVER_MEDIA_SUBSESSION_HH
+#include "FramedMemoryServerMediaSubsession.hh"
 #endif
 
-class H265VideoCBMemoryServerMediaSubsession: public CBMemoryServerMediaSubsession {
+class H265VideoFramedMemoryServerMediaSubsession: public FramedMemoryServerMediaSubsession {
 public:
-    static H265VideoCBMemoryServerMediaSubsession*
+    static H265VideoFramedMemoryServerMediaSubsession*
         createNew(UsageEnvironment& env, cb_output_buffer *cbBuffer,
                                 Boolean reuseFirstSource);
 
@@ -37,11 +37,11 @@ public:
     void afterPlayingDummy1();
 
 protected:
-    H265VideoCBMemoryServerMediaSubsession(UsageEnvironment& env,
+    H265VideoFramedMemoryServerMediaSubsession(UsageEnvironment& env,
                                         cb_output_buffer *cbBuffer,
                                         Boolean reuseFirstSource);
       // called only by createNew();
-      virtual ~H265VideoCBMemoryServerMediaSubsession();
+      virtual ~H265VideoFramedMemoryServerMediaSubsession();
 
       void setDoneFlag() { fDoneFlag = ~0; }
 

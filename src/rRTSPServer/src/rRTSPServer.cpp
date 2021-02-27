@@ -43,6 +43,7 @@
 #include "rRTSPServer.h"
 
 //#define REORDER_VPS5 1
+#define SPS_TIMING_INFO 1
 
 int buf_offset;
 int buf_size;
@@ -66,9 +67,19 @@ unsigned char VPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x40};
 unsigned char SPS4_640X360[]       = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
                                         0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
                                         0x01, 0x01, 0x02};
+// As above but without nalu header and with timing info at 20 fps
+unsigned char SPS4_640X360_TIN[]    = {0x67, 0x4D, 0x00, 0x14,
+                                        0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
+                                        0x01, 0x01, 0x40, 0x00, 0x00, 0x7D, 0x00, 0x00,
+                                        0x13, 0x88, 0x21};
 unsigned char SPS4_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
                                         0x96, 0x54, 0x03, 0xC0, 0x11, 0x2F, 0x2C, 0xDC,
                                         0x04, 0x04, 0x04, 0x08};
+// As above but without nalu header and with timing info at 20 fps
+unsigned char SPS4_1920X1080_TIN[] = {0x67, 0x4D, 0x00, 0x20,
+                                        0x96, 0x54, 0x03, 0xC0, 0x11, 0x2F, 0x2C, 0xDC,
+                                        0x04, 0x04, 0x05, 0x00, 0x00, 0x03, 0x01, 0xF4,
+                                        0x00, 0x00, 0x4E, 0x20, 0x84};
 unsigned char VPS5_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
                                         0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
                                         0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
@@ -78,6 +89,12 @@ unsigned char VPS5_1920X1080_N[]   = {0x40, 0x01, 0x0C, 0x01,
                                         0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
                                         0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
                                         0x00, 0x7B, 0xAC, 0x09};
+// As above but with timing info at 20 fps
+unsigned char VPS5_1920X1080_TIN[] = {0x40, 0x01, 0x0C, 0x01,
+                                        0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
+                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
+                                        0x00, 0x7B, 0xAC, 0x0C, 0x00, 0x00, 0x0F, 0xA4,
+                                        0x00, 0x01, 0x38, 0x81, 0x40};
 
 //unsigned char *addr;                      /* Pointer to shared memory region (header) */
 int debug;                                  /* Set to 1 to debug this .c */
@@ -295,20 +312,54 @@ void *capture(void *ptr)
 #ifdef REORDER_VPS5
                     if (frame_is_sps5 == 1) {
                         if (debug & 1) fprintf(stderr, "%lld: h265 SPS detected, writing VPS - frame_len: %d - resolution: %d\n", current_timestamp(), sizeof(VPS5_1920X1080), frame_res);
+#ifdef SPS_TIMING_INFO
+                        s2cb_memcpy(cb_current, VPS5_1920X1080_TIN, sizeof(VPS5_1920X1080_TIN));
+#else
                         s2cb_memcpy(cb_current, VPS5_1920X1080_N, sizeof(VPS5_1920X1080_N));
+#endif
                     }
 #endif
                     input_buffer.read_index = buf_idx_start;
                     // Remove nal header "00 00 00 01"
                     input_buffer.read_index = cb_move(input_buffer.read_index, 4);
                     frame_len -= 4;
+#ifdef SPS_TIMING_INFO
+                    // Overwrite SPS or VPS with one that contains timing info at 20 fps
+                    int nal_is_sps_or_vps = 0;
+                    if (input_buffer.read_index[0] == 0x67) {
+                        nal_is_sps_or_vps = 1;
+                        if (frame_res == RESOLUTION_LOW) {
+                            frame_len = sizeof(SPS4_640X360_TIN);
+                        } else if (frame_res == RESOLUTION_HIGH) {
+                            frame_len = sizeof(SPS4_1920X1080_TIN);
+                        }
+                    } else if (input_buffer.read_index[0] == 0x40) {
+                        nal_is_sps_or_vps = 2;
+                        frame_len = sizeof(VPS5_1920X1080_TIN);
+                    }
+#endif
                     cb_current->output_frame[cb_current->frame_write_index].ptr = cb_current->write_index;
                     cb_current->output_frame[cb_current->frame_write_index].partial = NULL;
                     cb_current->output_frame[cb_current->frame_write_index].counter = frame_counter;
                     cb_current->output_frame[cb_current->frame_write_index].size = frame_len;
                     if (debug & 1) fprintf(stderr, "%lld: frame_len: %d - frame_counter: %d - resolution: %d\n", current_timestamp(), frame_len, frame_counter, frame_res);
                     if (debug & 1) fprintf(stderr, "%lld: frame_write_index: %d - cb_current->output_frame_size %d\n", current_timestamp(), cb_current->frame_write_index, cb_current->output_frame_size);
-                    cb2cb_memcpy(cb_current, &input_buffer, frame_len);
+#ifdef SPS_TIMING_INFO
+                    // Overwrite SPS or VPS with one that contains timing info at 20 fps
+                    if (nal_is_sps_or_vps == 1) {
+                        if (frame_res == RESOLUTION_LOW) {
+                            s2cb_memcpy(cb_current, SPS4_640X360_TIN, sizeof(SPS4_640X360_TIN));
+                        } else if (frame_res == RESOLUTION_HIGH) {
+                            s2cb_memcpy(cb_current, SPS4_1920X1080_TIN, sizeof(SPS4_1920X1080_TIN));
+                        }
+                    } else if (nal_is_sps_or_vps == 2) {
+                        s2cb_memcpy(cb_current, VPS5_1920X1080_TIN, sizeof(VPS5_1920X1080_TIN));
+                    } else {
+#endif
+                        cb2cb_memcpy(cb_current, &input_buffer, frame_len);
+#ifdef SPS_TIMING_INFO
+                    }
+#endif
                     cb_current->frame_write_index = (cb_current->frame_write_index + 1) % cb_current->output_frame_size;
                     pthread_mutex_unlock(&(cb_current->mutex));
                 }

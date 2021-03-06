@@ -50,6 +50,7 @@ protected:
     virtual ~FramedMemorySource();
 
 private:
+    int cb_memcmp(unsigned char *str1, unsigned char*str2, size_t n);
     // redefined virtual functions:
     virtual void doGetNextFrame();
 

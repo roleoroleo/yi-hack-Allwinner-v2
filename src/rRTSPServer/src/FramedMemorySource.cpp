@@ -24,6 +24,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include <pthread.h>
 
+#define MILLIS_25 25000
+#define MILLIS_10 10000
+
+unsigned char NALU_HEADER[] = { 0x00, 0x00, 0x00, 0x01 };
+
 extern int debug;
 
 ////////// FramedMemorySource //////////
@@ -55,6 +60,22 @@ void FramedMemorySource::seekToByteAbsolute(u_int64_t byteNumber, u_int64_t numB
 void FramedMemorySource::seekToByteRelative(int64_t offset, u_int64_t numBytesToStream) {
 }
 
+// The second argument is the circular buffer
+int FramedMemorySource::cb_memcmp(unsigned char *str1, unsigned char*str2, size_t n)
+{
+    int ret;
+
+    if (str2 + n > fBuffer->buffer + fBuffer->size) {
+        ret = memcmp(str1, str2, fBuffer->buffer + fBuffer->size - str2);
+        if (ret != 0) return ret;
+        ret = memcmp(str1 + (fBuffer->buffer + fBuffer->size - str2), fBuffer->buffer, n - (fBuffer->buffer + fBuffer->size - str2));
+    } else {
+        ret = memcmp(str1, str2, n);
+    }
+
+    return ret;
+}
+
 void FramedMemorySource::doGetNextFrame() {
     if (fLimitNumBytesToStream && fNumBytesToStream == 0) {
         handleClosure();
@@ -73,10 +94,29 @@ void FramedMemorySource::doGetNextFrame() {
     if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() start - fFrameSize %d - fMaxSize %d - fLimitNumBytesToStream %d - fPreferredFrameSize %d\n", fFrameSize, fMaxSize, fLimitNumBytesToStream, fPreferredFrameSize);
 
     pthread_mutex_lock(&(fBuffer->mutex));
-    while (fBuffer->frame_read_index == fBuffer->frame_write_index) {
-        pthread_mutex_unlock(&(fBuffer->mutex));
-        usleep(25000);
-        pthread_mutex_lock(&(fBuffer->mutex));
+    while (1) {
+        if (fBuffer->frame_read_index == fBuffer->frame_write_index) {
+            pthread_mutex_unlock(&(fBuffer->mutex));
+            if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() read_index == write_index\n");
+            usleep(MILLIS_25);
+            pthread_mutex_lock(&(fBuffer->mutex));
+            continue;
+        } else if (fBuffer->output_frame[fBuffer->frame_read_index].ptr == NULL) {
+            pthread_mutex_unlock(&(fBuffer->mutex));
+            if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() ptr NULL\n");
+            usleep(MILLIS_10);
+            pthread_mutex_lock(&(fBuffer->mutex));
+            continue;
+        } else if (cb_memcmp(NALU_HEADER, fBuffer->output_frame[fBuffer->frame_read_index].ptr, sizeof(NALU_HEADER)) != 0) {
+            fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
+            pthread_mutex_unlock(&(fBuffer->mutex));
+            if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() wrong frame header\n");
+            usleep(MILLIS_10);
+            pthread_mutex_lock(&(fBuffer->mutex));
+            continue;
+        } else {
+            break;
+        }
     }
 
     unsigned char *ptr;
@@ -87,6 +127,9 @@ void FramedMemorySource::doGetNextFrame() {
     } else {
         ptr = fBuffer->output_frame[fBuffer->frame_read_index].ptr;
         size = fBuffer->output_frame[fBuffer->frame_read_index].size;
+        // Remove nalu header before sending the frame to FramedSource
+        ptr += 4;
+        size -= 4;
     }
     if (size <= fFrameSize) {
         // The size of the frame is smaller than the available buffer

@@ -98,7 +98,7 @@ typedef struct
     unsigned int size;                      // size of the output buffer
     int resolution;                         // resolution of the stream in this buffer
     unsigned char *write_index;             // write absolute index
-    cb_output_frame output_frame[128];      // array of frames that buffer contains
+    cb_output_frame output_frame[42];       // array of frames that buffer contains 42 = SPS + PPS + iframe + GOP
     int output_frame_size;                  // number of frames that buffer contains
     unsigned int frame_read_index;          // index to the next frame to read
     unsigned int frame_write_index;         // index to the next frame to write

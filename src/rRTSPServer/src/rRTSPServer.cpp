@@ -65,36 +65,36 @@ unsigned char PPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x44};
 unsigned char VPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x40};
 
 unsigned char SPS4_640X360[]       = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
-                                        0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
-                                        0x01, 0x01, 0x02};
+                                      0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
+                                      0x01, 0x01, 0x02};
 // As above but without nalu header and with timing info at 20 fps
-unsigned char SPS4_640X360_TIN[]    = {0x67, 0x4D, 0x00, 0x14,
-                                        0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
-                                        0x01, 0x01, 0x40, 0x00, 0x00, 0x7D, 0x00, 0x00,
-                                        0x13, 0x88, 0x21};
+unsigned char SPS4_640X360_TI[]    = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
+                                      0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
+                                      0x01, 0x01, 0x40, 0x00, 0x00, 0x7D, 0x00, 0x00,
+                                      0x13, 0x88, 0x21};
 unsigned char SPS4_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
-                                        0x96, 0x54, 0x03, 0xC0, 0x11, 0x2F, 0x2C, 0xDC,
-                                        0x04, 0x04, 0x04, 0x08};
+                                      0x96, 0x54, 0x03, 0xC0, 0x11, 0x2F, 0x2C, 0xDC,
+                                      0x04, 0x04, 0x04, 0x08};
 // As above but without nalu header and with timing info at 20 fps
-unsigned char SPS4_1920X1080_TIN[] = {0x67, 0x4D, 0x00, 0x20,
-                                        0x96, 0x54, 0x03, 0xC0, 0x11, 0x2F, 0x2C, 0xDC,
-                                        0x04, 0x04, 0x05, 0x00, 0x00, 0x03, 0x01, 0xF4,
-                                        0x00, 0x00, 0x4E, 0x20, 0x84};
+unsigned char SPS4_1920X1080_TI[]  = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
+                                      0x96, 0x54, 0x03, 0xC0, 0x11, 0x2F, 0x2C, 0xDC,
+                                      0x04, 0x04, 0x05, 0x00, 0x00, 0x03, 0x01, 0xF4,
+                                      0x00, 0x00, 0x4E, 0x20, 0x84};
 unsigned char VPS5_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
-                                        0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
-                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
-                                        0x00, 0x7B, 0xAC, 0x09};
+                                      0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
+                                      0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
+                                      0x00, 0x7B, 0xAC, 0x09};
 // As above without nalu prefix
 unsigned char VPS5_1920X1080_N[]   = {0x40, 0x01, 0x0C, 0x01,
-                                        0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
-                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
-                                        0x00, 0x7B, 0xAC, 0x09};
+                                      0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
+                                      0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
+                                      0x00, 0x7B, 0xAC, 0x09};
 // As above but with timing info at 20 fps
-unsigned char VPS5_1920X1080_TIN[] = {0x40, 0x01, 0x0C, 0x01,
-                                        0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
-                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
-                                        0x00, 0x7B, 0xAC, 0x0C, 0x00, 0x00, 0x0F, 0xA4,
-                                        0x00, 0x01, 0x38, 0x81, 0x40};
+unsigned char VPS5_1920X1080_TI[]  = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
+                                      0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
+                                      0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
+                                      0x00, 0x7B, 0xAC, 0x0C, 0x00, 0x00, 0x0F, 0xA4,
+                                      0x00, 0x01, 0x38, 0x81, 0x40};
 
 //unsigned char *addr;                      /* Pointer to shared memory region (header) */
 int debug;                                  /* Set to 1 to debug this .c */
@@ -236,9 +236,7 @@ void *capture(void *ptr)
     cb_output_buffer *cb_current;
     int write_enable = 0;
     int sps_sync = 0;
-#ifdef REORDER_VPS5
-    int frame_is_sps5 = 0;
-#endif
+    int nal_is_sps_or_vps5 = 0;
 
     // Opening an existing file
     fFid = fopen(input_buffer.filename, "r");
@@ -310,32 +308,26 @@ void *capture(void *ptr)
                 } else {
                     pthread_mutex_lock(&(cb_current->mutex));
 #ifdef REORDER_VPS5
-                    if (frame_is_sps5 == 1) {
+                    if (nal_is_sps_or_vps5 == 3) {
                         if (debug & 1) fprintf(stderr, "%lld: h265 SPS detected, writing VPS - frame_len: %d - resolution: %d\n", current_timestamp(), sizeof(VPS5_1920X1080), frame_res);
 #ifdef SPS_TIMING_INFO
-                        s2cb_memcpy(cb_current, VPS5_1920X1080_TIN, sizeof(VPS5_1920X1080_TIN));
+                        s2cb_memcpy(cb_current, VPS5_1920X1080_TI, sizeof(VPS5_1920X1080_TI));
 #else
-                        s2cb_memcpy(cb_current, VPS5_1920X1080_N, sizeof(VPS5_1920X1080_N));
+                        s2cb_memcpy(cb_current, VPS5_1920X1080, sizeof(VPS5_1920X1080));
 #endif
                     }
 #endif
                     input_buffer.read_index = buf_idx_start;
-                    // Remove nal header "00 00 00 01"
-                    input_buffer.read_index = cb_move(input_buffer.read_index, 4);
-                    frame_len -= 4;
 #ifdef SPS_TIMING_INFO
-                    // Overwrite SPS or VPS with one that contains timing info at 20 fps
-                    int nal_is_sps_or_vps = 0;
-                    if (input_buffer.read_index[0] == 0x67) {
-                        nal_is_sps_or_vps = 1;
+                    // Check if NALU is SPS
+                    if (nal_is_sps_or_vps5 == 1) {
                         if (frame_res == RESOLUTION_LOW) {
-                            frame_len = sizeof(SPS4_640X360_TIN);
+                            frame_len = sizeof(SPS4_640X360_TI);
                         } else if (frame_res == RESOLUTION_HIGH) {
-                            frame_len = sizeof(SPS4_1920X1080_TIN);
+                            frame_len = sizeof(SPS4_1920X1080_TI);
                         }
-                    } else if (input_buffer.read_index[0] == 0x40) {
-                        nal_is_sps_or_vps = 2;
-                        frame_len = sizeof(VPS5_1920X1080_TIN);
+                    } else if (nal_is_sps_or_vps5 == 3) {
+                        frame_len = sizeof(VPS5_1920X1080_TI);
                     }
 #endif
                     cb_current->output_frame[cb_current->frame_write_index].ptr = cb_current->write_index;
@@ -346,14 +338,14 @@ void *capture(void *ptr)
                     if (debug & 1) fprintf(stderr, "%lld: frame_write_index: %d - cb_current->output_frame_size %d\n", current_timestamp(), cb_current->frame_write_index, cb_current->output_frame_size);
 #ifdef SPS_TIMING_INFO
                     // Overwrite SPS or VPS with one that contains timing info at 20 fps
-                    if (nal_is_sps_or_vps == 1) {
+                    if (nal_is_sps_or_vps5 == 1) {
                         if (frame_res == RESOLUTION_LOW) {
-                            s2cb_memcpy(cb_current, SPS4_640X360_TIN, sizeof(SPS4_640X360_TIN));
+                            s2cb_memcpy(cb_current, SPS4_640X360_TI, sizeof(SPS4_640X360_TI));
                         } else if (frame_res == RESOLUTION_HIGH) {
-                            s2cb_memcpy(cb_current, SPS4_1920X1080_TIN, sizeof(SPS4_1920X1080_TIN));
+                            s2cb_memcpy(cb_current, SPS4_1920X1080_TI, sizeof(SPS4_1920X1080_TI));
                         }
-                    } else if (nal_is_sps_or_vps == 2) {
-                        s2cb_memcpy(cb_current, VPS5_1920X1080_TIN, sizeof(VPS5_1920X1080_TIN));
+                    } else if (nal_is_sps_or_vps5 == 3) {
+                        s2cb_memcpy(cb_current, VPS5_1920X1080_TI, sizeof(VPS5_1920X1080_TI));
                     } else {
 #endif
                         cb2cb_memcpy(cb_current, &input_buffer, frame_len);
@@ -366,16 +358,18 @@ void *capture(void *ptr)
             }
         }
 
-        if ((cb_memcmp(SPS4_START, buf_idx_1, sizeof(SPS4_START)) == 0) ||
-                (cb_memcmp(SPS5_START, buf_idx_1, sizeof(SPS5_START)) == 0)) {
+
+        nal_is_sps_or_vps5 = 0;
+        if (cb_memcmp(SPS4_START, buf_idx_1, sizeof(SPS4_START)) == 0) {
+            nal_is_sps_or_vps5 = 1;
+        } else if (cb_memcmp(SPS5_START, buf_idx_1, sizeof(SPS5_START)) == 0) {
+            nal_is_sps_or_vps5 = 2;
+        } else if (cb_memcmp(VPS5_START, buf_idx_1, sizeof(VPS5_START)) == 0) {
+            nal_is_sps_or_vps5 = 3;
+        }
+
+        if ((nal_is_sps_or_vps5 == 1) || (nal_is_sps_or_vps5 == 2)) {
             // SPS frame
-#ifdef REORDER_VPS5
-            if (cb_memcmp(SPS5_START, buf_idx_1, sizeof(SPS5_START)) == 0) {
-                frame_is_sps5 = 1;
-            } else {
-                frame_is_sps5 = 0;
-            }
-#endif
             write_enable = 1;
             sps_sync = 1;
             buf_idx_1 = cb_move(buf_idx_1, - (6 + frame_header_size));
@@ -443,9 +437,6 @@ void *capture(void *ptr)
                         (cb_memcmp(PFR4_START, buf_idx_1, sizeof(PFR4_START)) == 0) ||
                         (cb_memcmp(PFR5_START, buf_idx_1, sizeof(PFR5_START)) == 0)) {
             // PPS, IDR and PFR frames
-#ifdef REORDER_VPS5
-            frame_is_sps5 = 0;
-#endif
             write_enable = 1;
             buf_idx_1 = cb_move(buf_idx_1, -frame_header_size);
             if (buf_idx_1[17 + data_offset] == lowres_byte) {
@@ -502,9 +493,6 @@ void *capture(void *ptr)
             buf_idx_1 = cb_move(buf_idx_1, frame_header_size);
             buf_idx_start = buf_idx_1;
         } else {
-#ifdef REORDER_VPS5
-            frame_is_sps5 = 0;
-#endif
             write_enable = 0;
         }
 
@@ -792,7 +780,7 @@ int main(int argc, char** argv)
     }
 
     str = getenv("RRTSP_DEBUG");
-    if ((str != NULL) && (sscanf (str, "%i", &nm) == 1) && (nm >= 0) && (nm <= 2)) {
+    if ((str != NULL) && (sscanf (str, "%i", &nm) == 1) && (nm >= 0) && (nm <= 3)) {
         debug = nm;
     }
 

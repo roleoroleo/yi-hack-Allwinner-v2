@@ -36,11 +36,12 @@ APP.status = (function ($) {
             dataType: "json",
             success: function(data) {
                 for (let key in data) {
-                    if (key != "uptime" && key != "total_memory" && key != "free_memory" && key != "wlan_strength") {
+                    if (key != "wlan_essid" && key != "uptime" && key != "total_memory" && key != "free_memory" && key != "wlan_strength") {
                         $('#' + key).text(data[key]);
                     }
                 }
 
+                $('#wlan_essid').html(data.wlan_essid + "<input class=\"button-primary\" type=\"button\" id=\"button-wifi-edit\" value=\"Edit\" style=\"margin-left:40px;\" onclick=\"window.location.href='?page=wifi'\"/>");
                 $('#uptime').text(String.format("%t", parseInt(data.uptime)));
                 $('#memory').text("" + data.free_memory + "/" + data.total_memory + " KB");
                 wifiStrength = parseInt((parseInt(data.wlan_strength) * 100) / 70);

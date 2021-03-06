@@ -1,0 +1,68 @@
+<div class="row">
+    <div class="twelve columns">
+        <div class="row">
+            <div class="twelve columns">
+                <h3 class="no-margin inline-block" id="header">Configurations</h3>
+                <h6 id="loading-wifi-status" class="float-right loading-text"></h6>
+            </div>
+        </div>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <p>
+                In this page you can configure WiFi network access.
+                <br/>
+                Please note: if you enter the wrong credentials you will no longer be able to access your cam.
+            </p>
+        </div>
+        <h4 class="no-margin">WiFi</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>WiFi network ESSID</td>
+                        <td>
+                            <div id="select-container" class="standard-select">
+                            </div>
+                            <span class="switch-description">
+                                Select WiFi network.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Password</td>
+                        <td>
+                            <input class="u-full-width" type="password" placeholder="" data-key="WIFI_PASSWORD" id="WIFI_PASSWORD"/>
+                            <span class="switch-description">
+                                Password to access Wifi network.
+                                <br/>
+                                Allowed special chars: \ | ! &quot; $ % &amp; / ( ) &apos; ? ^ [ ] @ &lt; &gt; , ; . : - _
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Confirmation password</td>
+                        <td>
+                            <input class="u-full-width" type="password" placeholder="" data-key="WIFI_PASSWORD2" id="WIFI_PASSWORD2"/>
+                            <span class="switch-description">
+                                Enter again the password to access Wifi network.
+                                <br/>
+                                Allowed special chars: \ | ! &quot; $ % &amp; / ( ) &apos; ? ^ [ ] @ &lt; &gt; , ; . : - _
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="align-right">
+            <span class="strong">Any change will take effect after the reboot of the camera.</span>
+        </div>
+        <br/>
+        <div class="float-right">
+            <div class="padded-right save-text" id="save-wifi-status"></div>
+            <input class="button-primary" type="button" id="button-save-wifi" value="Save Configuration"/>
+        </div>
+    </div>
+</div>

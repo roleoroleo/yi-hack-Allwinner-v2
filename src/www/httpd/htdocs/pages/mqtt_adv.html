@@ -1,0 +1,617 @@
+<div class="row">
+    <div class="twelve columns">
+        <div class="row">
+            <div class="twelve columns">
+                <h3 class="no-margin inline-block" id="header">Mqtt Advertise & Homeassistant MQTT Discovery</h3>
+                <h6 id="loading-status" class="float-right loading-text"></h6>
+            </div>
+        </div>
+        <hr class="tiny-margin" />
+        <h4 class="no-margin">MQTT Information Advertise</h4>
+        <hr class="tiny-margin" />
+        <div class="row">
+            <p>
+                Information Advertise contain global information that should not change frequently like:
+                <br />
+                Hostname, Firmware Version, Base Version, Model Suffix, Serial Number, Address, Netmask, Gateway, MAC
+                Address, Wifi ESSID.
+                <br />
+            </p>
+        </div>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                        <tr class="row">
+                            <td>Enabled</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="MQTT_ADV_INFO_GLOBAL_ENABLE"
+                                        data-key="MQTT_ADV_INFO_GLOBAL_ENABLE" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the MQTT Global Information Advertise.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Start on Boot</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="MQTT_ADV_INFO_GLOBAL_BOOT"
+                                        data-key="MQTT_ADV_INFO_GLOBAL_BOOT" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the MQTT Global Information Advertise to start onboot.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Periodic Start</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="MQTT_ADV_INFO_GLOBAL_CRON"
+                                        data-key="MQTT_ADV_INFO_GLOBAL_CRON" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the MQTT Global Information Advertise to periodic
+                                    start.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Crontab</td>
+                            <td>
+                                <span class="switch-description"
+                                    style="font-family:'Lucida Console', Courier, monospace; font-size:12px;">
+                                    # +------------ Minute (range: 0-59)<br />
+                                    # | +---------- Hour (range: 0-23)<br />
+                                    # | | +-------- Day of the Month (range: 1-31)<br />
+                                    # | | | +------ Month of the Year (range: 1-12)<br />
+                                    # | | | | +---- Day of the Week (range: 0-6, sunday to saturday)<br />
+                                    # | | | | |<br />
+                                    # * * * * *
+                                </span>
+                                <input class="u-full-width" type="text" placeholder="0 * * * *"
+                                    data-key="MQTT_ADV_INFO_GLOBAL_CRONTAB" id="MQTT_ADV_INFO_GLOBAL_CRONTAB" />
+                                <span class="switch-description">
+                                    Insert here your scheduled process using crontab syntax.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Suffix topic</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="info_global"
+                                    data-key="MQTT_ADV_INFO_GLOBAL_TOPIC" />
+                                <span class="switch-description">
+                                    MQTT Global Information Advertise suffix topic
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Retain for MQTT Global Information</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="1"
+                                    data-key="MQTT_ADV_INFO_GLOBAL_RETAIN" />
+                                <span class="switch-description">
+                                    A retained message is a normal MQTT message with the retained flag set to true. The
+                                    broker stores the last retained message and the corresponding QoS for that topic. (1
+                                    = enabled, 0 = disabled)
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>QoS</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="0" data-key="MQTT_ADV_INFO_GLOBAL_QOS"/>
+                                <span class="switch-description">
+                                    The Quality of Service (QoS) level is an agreement between the sender of a message and the receiver of a message that defines the guarantee of delivery for a specific message.
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <h4 class="no-margin">MQTT Link Advertise</h4>
+        <hr class="tiny-margin" />
+        <div class="row">
+            <p>
+                Link Advertise contain links:
+                <br />
+                High res stream, Low res stream, Only audio stream, High res snapshot, Low res snapshot.
+                <br />
+            </p>
+        </div>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                        <tr class="row">
+                            <td>Enabled</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="MQTT_ADV_LINK_ENABLE" data-key="MQTT_ADV_LINK_ENABLE" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the MQTT Links Advertise.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Start on Boot</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="MQTT_ADV_LINK_BOOT" data-key="MQTT_ADV_LINK_BOOT" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the MQTT Links Advertise to start onboot.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Periodic Start</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="MQTT_ADV_LINK_CRON" data-key="MQTT_ADV_LINK_CRON" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the MQTT Links Advertise to periodic
+                                    start.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Crontab</td>
+                            <td>
+                                <span class="switch-description"
+                                    style="font-family:'Lucida Console', Courier, monospace; font-size:12px;">
+                                    # +------------ Minute (range: 0-59)<br />
+                                    # | +---------- Hour (range: 0-23)<br />
+                                    # | | +-------- Day of the Month (range: 1-31)<br />
+                                    # | | | +------ Month of the Year (range: 1-12)<br />
+                                    # | | | | +---- Day of the Week (range: 0-6, sunday to saturday)<br />
+                                    # | | | | |<br />
+                                    # * * * * *
+                                </span>
+                                <input class="u-full-width" type="text" placeholder="0 * * * *"
+                                    data-key="MQTT_ADV_LINK_CRONTAB" id="MQTT_ADV_LINK_CRONTAB" />
+                                <span class="switch-description">
+                                    Insert here your scheduled process using crontab syntax.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Suffix topic</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="links"
+                                    data-key="MQTT_ADV_LINK_TOPIC" />
+                                <span class="switch-description">
+                                    MQTT Links Advertise suffix topic
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Retain for MQTT Links</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="1"
+                                    data-key="MQTT_ADV_LINK_RETAIN" />
+                                <span class="switch-description">
+                                    A retained message is a normal MQTT message with the retained flag set to true. The
+                                    broker stores the last retained message and the corresponding QoS for that topic. (1
+                                    = enabled, 0 = disabled)
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>QoS</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="0" data-key="MQTT_ADV_LINK_QOS"/>
+                                <span class="switch-description">
+                                    The Quality of Service (QoS) level is an agreement between the sender of a message and the receiver of a message that defines the guarantee of delivery for a specific message.
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <h4 class="no-margin">MQTT Camera Settings Advertise</h4>
+        <hr class="tiny-margin" />
+        <div class="row">
+            <p>
+                Camera Settings Advertise contain the information of Camera Settings page:
+                <br />
+                Switch on/off camera, Sound Detection, Status Led, IR Led, Rotate.
+                <br />
+            </p>
+        </div>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                        <tr class="row">
+                            <td>Enabled</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="MQTT_ADV_CAMERA_SETTING_ENABLE"
+                                        data-key="MQTT_ADV_CAMERA_SETTING_ENABLE" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the MQTT Camera Settings Advertise.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Start on Boot</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="MQTT_ADV_CAMERA_SETTING_BOOT"
+                                        data-key="MQTT_ADV_CAMERA_SETTING_BOOT" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the MQTT Camera Settings Advertise to start onboot.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Periodic Start</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="MQTT_ADV_CAMERA_SETTING_CRON"
+                                        data-key="MQTT_ADV_CAMERA_SETTING_CRON" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the MQTT Camera Settings Advertise to periodic
+                                    start.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Crontab</td>
+                            <td>
+                                <span class="switch-description"
+                                    style="font-family:'Lucida Console', Courier, monospace; font-size:12px;">
+                                    # +------------ Minute (range: 0-59)<br />
+                                    # | +---------- Hour (range: 0-23)<br />
+                                    # | | +-------- Day of the Month (range: 1-31)<br />
+                                    # | | | +------ Month of the Year (range: 1-12)<br />
+                                    # | | | | +---- Day of the Week (range: 0-6, sunday to saturday)<br />
+                                    # | | | | |<br />
+                                    # * * * * *
+                                </span>
+                                <input class="u-full-width" type="text" placeholder="0 * * * *"
+                                    data-key="MQTT_ADV_CAMERA_SETTING_CRONTAB" id="MQTT_ADV_CAMERA_SETTING_CRONTAB" />
+                                <span class="switch-description">
+                                    Insert here your scheduled process using crontab syntax. </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Suffix topic</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="camera_setting"
+                                    data-key="MQTT_ADV_CAMERA_SETTING_TOPIC" />
+                                <span class="switch-description">
+                                    MQTT Camera Settings Advertise suffix topic
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Retain for Camera Settings</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="1"
+                                    data-key="MQTT_ADV_CAMERA_SETTING_RETAIN" />
+                                <span class="switch-description">
+                                    A retained message is a normal MQTT message with the retained flag set to true. The
+                                    broker stores the last retained message and the corresponding QoS for that topic. (1
+                                    = enabled, 0 = disabled)
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>QoS</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="0" data-key="MQTT_ADV_CAMERA_SETTING_QOS"/>
+                                <span class="switch-description">
+                                    The Quality of Service (QoS) level is an agreement between the sender of a message and the receiver of a message that defines the guarantee of delivery for a specific message.
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <h4 class="no-margin">MQTT Telemetry Advertise</h4>
+        <hr class="tiny-margin" />
+        <div class="row">
+            <p>
+                Telemetry Advertise contain the information of Telemetry page that change frequently:
+                <br />
+                Wlan Strenght, Uptime, FreeSD, Free Memory, Total Memory, Load Average.
+                <br />
+            </p>
+        </div>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                        <tr class="row">
+                            <td>Enabled</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="MQTT_ADV_TELEMETRY_ENABLE"
+                                        data-key="MQTT_ADV_TELEMETRY_ENABLE" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the MQTT Telemetry Advertise.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Start on Boot</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="MQTT_ADV_TELEMETRY_BOOT"
+                                        data-key="MQTT_ADV_TELEMETRY_BOOT" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the MQTT Telemetry Advertise to start onboot.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Periodic Start</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="MQTT_ADV_TELEMETRY_CRON"
+                                        data-key="MQTT_ADV_TELEMETRY_CRON" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the MQTT Telemetry Advertise to periodic
+                                    start.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Crontab</td>
+                            <td>
+                                <span class="switch-description"
+                                    style="font-family:'Lucida Console', Courier, monospace; font-size:12px;">
+                                    # +------------ Minute (range: 0-59)<br />
+                                    # | +---------- Hour (range: 0-23)<br />
+                                    # | | +-------- Day of the Month (range: 1-31)<br />
+                                    # | | | +------ Month of the Year (range: 1-12)<br />
+                                    # | | | | +---- Day of the Week (range: 0-6, sunday to saturday)<br />
+                                    # | | | | |<br />
+                                    # * * * * *
+                                </span>
+                                <input class="u-full-width" type="text" placeholder="0 * * * *"
+                                    data-key="MQTT_ADV_TELEMETRY_CRONTAB" id="MQTT_ADV_TELEMETRY_CRONTAB" />
+                                <span class="switch-description">
+                                    Insert here your scheduled process using crontab syntax. </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Suffix topic</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="telemetry"
+                                    data-key="MQTT_ADV_TELEMETRY_TOPIC" />
+                                <span class="switch-description">
+                                    MQTT Telemetry Advertise suffix topic
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Retain for Telemetry</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="1"
+                                    data-key="MQTT_ADV_TELEMETRY_RETAIN" />
+                                <span class="switch-description">
+                                    A retained message is a normal MQTT message with the retained flag set to true. The
+                                    broker stores the last retained message and the corresponding QoS for that topic. (1
+                                    = enabled, 0 = disabled)
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>QoS</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="0" data-key="MQTT_ADV_TELEMETRY_QOS"/>
+                                <span class="switch-description">
+                                    The Quality of Service (QoS) level is an agreement between the sender of a message and the receiver of a message that defines the guarantee of delivery for a specific message.
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <h4 class="no-margin">Home Assistant</h4>
+        <hr class="tiny-margin" />
+        <div class="row">
+            <p>
+                The discovery of MQTT devices will enable one to use MQTT devices with only minimal configuration effort
+                on the side of Home Assistant.
+                <br />
+                See <a href="https://www.home-assistant.io/docs/mqtt/discovery/">Home Assistant MQTT Discovery</a> for
+                more information
+                <br />
+            </p>
+        </div>
+        <hr class="tiny-margin" />
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                        <tr class="row">
+                            <td>Enabled</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="enable-homeassistant" data-key="HOMEASSISTANT_ENABLE" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the Home Assistant MQTT discovery service.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Start on Boot</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="enable-homeassistant-boot"
+                                        data-key="HOMEASSISTANT_BOOT" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the Home Assistant MQTT discovery advertise service to start on
+                                    boot.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Periodic Start</td>
+                            <td>
+                                <label class="switch small">
+                                    <input type="checkbox" id="enable-homeassistant-cron"
+                                        data-key="HOMEASSISTANT_CRON" />
+                                    <span class="slider round"></span>
+                                    <span class="switch-text"></span>
+                                </label>
+                                <span class="switch-description">
+                                    Enable or disable the Home Assistant MQTT discovery advertise service to periodic
+                                    start.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Crontab</td>
+                            <td>
+                                <span class="switch-description"
+                                    style="font-family:'Lucida Console', Courier, monospace; font-size:12px;">
+                                    # +------------ Minute (range: 0-59)<br />
+                                    # | +---------- Hour (range: 0-23)<br />
+                                    # | | +-------- Day of the Month (range: 1-31)<br />
+                                    # | | | +------ Month of the Year (range: 1-12)<br />
+                                    # | | | | +---- Day of the Week (range: 0-6, sunday to saturday)<br />
+                                    # | | | | |<br />
+                                    # * * * * *
+                                </span>
+                                <input class="u-full-width" type="text" placeholder="*/10 * * * *"
+                                    data-key="HOMEASSISTANT_CRONTAB" id="HOMEASSISTANT_CRONTAB" />
+                                <span class="switch-description">
+                                    Insert here your scheduled process using crontab syntax. </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Prefix topic</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="homeassistant"
+                                    data-key="HOMEASSISTANT_MQTT_PREFIX" />
+                                <span class="switch-description">
+                                    Homeassistant prefix topic
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Device Name</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="YI Camera"
+                                    data-key="HOMEASSISTANT_NAME" />
+                                <span class="switch-description">
+                                    Unique name description of the device
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Device Id</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="yi-cam"
+                                    data-key="HOMEASSISTANT_IDENTIFIERS" />
+                                <span class="switch-description">
+                                    Unique identify of the device. It must not have spaces
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Device Manufactuer</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="YI Hack"
+                                    data-key="HOMEASSISTANT_MANUFACTURER" />
+                                <span class="switch-description">
+                                    Unique manufactuer description of the device
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Model Name</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="Y"
+                                    data-key="HOMEASSISTANT_MODEL" />
+                                <span class="switch-description">
+                                    Unique name description of the model device
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>Retain</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="1"
+                                    data-key="HOMEASSISTANT_RETAIN" />
+                                <span class="switch-description">
+                                    A retained message is a normal MQTT message with the retained flag set to true. The
+                                    broker stores the last retained message and the corresponding QoS for that topic. (1
+                                    = enabled, 0 = disabled)
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="row">
+                            <td>QoS</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="0" data-key="HOMEASSISTANT_QOS"/>
+                                <span class="switch-description">
+                                    The Quality of Service (QoS) level is an agreement between the sender of a message and the receiver of a message that defines the guarantee of delivery for a specific message.
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="align-right">
+            <span class="strong">Any change will take effect after the reboot of the camera.</span>
+        </div>
+        <br />
+        <div class="float-right">
+            <div class="padded-right save-text" id="save-status"></div>
+            <input class="button-primary" type="button" id="button-save" value="Save Configuration" />
+        </div>
+    </div>
+</div>

@@ -39,6 +39,7 @@
 #include <limits.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/resource.h>
 
 #include "rRTSPServer.h"
 
@@ -823,6 +824,8 @@ int main(int argc, char** argv)
     if ((audio > 0) && (stat (inputAudioFileName, &stat_buffer) != 0)) {
         audio = 0;
     }
+
+    setpriority(PRIO_PROCESS, 0, -10);
 
     // Fill input and output buffer struct
     strcpy(input_buffer.filename, BUFFER_FILE);

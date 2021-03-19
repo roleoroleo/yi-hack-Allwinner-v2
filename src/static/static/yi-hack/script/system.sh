@@ -269,17 +269,18 @@ framefinder $MODEL_SUFFIX &
 # Add crontab
 CRONTAB=$(get_config CRONTAB)
 FREE_SPACE=$(get_config FREE_SPACE)
-if [ ! -z "$CRONTAB" ] || [ "$FREE_SPACE" != "0" ] ; then
-    mkdir -p /var/spool/cron/crontabs/
+mkdir -p /var/spool/cron/crontabs/
+if [ ! -z "$CRONTAB" ]; then
+    echo "$CRONTAB" > /var/spool/cron/crontabs/root
+fi
+if [ "$FREE_SPACE" != "0" ]; then
+    echo "0 * * * * /tmp/sd/yi-hack/script/clean_records.sh $FREE_SPACE" >> /var/spool/cron/crontabs/root
+fi
+$YI_HACK_PREFIX/usr/sbin/crond -c /var/spool/cron/crontabs/
 
-    if [ ! -z "$CRONTAB" ]; then
-        echo "$CRONTAB" > /var/spool/cron/crontabs/root
-    fi
-    if [ "$FREE_SPACE" != "0" ]; then
-        echo "0 * * * * /tmp/sd/yi-hack/script/clean_records.sh $FREE_SPACE" >> /var/spool/cron/crontabs/root
-    fi
-
-    $YI_HACK_PREFIX/usr/sbin/crond -c /var/spool/cron/crontabs/
+# Add MQTT Advertise
+if [ -f "$YI_HACK_PREFIX/script/mqtt_advertise/startup.sh" ]; then
+    $YI_HACK_PREFIX/script/mqtt_advertise/startup.sh
 fi
 
 # Remove log files written to SD on boot containing the WiFi password

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-YI_HACK_PREFIX="/home/yi-hack"
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
 
 CONFIG_SET="script/mqtt_advertise/mqtt_adv_config.sh"
 CONF_FILE="etc/camera.conf"

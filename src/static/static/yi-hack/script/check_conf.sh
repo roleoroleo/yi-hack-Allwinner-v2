@@ -60,6 +60,7 @@ MQTT_CLIENT_ID=yi-cam
 MQTT_USER=
 MQTT_PASSWORD=
 MQTT_PREFIX=yicam
+MQTT_PREFIX_CONFIG=yicam-config
 TOPIC_BIRTH_WILL=status
 TOPIC_AI_HUMAN_DETECTION=ai_human_detection
 TOPIC_MOTION=motion_detection

@@ -76,6 +76,8 @@ if [ -f "/tmp/sd/Factory/factory_test.sh" ]; then
 	exit
 fi
 
+mount --bind /backup/tools/wifidhcp.sh /home/app/script/wifidhcp.sh
+
 ./dispatch &
 #sleep 2
 #./rmm &

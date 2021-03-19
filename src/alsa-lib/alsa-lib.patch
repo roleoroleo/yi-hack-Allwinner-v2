@@ -1,7 +1,16 @@
 diff -Naur alsa-lib-1.1.4.1.ori/src/pcm/pcm.c alsa-lib-1.1.4.1/src/pcm/pcm.c
---- alsa-lib-1.1.4.1.ori/src/pcm/pcm.c	2020-05-28 12:39:18.086164945 +0200
-+++ alsa-lib-1.1.4.1/src/pcm/pcm.c	2020-05-28 12:53:23.290468299 +0200
-@@ -656,6 +656,17 @@
+--- alsa-lib-1.1.4.1.ori/src/pcm/pcm.c	1970-01-01 01:00:00.000000000 +0100
++++ alsa-lib-1.1.4.1/src/pcm/pcm.c	2020-05-28 12:39:30.534021142 +0200
+@@ -645,6 +645,8 @@
+ \example ../../test/latency.c
+ */
+ 
++#define _GNU_SOURCE
++
+ #include <stdio.h>
+ #include <string.h>
+ #include <malloc.h>
+@@ -656,6 +658,17 @@
  #include <limits.h>
  #include "pcm_local.h"
  
@@ -19,7 +28,7 @@ diff -Naur alsa-lib-1.1.4.1.ori/src/pcm/pcm.c alsa-lib-1.1.4.1/src/pcm/pcm.c
  #ifndef DOC_HIDDEN
  #define P_STATE(x)	(1U << SND_PCM_STATE_ ## x)
  #define P_STATE_RUNNABLE (P_STATE(PREPARED) | \
-@@ -743,6 +754,10 @@
+@@ -743,6 +756,10 @@
  	err = snd_pcm_free(pcm);
  	if (err < 0)
  		res = err;
@@ -30,7 +39,7 @@ diff -Naur alsa-lib-1.1.4.1.ori/src/pcm/pcm.c alsa-lib-1.1.4.1/src/pcm/pcm.c
  	return res;
  }	
  
-@@ -1509,6 +1524,10 @@
+@@ -1509,6 +1526,10 @@
  	}
  	if (bad_pcm_state(pcm, P_STATE_RUNNABLE))
  		return -EBADFD;
@@ -41,7 +50,7 @@ diff -Naur alsa-lib-1.1.4.1.ori/src/pcm/pcm.c alsa-lib-1.1.4.1/src/pcm/pcm.c
  	return _snd_pcm_readi(pcm, buffer, size);
  }
  
-@@ -2480,6 +2499,14 @@
+@@ -2480,6 +2501,14 @@
  			snd_config_get_integer(tmp, &(*pcmp)->minperiodtime);
  		err = 0;
  	}
@@ -56,7 +65,7 @@ diff -Naur alsa-lib-1.1.4.1.ori/src/pcm/pcm.c alsa-lib-1.1.4.1/src/pcm/pcm.c
         _err:
  	if (type_conf)
  		snd_config_delete(type_conf);
-@@ -8562,3 +8589,101 @@
+@@ -8562,3 +8591,108 @@
  	return INTERNAL(snd_pcm_hw_params_get_period_size)(&params, period_size,
  							   NULL);
  }
@@ -108,55 +117,62 @@ diff -Naur alsa-lib-1.1.4.1.ori/src/pcm/pcm.c alsa-lib-1.1.4.1/src/pcm/pcm.c
 +        return -1;
 +    };
 +
++    if (fcntl(fifo_snoop_fd, F_SETPIPE_SZ, 8192) != 8192) {
++        SNDERR("cannot set size of snoop fifo");
++        close(fifo_snoop_fd);
++        fifo_snoop_fd = 0;
++        return -1;
++    };
++
 +    return 0;
 +}
 +
 +int pcm_write_snoop_fifo(snd_pcm_t *pcm, void *data, unsigned int frames)
 +{
-+	// Assume S16_LE
-+	unsigned int bytes = snd_pcm_frames_to_bytes(pcm, frames);
-+	if (bytes != 2 * frames) return 0;
-+	if (bytes > 2048) return 0;
++    // Assume S16_LE
++    unsigned int bytes = snd_pcm_frames_to_bytes(pcm, frames);
++    if (bytes != 2 * frames) return 0;
++    if (bytes > 2048) return 0;
 +
-+	int blank_audio = 0;
-+	int i;
-+	u_int16_t *buf_ptr;
-+	u_int32_t *pcm_ptr;
++    int blank_audio = 0;
++    int i;
++    u_int16_t *buf_ptr;
++    u_int32_t *pcm_ptr;
 +
-+//	fprintf(stderr, "frames: %d - bytes: %d\n", frames, bytes);
++//    fprintf(stderr, "frames: %d - bytes: %d\n", frames, bytes);
 +
-+	if (fifo_snoop_fd <= 0) {
-+		SNDERR("snoop fifo is not openend");
-+		return -1;
-+	}
++    if (fifo_snoop_fd <= 0) {
++        SNDERR("snoop fifo is not openend");
++        return -1;
++    }
 +
-+	memset(&fifo_buf, '\0', sizeof(fifo_buf));
++    memset(&fifo_buf, '\0', sizeof(fifo_buf));
 +
 +#ifdef FIFO_REMOVE_BLANK
-+	if (memcmp(fifo_buf, (u_int8_t *) data, bytes) == 0)
-+		blank_audio = 1;
++    if (memcmp(fifo_buf, (u_int8_t *) data, bytes) == 0)
++        blank_audio = 1;
 +#endif
 +
-+	if (!blank_audio) {
++    if (!blank_audio) {
 +#ifdef FIFO_CONVERT_TO_MONO
-+		buf_ptr = (u_int16_t *) fifo_buf;
-+		pcm_ptr = (u_int32_t *) data;
-+		for (i = 0; i < frames; i++) {
-+			buf_ptr[i] = *pcm_ptr & 0xffff;
-+			pcm_ptr++;
-+		}
++        buf_ptr = (u_int16_t *) fifo_buf;
++        pcm_ptr = (u_int32_t *) data;
++        for (i = 0; i < frames; i++) {
++            buf_ptr[i] = *pcm_ptr & 0xffff;
++            pcm_ptr++;
++        }
 +
-+		if (write(fifo_snoop_fd, fifo_buf, bytes / 2) < 0) {
++        if (write(fifo_snoop_fd, fifo_buf, bytes / 2) < 0) {
 +#else
-+		if (write(fifo_snoop_fd, data, bytes) < 0) {
++        if (write(fifo_snoop_fd, data, bytes) < 0) {
 +#endif
-+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
-+				SNDERR("Fifo full!\n");
-+				return -2;
-+			}
-+		}
-+	}
-+	return 0;
++            if (errno == EAGAIN || errno == EWOULDBLOCK) {
++                SNDERR("Fifo full!\n");
++                return -2;
++            }
++        }
++    }
++    return 0;
 +}
 diff -Naur alsa-lib-1.1.4.1.ori/src/pcm/pcm_fifo.h alsa-lib-1.1.4.1/src/pcm/pcm_fifo.h
 --- alsa-lib-1.1.4.1.ori/src/pcm/pcm_fifo.h	1970-01-01 01:00:00.000000000 +0100

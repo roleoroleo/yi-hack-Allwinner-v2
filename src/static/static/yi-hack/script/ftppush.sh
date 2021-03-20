@@ -30,6 +30,13 @@ SCRIPT_FULLFN="ftppush.sh"
 SCRIPT_NAME="ftppush"
 LOGFILE="/tmp/${SCRIPT_NAME}.log"
 LOG_MAX_LINES="200"
+LAST_FILE_SENT_FILE="/tmp/last_file_sent"
+LAST_FILE_SENT="1970-01-01T00:00"
+if [ -f ${LAST_FILE_SENT_FILE} ]; then
+	LAST_FILE_SENT=$(cat /tmp/last_file_sent)
+fi
+echo $LAST_FILE_SENT > ${LAST_FILE_SENT_FILE}
+
 #
 # -----------------------------------------------------
 # -------------- START OF FUNCTION BLOCK --------------
@@ -42,7 +49,7 @@ checkFiles ()
 	logAdd "[INFO] checkFiles"
 	#
 	# Search for new files.
-	if [ -f "/usr/bin/sort" ]; then
+	if [ -f "/usr/bin/sort" ] || [ -f "/tmp/sd/yi-hack/usr/bin/sort" ]; then
 		# Default: Optimized for busybox
 		L_FILE_LIST="$(find "${FOLDER_TO_WATCH}" -mindepth ${FOLDER_MINDEPTH} -type f \( -name "${FILE_WATCH_PATTERN}" \) | sort -k 1 -n)"
 	else
@@ -54,13 +61,42 @@ checkFiles ()
 	fi
 	#
 	echo "${L_FILE_LIST}" | while read file; do
-		if ( ! uploadToFtp -- "${file}" ); then
-			logAdd "[ERROR] checkFiles: uploadToFtp FAILED - [${file}]."
-			continue
-		fi
-		logAdd "[INFO] checkFiles: uploadToFtp SUCCEEDED - [${file}]."
-		if [ "${FTP_FILE_DELETE_AFTER_UPLOAD}" == "yes" ]; then
-			rm -f "${file}"
+		FILE_DATE=${file:15:4}-${file:20:2}-${file:23:2}T${file:26:2}:${file:30:2}
+		FILE_YEAR=${FILE_DATE:0:4}
+		FILE_REMPART=${FILE_DATE:5:2}${FILE_DATE:8:2}${FILE_DATE:11:2}${FILE_DATE:14:2}
+		LAST_FILE_SENT=$(cat /tmp/last_file_sent)
+		LAST_FILE_SENT_YEAR=${LAST_FILE_SENT:0:4}
+		LAST_FILE_SENT_REMPART=${LAST_FILE_SENT:5:2}${LAST_FILE_SENT:8:2}${LAST_FILE_SENT:11:2}${LAST_FILE_SENT:14:2}
+		if [ ${FILE_YEAR} -gt ${LAST_FILE_SENT_YEAR} ]; then
+			if ( ! uploadToFtp -- "${file}" ); then
+				logAdd "[ERROR] checkFiles: uploadToFtp FAILED - [${file}]."
+				continue
+			fi
+			logAdd "[INFO] checkFiles: uploadToFtp SUCCEEDED - [${file}]."
+			LAST_FILE_SENT=${FILE_DATE}
+			echo $LAST_FILE_SENT > ${LAST_FILE_SENT_FILE}
+			sync
+			if [ "${FTP_FILE_DELETE_AFTER_UPLOAD}" == "yes" ]; then
+				rm -f "${file}"
+			fi
+		elif [ ${FILE_YEAR} -eq ${LAST_FILE_SENT_YEAR} ]; then
+			if [ ${FILE_REMPART} -gt ${LAST_FILE_SENT_REMPART} ]; then
+				if ( ! uploadToFtp -- "${file}" ); then
+					logAdd "[ERROR] checkFiles: uploadToFtp FAILED - [${file}]."
+					continue
+				fi
+				logAdd "[INFO] checkFiles: uploadToFtp SUCCEEDED - [${file}]."
+				LAST_FILE_SENT=${FILE_DATE}
+				echo $LAST_FILE_SENT > ${LAST_FILE_SENT_FILE}
+				sync
+				if [ "${FTP_FILE_DELETE_AFTER_UPLOAD}" == "yes" ]; then
+					rm -f "${file}"
+				fi
+			else
+				logAdd "[INFO] checkFiles: ignore file [${file}] - already sent."
+			fi
+		else
+			logAdd "[INFO] checkFiles: ignore file [${file}] - already sent."
 		fi
 		#
 	done

@@ -160,6 +160,11 @@ else
         if [[ $(get_config REC_WITHOUT_CLOUD) == "yes" ]] ; then
             ./mp4record &
         fi
+
+        mkdir /tmp/etc
+        cp -R /etc/* /tmp/etc
+        mount --bind /tmp/etc /etc
+        echo "127.0.0.1    api.eu.xiaoyi.com" >> /etc/hosts
     )
 fi
 

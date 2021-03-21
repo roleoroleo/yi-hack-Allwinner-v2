@@ -168,6 +168,18 @@
                             <input class="u-full-width" type="text" placeholder="" id="baby_crying_msg" data-key="BABY_CRYING_MSG"/>
                         </td>
                     </tr>
+                    <tr class="row">
+                        <td>Topics Prefix for remote configuration</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="yicam-config" data-key="MQTT_PREFIX_CONFIG"/>
+                            <span class="switch-description">
+                                The MQTT Topic prefix where the camera will subscribe to receive configuration messages.
+                                The final topic will be TOPIC_PREFIX_CONFIG/PARAM_FILE/PARAM_VALUE (Example: yicam-config/system/rtsp).
+                                <br/>
+                                Leave empty if you don't want to start the mqtt config process.
+                            </span>
+                        </td>
+                    </tr>
                     </tbody>
                 </table>
             </div>

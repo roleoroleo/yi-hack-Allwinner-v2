@@ -34,8 +34,14 @@
 #include "convert2jpg.h"
 #include "add_water.h"
 
-#define BUF_OFFSET 300
-#define BUF_SIZE 1786156
+#define BUF_OFFSET_Y21GA 368
+#define BUF_SIZE_Y21GA 1786224
+
+#define BUF_OFFSET_R30GB 300
+#define BUF_SIZE_R30GB 1786156
+
+#define BUF_OFFSET_H52GA 368
+#define BUF_SIZE_H52GA 1048944
 
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
 #define I_FILE "/tmp/iframe.idx"
@@ -63,7 +69,11 @@ typedef struct {
     int idr_len;
 } frame;
 
-int debug = 1;
+int buf_offset;
+int buf_size;
+int res;
+int debug;
+
 unsigned char *addr;
 
 void *cb_memcpy(void * dest, const void * src, size_t n)
@@ -71,11 +81,11 @@ void *cb_memcpy(void * dest, const void * src, size_t n)
     unsigned char *uc_src = (unsigned char *) src;
     unsigned char *uc_dest = (unsigned char *) dest;
 
-    if (uc_src + n > addr + BUF_SIZE) {
-        memcpy(uc_dest, uc_src, addr + BUF_SIZE - uc_src);
-        memcpy(uc_dest + (addr + BUF_SIZE - uc_src), addr + BUF_OFFSET, n - (addr + BUF_SIZE - uc_src));
+    if (uc_src + n > addr + buf_size) {
+        memcpy(uc_dest, uc_src, addr + buf_size - uc_src);
+        memcpy(uc_dest + (addr + buf_size - uc_src), addr + buf_offset, n - (addr + buf_size - uc_src));
     } else {
-        memcpy(dest, src, n);
+        memcpy(uc_dest, src, n);
     }
     return dest;
 }
@@ -224,6 +234,7 @@ void usage(char *prog_name)
 {
     fprintf(stderr, "Usage: %s [options]\n", prog_name);
     fprintf(stderr, "\t-o, --output FILE       Set output file name (stdout to print on stdout)\n");
+    fprintf(stderr, "\t-m, --model MODEL       Set model: \"y21ga\", \"r30gb\" or \"h52ga\" (default \"y21ga\")\n");
     fprintf(stderr, "\t-r, --res RES           Set resolution: \"low\" or \"high\" (default \"high\")\n");
     fprintf(stderr, "\t-w, --watermark         Add watermark to image\n");
     fprintf(stderr, "\t-h, --help              Show this help\n");
@@ -233,15 +244,20 @@ int main(int argc, char **argv)
 {
     FILE *fIdx, *fBuf;
     uint32_t offset, length;
-    int res = RESOLUTION_HIGH;
     frame hl_frame[2];
     unsigned char *bufferh26x, *bufferyuv;
     int watermark = 0;
 
     int c;
 
+    buf_offset = BUF_OFFSET_Y21GA;
+    buf_size = BUF_SIZE_Y21GA;
+    res = RESOLUTION_HIGH;
+    debug = 1;
+
     while (1) {
         static struct option long_options[] = {
+            {"model",     required_argument, 0, 'm'},
             {"res",       required_argument, 0, 'r'},
             {"watermark", no_argument,       0, 'w'},
             {"help",      no_argument,       0, 'h'},
@@ -249,12 +265,25 @@ int main(int argc, char **argv)
         };
 
         int option_index = 0;
-        c = getopt_long(argc, argv, "r:wh",
+        c = getopt_long(argc, argv, "m:r:wh",
             long_options, &option_index);
         if (c == -1)
             break;
 
         switch (c) {
+            case 'm':
+                if (strcasecmp("y21ga", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_Y21GA;
+                    buf_size = BUF_SIZE_Y21GA;
+                } else if (strcasecmp("r30gb", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_R30GB;
+                    buf_size = BUF_SIZE_R30GB;
+                } else if (strcasecmp("h52ga", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_H52GA;
+                    buf_size = BUF_SIZE_H52GA;
+                }
+                break;
+
             case 'r':
                 if (strcasecmp("low", optarg) == 0)
                     res = RESOLUTION_LOW;
@@ -293,12 +322,12 @@ int main(int argc, char **argv)
     }
 
     // Map file to memory
-    addr = (unsigned char*) mmap(NULL, BUF_SIZE, PROT_READ, MAP_SHARED, fileno(fBuf), 0);
+    addr = (unsigned char*) mmap(NULL, buf_size, PROT_READ, MAP_SHARED, fileno(fBuf), 0);
     if (addr == MAP_FAILED) {
         fprintf(stderr, "Error mapping file %s\n", BUFFER_FILE);
         exit(-1);
     }
-    if (debug) fprintf(stderr, "Mapping file %s, size %d, to %08x\n", BUFFER_FILE, BUF_SIZE, addr);
+    if (debug) fprintf(stderr, "Mapping file %s, size %d, to %08x\n", BUFFER_FILE, buf_size, addr);
 
     // Closing the file
     fclose(fBuf) ;
@@ -319,11 +348,11 @@ int main(int argc, char **argv)
     }
 
     if (hl_frame[res].vps_len != 0) {
-        memcpy(bufferh26x, addr + hl_frame[res].vps_addr, hl_frame[res].vps_len);
+        cb_memcpy(bufferh26x, addr + hl_frame[res].vps_addr, hl_frame[res].vps_len);
     }
-    memcpy(bufferh26x + hl_frame[res].vps_len, addr + hl_frame[res].sps_addr, hl_frame[res].sps_len);
-    memcpy(bufferh26x + hl_frame[res].vps_len + hl_frame[res].sps_len, addr + hl_frame[res].pps_addr, hl_frame[res].pps_len);
-    memcpy(bufferh26x + hl_frame[res].vps_len + hl_frame[res].sps_len + hl_frame[res].pps_len, addr + hl_frame[res].idr_addr, hl_frame[res].idr_len);
+    cb_memcpy(bufferh26x + hl_frame[res].vps_len, addr + hl_frame[res].sps_addr, hl_frame[res].sps_len);
+    cb_memcpy(bufferh26x + hl_frame[res].vps_len + hl_frame[res].sps_len, addr + hl_frame[res].pps_addr, hl_frame[res].pps_len);
+    cb_memcpy(bufferh26x + hl_frame[res].vps_len + hl_frame[res].sps_len + hl_frame[res].pps_len, addr + hl_frame[res].idr_addr, hl_frame[res].idr_len);
 
     if (hl_frame[res].vps_len == 0) {
         if (debug) fprintf(stderr, "Decoding h264 frame\n");
@@ -364,10 +393,10 @@ int main(int argc, char **argv)
     free(bufferyuv);
 
     // Unmap file from memory
-    if (munmap(addr, BUF_SIZE) == -1) {
+    if (munmap(addr, buf_size) == -1) {
         fprintf(stderr, "Error munmapping file\n");
     } else {
-        if (debug) fprintf(stderr, "Unmapping file %s, size %d, from %08x\n", BUFFER_FILE, BUF_SIZE, addr);
+        if (debug) fprintf(stderr, "Unmapping file %s, size %d, from %08x\n", BUFFER_FILE, buf_size, addr);
     }
 
     return 0;

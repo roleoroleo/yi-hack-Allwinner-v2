@@ -67,7 +67,7 @@ checkFiles ()
 		LAST_FILE_SENT=$(cat /tmp/last_file_sent)
 		LAST_FILE_SENT_YEAR=${LAST_FILE_SENT:0:4}
 		LAST_FILE_SENT_REMPART=${LAST_FILE_SENT:5:2}${LAST_FILE_SENT:8:2}${LAST_FILE_SENT:11:2}${LAST_FILE_SENT:14:2}
-		if [ ${FILE_YEAR} -gt ${LAST_FILE_SENT_YEAR} ]; then
+		if [ ${FILE_YEAR} -gt ${LAST_FILE_SENT_YEAR} ] || ( [ ${FILE_YEAR} -eq ${LAST_FILE_SENT_YEAR} ] && [ ${FILE_REMPART} -gt ${LAST_FILE_SENT_REMPART} ] ); then
 			if ( ! uploadToFtp -- "${file}" ); then
 				logAdd "[ERROR] checkFiles: uploadToFtp FAILED - [${file}]."
 				continue
@@ -78,22 +78,6 @@ checkFiles ()
 			sync
 			if [ "${FTP_FILE_DELETE_AFTER_UPLOAD}" == "yes" ]; then
 				rm -f "${file}"
-			fi
-		elif [ ${FILE_YEAR} -eq ${LAST_FILE_SENT_YEAR} ]; then
-			if [ ${FILE_REMPART} -gt ${LAST_FILE_SENT_REMPART} ]; then
-				if ( ! uploadToFtp -- "${file}" ); then
-					logAdd "[ERROR] checkFiles: uploadToFtp FAILED - [${file}]."
-					continue
-				fi
-				logAdd "[INFO] checkFiles: uploadToFtp SUCCEEDED - [${file}]."
-				LAST_FILE_SENT=${FILE_DATE}
-				echo $LAST_FILE_SENT > ${LAST_FILE_SENT_FILE}
-				sync
-				if [ "${FTP_FILE_DELETE_AFTER_UPLOAD}" == "yes" ]; then
-					rm -f "${file}"
-				fi
-			else
-				logAdd "[INFO] checkFiles: ignore file [${file}] - already sent."
 			fi
 		else
 			logAdd "[INFO] checkFiles: ignore file [${file}] - already sent."

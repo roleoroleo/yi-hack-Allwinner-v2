@@ -29,9 +29,6 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#define Y21GA 0
-#define R30GB 1
-
 #define BUF_OFFSET_Y21GA 368
 #define BUF_SIZE_Y21GA 1786224
 #define FRAME_HEADER_SIZE_Y21GA 28

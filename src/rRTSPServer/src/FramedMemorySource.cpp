@@ -91,7 +91,7 @@ void FramedMemorySource::doGetNextFrame() {
         fFrameSize = fPreferredFrameSize;
     }
 
-    if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() start - fFrameSize %d - fMaxSize %d - fLimitNumBytesToStream %d - fPreferredFrameSize %d\n", fFrameSize, fMaxSize, fLimitNumBytesToStream, fPreferredFrameSize);
+    if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() start - fMaxSize %d - fLimitNumBytesToStream %d - fPreferredFrameSize %d\n", fMaxSize, fLimitNumBytesToStream, fPreferredFrameSize);
 
     pthread_mutex_lock(&(fBuffer->mutex));
     while (1) {
@@ -121,16 +121,13 @@ void FramedMemorySource::doGetNextFrame() {
 
     unsigned char *ptr;
     unsigned int size;
-    if (fBuffer->output_frame[fBuffer->frame_read_index].partial != NULL) {
-        ptr = fBuffer->output_frame[fBuffer->frame_read_index].partial;
-        size = fBuffer->output_frame[fBuffer->frame_read_index].size - ((fBuffer->output_frame[fBuffer->frame_read_index].partial - fBuffer->output_frame[fBuffer->frame_read_index].ptr + fBuffer->size) % fBuffer->size);
-    } else {
-        ptr = fBuffer->output_frame[fBuffer->frame_read_index].ptr;
-        size = fBuffer->output_frame[fBuffer->frame_read_index].size;
-        // Remove nalu header before sending the frame to FramedSource
-        ptr += 4;
-        size -= 4;
-    }
+    ptr = fBuffer->output_frame[fBuffer->frame_read_index].ptr;
+    size = fBuffer->output_frame[fBuffer->frame_read_index].size;
+    // Remove nalu header before sending the frame to FramedSource
+    ptr += 4;
+    if (ptr >= fBuffer->buffer + fBuffer->size) ptr -= fBuffer->size;
+    size -= 4;
+
     if (size <= fFrameSize) {
         // The size of the frame is smaller than the available buffer
         fFrameSize = size;
@@ -138,30 +135,17 @@ void FramedMemorySource::doGetNextFrame() {
         if (ptr + fFrameSize > fBuffer->buffer + fBuffer->size) {
             memmove(fTo, ptr, fBuffer->buffer + fBuffer->size - ptr);
             memmove(fTo + (fBuffer->buffer + fBuffer->size - ptr), fBuffer->buffer, fFrameSize - (fBuffer->buffer + fBuffer->size - ptr));
-            fBuffer->output_frame[fBuffer->frame_read_index].partial = NULL;
-            fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
         } else {
             memmove(fTo, ptr, fFrameSize);
-            fBuffer->output_frame[fBuffer->frame_read_index].partial = NULL;
-            fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
         }
+        fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
+
         pthread_mutex_unlock(&(fBuffer->mutex));
         fNumTruncatedBytes = 0;
-        if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() - whole frame completed\n");
+        if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() whole frame completed\n");
     } else {
         // The size of the frame is greater than the available buffer
-        if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() partial frame - fFrameSize %d - counter %d - fMaxSize %d - fLimitNumBytesToStream %d\n", fFrameSize, fBuffer->output_frame[fBuffer->frame_read_index].counter, fMaxSize, fLimitNumBytesToStream);
-        if (ptr + fFrameSize > fBuffer->buffer + fBuffer->size) {
-            memmove(fTo, ptr, fBuffer->buffer + fBuffer->size - ptr);
-            memmove(fTo + (fBuffer->buffer + fBuffer->size - ptr), fBuffer->buffer, fFrameSize - (fBuffer->buffer + fBuffer->size - ptr));
-            fBuffer->output_frame[fBuffer->frame_read_index].partial = fBuffer->output_frame[fBuffer->frame_read_index].ptr + fFrameSize - fBuffer->size;
-        } else {
-            memmove(fTo, ptr, fFrameSize);
-            fBuffer->output_frame[fBuffer->frame_read_index].partial = fBuffer->output_frame[fBuffer->frame_read_index].ptr + fFrameSize;
-        }
-        pthread_mutex_unlock(&(fBuffer->mutex));
-        fNumTruncatedBytes = size - fFrameSize;
-        if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() partial frame - completed - fNumTruncatedBytes %d\n", fNumTruncatedBytes);
+        fprintf(stderr, "RTSP doGetNextFrame() error - the size of the frame is greater than the available buffer %d/%d\n", fFrameSize, fMaxSize);
     }
 
 #ifndef PRES_TIME_CLOCK

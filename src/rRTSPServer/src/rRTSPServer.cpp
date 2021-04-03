@@ -333,7 +333,6 @@ void *capture(void *ptr)
                         }
                     }
                     cb_current->output_frame[cb_current->frame_write_index].ptr = cb_current->write_index;
-                    cb_current->output_frame[cb_current->frame_write_index].partial = NULL;
                     cb_current->output_frame[cb_current->frame_write_index].counter = frame_counter;
                     cb_current->output_frame[cb_current->frame_write_index].size = frame_len;
                     if (debug & 1) fprintf(stderr, "%lld: frame_len: %d - frame_counter: %d - resolution: %d\n", current_timestamp(), frame_len, frame_counter, frame_res);
@@ -859,7 +858,6 @@ int main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
     output_buffer_low.output_frame[0].ptr = output_buffer_low.buffer;
-    output_buffer_low.output_frame[0].partial = NULL;
     output_buffer_low.output_frame[0].counter = 0;
     output_buffer_low.output_frame[0].size = 0;
 
@@ -875,7 +873,6 @@ int main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
     output_buffer_high.output_frame[0].ptr = output_buffer_high.buffer;
-    output_buffer_high.output_frame[0].partial = NULL;
     output_buffer_high.output_frame[0].counter = 0;
     output_buffer_high.output_frame[0].size = 0;
 

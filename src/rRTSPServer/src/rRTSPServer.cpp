@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 roleo.
+ * Copyright (c) 2021 roleo.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,6 @@
 #include "rRTSPServer.h"
 
 //#define REORDER_VPS5 1
-#define SPS_TIMING_INFO 1
 
 int buf_offset;
 int buf_size;
@@ -103,6 +102,7 @@ int model;
 int resolution;
 int audio;
 int port;
+int sps_timing_info;
 //unsigned char *buf_start;
 
 //unsigned char *output_buffer = NULL;
@@ -311,54 +311,56 @@ void *capture(void *ptr)
 #ifdef REORDER_VPS5
                     if (nal_is_sps_or_vps5 == 3) {
                         if (debug & 1) fprintf(stderr, "%lld: h265 SPS detected, writing VPS - frame_len: %d - resolution: %d\n", current_timestamp(), sizeof(VPS5_1920X1080), frame_res);
-#ifdef SPS_TIMING_INFO
-                        s2cb_memcpy(cb_current, VPS5_1920X1080_TI, sizeof(VPS5_1920X1080_TI));
-#else
-                        s2cb_memcpy(cb_current, VPS5_1920X1080, sizeof(VPS5_1920X1080));
-#endif
+                        if (sps_timing_info) {
+                            s2cb_memcpy(cb_current, VPS5_1920X1080_TI, sizeof(VPS5_1920X1080_TI));
+                        } else {
+                            s2cb_memcpy(cb_current, VPS5_1920X1080, sizeof(VPS5_1920X1080));
+                        }
                     }
 #endif
                     input_buffer.read_index = buf_idx_start;
-#ifdef SPS_TIMING_INFO
-                    // Check if NALU is SPS
-                    if (nal_is_sps_or_vps5 == 1) {
-                        if (frame_res == RESOLUTION_LOW) {
-                            frame_len = sizeof(SPS4_640X360_TI);
-                        } else if (frame_res == RESOLUTION_HIGH) {
-                            frame_len = sizeof(SPS4_1920X1080_TI);
+
+                    if (sps_timing_info) {
+                        // Check if NALU is SPS
+                        if (nal_is_sps_or_vps5 == 1) {
+                            if (frame_res == RESOLUTION_LOW) {
+                                frame_len = sizeof(SPS4_640X360_TI);
+                            } else if (frame_res == RESOLUTION_HIGH) {
+                                frame_len = sizeof(SPS4_1920X1080_TI);
+                            }
+                        } else if (nal_is_sps_or_vps5 == 3) {
+                            frame_len = sizeof(VPS5_1920X1080_TI);
                         }
-                    } else if (nal_is_sps_or_vps5 == 3) {
-                        frame_len = sizeof(VPS5_1920X1080_TI);
                     }
-#endif
                     cb_current->output_frame[cb_current->frame_write_index].ptr = cb_current->write_index;
                     cb_current->output_frame[cb_current->frame_write_index].partial = NULL;
                     cb_current->output_frame[cb_current->frame_write_index].counter = frame_counter;
                     cb_current->output_frame[cb_current->frame_write_index].size = frame_len;
                     if (debug & 1) fprintf(stderr, "%lld: frame_len: %d - frame_counter: %d - resolution: %d\n", current_timestamp(), frame_len, frame_counter, frame_res);
-                    if (debug & 1) fprintf(stderr, "%lld: frame_write_index: %d - cb_current->output_frame_size %d\n", current_timestamp(), cb_current->frame_write_index, cb_current->output_frame_size);
-#ifdef SPS_TIMING_INFO
-                    // Overwrite SPS or VPS with one that contains timing info at 20 fps
-                    if (nal_is_sps_or_vps5 == 1) {
-                        if (frame_res == RESOLUTION_LOW) {
-                            s2cb_memcpy(cb_current, SPS4_640X360_TI, sizeof(SPS4_640X360_TI));
-                        } else if (frame_res == RESOLUTION_HIGH) {
-                            s2cb_memcpy(cb_current, SPS4_1920X1080_TI, sizeof(SPS4_1920X1080_TI));
+                    if (debug & 1) fprintf(stderr, "%lld: frame_write_index: %d/%d\n", current_timestamp(), cb_current->frame_write_index, cb_current->output_frame_size);
+
+                    if (sps_timing_info) {
+                        // Overwrite SPS or VPS with one that contains timing info at 20 fps
+                        if (nal_is_sps_or_vps5 == 1) {
+                            if (frame_res == RESOLUTION_LOW) {
+                                s2cb_memcpy(cb_current, SPS4_640X360_TI, sizeof(SPS4_640X360_TI));
+                            } else if (frame_res == RESOLUTION_HIGH) {
+                                s2cb_memcpy(cb_current, SPS4_1920X1080_TI, sizeof(SPS4_1920X1080_TI));
+                            }
+                        } else if (nal_is_sps_or_vps5 == 3) {
+                            s2cb_memcpy(cb_current, VPS5_1920X1080_TI, sizeof(VPS5_1920X1080_TI));
+                        } else {
+                            cb2cb_memcpy(cb_current, &input_buffer, frame_len);
                         }
-                    } else if (nal_is_sps_or_vps5 == 3) {
-                        s2cb_memcpy(cb_current, VPS5_1920X1080_TI, sizeof(VPS5_1920X1080_TI));
                     } else {
-#endif
                         cb2cb_memcpy(cb_current, &input_buffer, frame_len);
-#ifdef SPS_TIMING_INFO
                     }
-#endif
+
                     cb_current->frame_write_index = (cb_current->frame_write_index + 1) % cb_current->output_frame_size;
                     pthread_mutex_unlock(&(cb_current->mutex));
                 }
             }
         }
-
 
         nal_is_sps_or_vps5 = 0;
         if (cb_memcmp(SPS4_START, buf_idx_1, sizeof(SPS4_START)) == 0) {
@@ -590,6 +592,8 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tset audio: yes, no, alaw, ulaw, pcm or aac (default yes)\n");
     fprintf(stderr, "\t-p PORT,  --port PORT\n");
     fprintf(stderr, "\t\tset TCP port (default 554)\n");
+    fprintf(stderr, "\t-s,       --sti\n");
+    fprintf(stderr, "\t\tdon't overwrite SPS timing info (default overwrite)\n");
     fprintf(stderr, "\t-d DEBUG, --debug DEBUG\n");
     fprintf(stderr, "\t\t0 none, 1 grabber, 2 rtsp library or 3 both\n");
     fprintf(stderr, "\t-h,       --help\n");
@@ -617,6 +621,7 @@ int main(int argc, char** argv)
     resolution = RESOLUTION_HIGH;
     audio = 1;
     port = 554;
+    sps_timing_info = 1;
     debug = 0;
 
     while (1) {
@@ -626,6 +631,7 @@ int main(int argc, char** argv)
             {"resolution",  required_argument, 0, 'r'},
             {"audio",  required_argument, 0, 'a'},
             {"port",  required_argument, 0, 'p'},
+            {"sti",  no_argument, 0, 's'},
             {"debug",  required_argument, 0, 'd'},
             {"help",  no_argument, 0, 'h'},
             {0, 0, 0, 0}
@@ -633,7 +639,7 @@ int main(int argc, char** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "m:r:a:p:d:h",
+        c = getopt_long (argc, argv, "m:r:a:p:sd:h",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -694,6 +700,10 @@ int main(int argc, char** argv)
                 print_usage(argv[0]);
                 exit(EXIT_FAILURE);
             }
+            break;
+
+        case 's':
+            sps_timing_info = 0;
             break;
 
         case 'd':
@@ -778,6 +788,11 @@ int main(int argc, char** argv)
     str = getenv("RRTSP_PORT");
     if ((str != NULL) && (sscanf (str, "%i", &nm) == 1) && (nm >= 0)) {
         port = nm;
+    }
+
+    str = getenv("RRTSP_STI");
+    if ((str != NULL) && (sscanf (str, "%i", &nm) == 1) && (nm >= 0) && (nm <= 1)) {
+        sps_timing_info = nm;
     }
 
     str = getenv("RRTSP_DEBUG");

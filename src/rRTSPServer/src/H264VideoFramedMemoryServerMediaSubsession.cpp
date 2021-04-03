@@ -109,7 +109,7 @@ FramedSource* H264VideoFramedMemoryServerMediaSubsession::createNewStreamSource(
     if (memorySource == NULL) return NULL;
 
     // Create a framer for the Video Elementary Stream:
-    return H264VideoStreamDiscreteFramer::createNew(envir(), memorySource, true, false);
+    return H264VideoStreamDiscreteFramer::createNew(envir(), memorySource, false, false);
 }
 
 RTPSink* H264VideoFramedMemoryServerMediaSubsession

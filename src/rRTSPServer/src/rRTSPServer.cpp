@@ -245,6 +245,8 @@ void *capture(void *ptr)
     int frame_counter_invalid_low = 0;
     int frame_counter_invalid_high = 0;
 
+    unsigned char frame_header[frame_header_size];
+
     int i;
     cb_output_buffer *cb_current;
     int write_enable = 0;
@@ -395,16 +397,18 @@ void *capture(void *ptr)
             write_enable = 1;
             sps_sync = 1;
             buf_idx_1 = cb_move(buf_idx_1, - (6 + frame_header_size));
-            if (buf_idx_1[17 + data_offset] == lowres_byte) {
+            cb2s_memcpy(frame_header, buf_idx_1, frame_header_size);
+            buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
+            if (frame_header[17 + data_offset] == lowres_byte) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17 + data_offset] == highres_byte) {
+            } else if (frame_header[17 + data_offset] == highres_byte) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 frame_res = RESOLUTION_NONE;
             }
-            cb2s_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
+            memcpy((unsigned char *) &frame_len, frame_header, 4);
             frame_len -= 6;                                                              // -6 only for SPS
-            frame_counter = (int) buf_idx_1[18 + data_offset] + (int) buf_idx_1[19 + data_offset] * 256;
+            frame_counter = (int) frame_header[18 + data_offset] + (int) frame_header[19 + data_offset] * 256;
             if ((frame_res == RESOLUTION_LOW) && ((frame_counter - frame_counter_last_valid_low > 20) ||
                         ((frame_counter < frame_counter_last_valid_low) && (frame_counter - frame_counter_last_valid_low > -65515)))) {
 
@@ -447,7 +451,7 @@ void *capture(void *ptr)
             if (debug & 1) fprintf(stderr, "%lld: SPS   detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
                     current_timestamp(), frame_len, frame_counter,
                     (frame_res == RESOLUTION_LOW)? frame_counter_last_valid_low: frame_counter_last_valid_high, frame_res);
-            buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
+
             buf_idx_start = buf_idx_1;
         } else if ((cb_memcmp(PPS4_START, buf_idx_1, sizeof(PPS4_START)) == 0) ||
                         (cb_memcmp(PPS5_START, buf_idx_1, sizeof(PPS5_START)) == 0) ||
@@ -461,15 +465,17 @@ void *capture(void *ptr)
             // PPS, IDR and PFR frames
             write_enable = 1;
             buf_idx_1 = cb_move(buf_idx_1, -frame_header_size);
-            if (buf_idx_1[17 + data_offset] == lowres_byte) {
+            cb2s_memcpy(frame_header, buf_idx_1, frame_header_size);
+            buf_idx_1 = cb_move(buf_idx_1, frame_header_size);
+            if (frame_header[17 + data_offset] == lowres_byte) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17 + data_offset] == highres_byte) {
+            } else if (frame_header[17 + data_offset] == highres_byte) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 frame_res = RESOLUTION_NONE;
             }
-            cb2s_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
-            frame_counter = (int) buf_idx_1[18 + data_offset] + (int) buf_idx_1[19 + data_offset] * 256;
+            memcpy((unsigned char *) &frame_len, frame_header, 4);
+            frame_counter = (int) frame_header[18 + data_offset] + (int) frame_header[19 + data_offset] * 256;
             if ((frame_res == RESOLUTION_LOW) && ((frame_counter - frame_counter_last_valid_low > 20) ||
                         ((frame_counter < frame_counter_last_valid_low) && (frame_counter - frame_counter_last_valid_low > -65515)))) {
 
@@ -512,7 +518,7 @@ void *capture(void *ptr)
             if (debug & 1) fprintf(stderr, "%lld: frame detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
                     current_timestamp(), frame_len, frame_counter,
                     (frame_res == RESOLUTION_LOW)? frame_counter_last_valid_low: frame_counter_last_valid_high, frame_res);
-            buf_idx_1 = cb_move(buf_idx_1, frame_header_size);
+
             buf_idx_start = buf_idx_1;
         } else {
             write_enable = 0;

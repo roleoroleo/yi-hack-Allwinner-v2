@@ -26,6 +26,7 @@ declare -A CAMERAS
 CAMERAS["y21ga"]="y21ga"
 CAMERAS["r30gb"]="r30gb"
 CAMERAS["h52ga"]="h52ga"
+CAMERAS["h51ga"]="h51ga"
 
 ###############################################################################
 # Common functions

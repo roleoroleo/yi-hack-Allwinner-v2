@@ -80,6 +80,17 @@ unsigned char SPS4_1920X1080_TI[]  = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 
                                       0x96, 0x54, 0x03, 0xC0, 0x11, 0x2F, 0x2C, 0xDC,
                                       0x04, 0x04, 0x05, 0x00, 0x00, 0x03, 0x01, 0xF4,
                                       0x00, 0x00, 0x4E, 0x20, 0x84};
+
+unsigned char SPS4_2304X1296[]     = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
+                                      0x96, 0x54, 0x01, 0x20, 0x05, 0x19, 0x37, 0x01,
+                                      0x01, 0x01, 0x02};
+
+// As above but without nalu header and with timing info at 20 fps
+unsigned char SPS4_2304X1296_TI[]   = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
+                                       0x96, 0x54, 0x01, 0x20, 0x05, 0x19, 0x37, 0x01,
+                                       0x00, 0x00, 0x40, 0x00, 0x00, 0x7D, 0x00, 0x00,
+                                       0x13, 0x88, 0x21};
+
 unsigned char VPS5_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
                                       0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
                                       0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
@@ -99,6 +110,7 @@ unsigned char VPS5_1920X1080_TI[]  = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 
 //unsigned char *addr;                      /* Pointer to shared memory region (header) */
 int debug;                                  /* Set to 1 to debug this .c */
 int model;
+int model_high_res;
 int resolution;
 int audio;
 int port;
@@ -326,7 +338,11 @@ void *capture(void *ptr)
                             if (frame_res == RESOLUTION_LOW) {
                                 frame_len = sizeof(SPS4_640X360_TI);
                             } else if (frame_res == RESOLUTION_HIGH) {
-                                frame_len = sizeof(SPS4_1920X1080_TI);
+                                if (model_high_res == RESOLUTION_FHD) {
+                                    frame_len = sizeof(SPS4_1920X1080_TI);
+                                } else {
+                                    frame_len = sizeof(SPS4_2304X1296_TI);
+                                }
                             }
                         } else if (nal_is_sps_or_vps5 == 3) {
                             frame_len = sizeof(VPS5_1920X1080_TI);
@@ -344,7 +360,11 @@ void *capture(void *ptr)
                             if (frame_res == RESOLUTION_LOW) {
                                 s2cb_memcpy(cb_current, SPS4_640X360_TI, sizeof(SPS4_640X360_TI));
                             } else if (frame_res == RESOLUTION_HIGH) {
-                                s2cb_memcpy(cb_current, SPS4_1920X1080_TI, sizeof(SPS4_1920X1080_TI));
+                                if (model_high_res == RESOLUTION_FHD) {
+                                    s2cb_memcpy(cb_current, SPS4_1920X1080_TI, sizeof(SPS4_1920X1080_TI));
+                                } else {
+                                    s2cb_memcpy(cb_current, SPS4_2304X1296_TI, sizeof(SPS4_2304X1296_TI));
+                                }
                             }
                         } else if (nal_is_sps_or_vps5 == 3) {
                             s2cb_memcpy(cb_current, VPS5_1920X1080_TI, sizeof(VPS5_1920X1080_TI));
@@ -586,7 +606,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-r RES] [-p PORT] [-d]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, r30gb or h52ga (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, r30gb, h52ga, h51ga or q321br_lsx (default y21ga)\n");
     fprintf(stderr, "\t-r RES,   --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: low, high or both (default high)\n");
     fprintf(stderr, "\t-a AUDIO, --audio AUDIO\n");
@@ -619,6 +639,7 @@ int main(int argc, char** argv)
 
     // Setting default
     model = Y21GA;
+    model_high_res = RESOLUTION_FHD;
     resolution = RESOLUTION_HIGH;
     audio = 1;
     port = 554;
@@ -655,6 +676,10 @@ int main(int argc, char** argv)
                 model = R30GB;
             } else if (strcasecmp("h52ga", optarg) == 0) {
                 model = H52GA;
+            } else if (strcasecmp("h51ga", optarg) == 0) {
+                model = H51GA;
+            } else if (strcasecmp("q321br_lsx", optarg) == 0) {
+                model = Q321BR_LSX;
             }
             break;
 
@@ -750,6 +775,10 @@ int main(int argc, char** argv)
             model = R30GB;
         } else if (strcasecmp("h52ga", str) == 0) {
             model = H52GA;
+        } else if (strcasecmp("h51ga", str) == 0) {
+            model = H51GA;
+        } else if (strcasecmp("q321br_lsx", optarg) == 0) {
+            model = Q321BR_LSX;
         }
     }
 
@@ -819,6 +848,7 @@ int main(int argc, char** argv)
         data_offset = DATA_OFFSET_Y21GA;
         lowres_byte = LOWRES_BYTE_Y21GA;
         highres_byte = HIGHRES_BYTE_Y21GA;
+        model_high_res = RESOLUTION_FHD;
     } else if (model == R30GB) {
         buf_offset = BUF_OFFSET_R30GB;
         buf_size = BUF_SIZE_R30GB;
@@ -826,6 +856,7 @@ int main(int argc, char** argv)
         data_offset = DATA_OFFSET_R30GB;
         lowres_byte = LOWRES_BYTE_R30GB;
         highres_byte = HIGHRES_BYTE_R30GB;
+        model_high_res = RESOLUTION_FHD;
     } else if (model == H52GA) {
         buf_offset = BUF_OFFSET_H52GA;
         buf_size = BUF_SIZE_H52GA;
@@ -833,6 +864,23 @@ int main(int argc, char** argv)
         data_offset = DATA_OFFSET_H52GA;
         lowres_byte = LOWRES_BYTE_H52GA;
         highres_byte = HIGHRES_BYTE_H52GA;
+        model_high_res = RESOLUTION_FHD;
+    } else if (model == H51GA) {
+        buf_offset = BUF_OFFSET_H51GA;
+        buf_size = BUF_SIZE_H51GA;
+        frame_header_size = FRAME_HEADER_SIZE_H51GA;
+        data_offset = DATA_OFFSET_H51GA;
+        lowres_byte = LOWRES_BYTE_H51GA;
+        highres_byte = HIGHRES_BYTE_H51GA;
+        model_high_res = RESOLUTION_3K;
+    } else if (model == Q321BR_LSX) {
+        buf_offset = BUF_OFFSET_Q321BR_LSX;
+        buf_size = BUF_SIZE_Q321BR_LSX;
+        frame_header_size = FRAME_HEADER_SIZE_Q321BR_LSX;
+        data_offset = DATA_OFFSET_Q321BR_LSX;
+        lowres_byte = LOWRES_BYTE_Q321BR_LSX;
+        highres_byte = HIGHRES_BYTE_Q321BR_LSX;
+        model_high_res = RESOLUTION_3K;
     }
 
     // If fifo doesn't exist, disable audio
@@ -943,7 +991,7 @@ int main(int argc, char** argv)
         ServerMediaSession* sms_high
             = ServerMediaSession::createNew(*env, streamName, streamName,
                                               descriptionString);
-        if ((model == Y21GA) || (model == H52GA)) {
+        if (model != R30GB) {
             sms_high->addSubsession(H264VideoFramedMemoryServerMediaSubsession
                                    ::createNew(*env, &output_buffer_high, reuseFirstSource));
         } else {

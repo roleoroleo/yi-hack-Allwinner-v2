@@ -43,20 +43,33 @@
 #define BUF_OFFSET_H52GA 368
 #define BUF_SIZE_H52GA 1048944
 
+#define BUF_OFFSET_H51GA 368
+#define BUF_SIZE_H51GA 524656
+
+#define BUF_OFFSET_Q321BR_LSX 300
+#define BUF_SIZE_Q321BR_LSX 524588
+
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
 #define I_FILE "/tmp/iframe.idx"
 #define FF_INPUT_BUFFER_PADDING_SIZE 32
 
-#define RESOLUTION_HIGH 0
-#define RESOLUTION_LOW 1
+#define RESOLUTION_NONE 0
+#define RESOLUTION_LOW  360
+#define RESOLUTION_HIGH 1080
+#define RESOLUTION_BOTH 1440
 
-#define PATH_RES_HIGH "/tmp/sd/yi-hack/etc/wm_res/high/wm_540p_"
+#define RESOLUTION_FHD  1080
+#define RESOLUTION_3K   1296
+
 #define PATH_RES_LOW  "/tmp/sd/yi-hack/etc/wm_res/low/wm_540p_"
+#define PATH_RES_HIGH "/tmp/sd/yi-hack/etc/wm_res/high/wm_540p_"
 
 #define W_LOW 640
 #define H_LOW 360
-#define W_HIGH 1920
-#define H_HIGH 1080
+#define W_FHD 1920
+#define H_FHD 1080
+#define W_3K 2304
+#define H_3K 1296
 
 typedef struct {
     int sps_addr;
@@ -195,34 +208,28 @@ int frame_decode(unsigned char *outbuffer, unsigned char *p, int length, int h26
     return 0;
 }
 
-int add_watermark(char *buffer, int resolution)
+int add_watermark(char *buffer, int w_res, int h_res)
 {
-    int w_res, h_res;
     char path_res[1024];
     FILE *fBuf;
     WaterMarkInfo WM_info;
 
-    if (resolution == RESOLUTION_LOW) {
-        w_res = W_LOW;
-        h_res = H_LOW;
-        strcpy(path_res, PATH_RES_LOW);
-    } else {
-        w_res = W_HIGH;
-        h_res = H_HIGH;
+    if (w_res != W_LOW) {
         strcpy(path_res, PATH_RES_HIGH);
+    } else {
+        strcpy(path_res, PATH_RES_LOW);
     }
 
     if (WMInit(&WM_info, path_res) < 0) {
         fprintf(stderr, "water mark init error\n");
-        free(buffer);
         return -1;
     } else {
-        if (resolution == RESOLUTION_LOW) {
-            AddWM(&WM_info, w_res, h_res, buffer,
-                buffer + w_res*h_res, w_res-230, h_res-20, NULL);
-        } else {
+        if (w_res != W_LOW) {
             AddWM(&WM_info, w_res, h_res, buffer,
                 buffer + w_res*h_res, w_res-460, h_res-40, NULL);
+        } else {
+            AddWM(&WM_info, w_res, h_res, buffer,
+                buffer + w_res*h_res, w_res-230, h_res-20, NULL);
         }
         WMRelease(&WM_info);
     }
@@ -233,8 +240,7 @@ int add_watermark(char *buffer, int resolution)
 void usage(char *prog_name)
 {
     fprintf(stderr, "Usage: %s [options]\n", prog_name);
-    fprintf(stderr, "\t-o, --output FILE       Set output file name (stdout to print on stdout)\n");
-    fprintf(stderr, "\t-m, --model MODEL       Set model: \"y21ga\", \"r30gb\" or \"h52ga\" (default \"y21ga\")\n");
+    fprintf(stderr, "\t-m, --model MODEL       Set model: \"y21ga\", \"r30gb\", \"h52ga\", \"h51ga\" of q321br_lsx (default \"y21ga\")\n");
     fprintf(stderr, "\t-r, --res RES           Set resolution: \"low\" or \"high\" (default \"high\")\n");
     fprintf(stderr, "\t-w, --watermark         Add watermark to image\n");
     fprintf(stderr, "\t-h, --help              Show this help\n");
@@ -245,14 +251,20 @@ int main(int argc, char **argv)
     FILE *fIdx, *fBuf;
     uint32_t offset, length;
     frame hl_frame[2];
+    int hl_frame_index;
     unsigned char *bufferh26x, *bufferyuv;
     int watermark = 0;
+    int model_high_res;
+    int width, height;
 
     int c;
 
     buf_offset = BUF_OFFSET_Y21GA;
     buf_size = BUF_SIZE_Y21GA;
     res = RESOLUTION_HIGH;
+    model_high_res = RESOLUTION_FHD;
+    width = W_FHD;
+    height = H_FHD;
     debug = 1;
 
     while (1) {
@@ -275,12 +287,23 @@ int main(int argc, char **argv)
                 if (strcasecmp("y21ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Y21GA;
                     buf_size = BUF_SIZE_Y21GA;
+                    model_high_res = RESOLUTION_FHD;
                 } else if (strcasecmp("r30gb", optarg) == 0) {
                     buf_offset = BUF_OFFSET_R30GB;
                     buf_size = BUF_SIZE_R30GB;
+                    model_high_res = RESOLUTION_FHD;
                 } else if (strcasecmp("h52ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_H52GA;
                     buf_size = BUF_SIZE_H52GA;
+                    model_high_res = RESOLUTION_FHD;
+                } else if (strcasecmp("h51ga", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_H51GA;
+                    buf_size = BUF_SIZE_H51GA;
+                    model_high_res = RESOLUTION_3K;
+                } else if (strcasecmp("q321br_lsx", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_Q321BR_LSX;
+                    buf_size = BUF_SIZE_Q321BR_LSX;
+                    model_high_res = RESOLUTION_3K;
                 }
                 break;
 
@@ -304,6 +327,21 @@ int main(int argc, char **argv)
     }
 
     if (debug) fprintf(stderr, "Starting program\n");
+
+    if (res == RESOLUTION_LOW) {
+        width = W_LOW;
+        height = H_LOW;
+        hl_frame_index = 1;
+    } else {
+        if (model_high_res == RESOLUTION_FHD) {
+            width = W_FHD;
+            height = H_FHD;
+        } else {
+            width = W_3K;
+            height = H_3K;
+        }
+        hl_frame_index = 0;
+    }
 
     fIdx = fopen(I_FILE, "r");
     if ( fIdx == NULL ) {
@@ -332,37 +370,34 @@ int main(int argc, char **argv)
     // Closing the file
     fclose(fBuf) ;
 
-    bufferh26x = (unsigned char *) malloc(hl_frame[res].vps_len + hl_frame[res].sps_len + hl_frame[res].pps_len + hl_frame[res].idr_len);
+    bufferh26x = (unsigned char *) malloc(hl_frame[hl_frame_index].vps_len + hl_frame[hl_frame_index].sps_len + hl_frame[hl_frame_index].pps_len + hl_frame[hl_frame_index].idr_len);
     if (bufferh26x == NULL) {
         fprintf(stderr, "Unable to allocate memory\n");
         exit -1;
     }
-    if (res == RESOLUTION_LOW) {
-        bufferyuv = (unsigned char *) malloc(W_LOW * H_LOW * 3 / 2);
-    } else {
-        bufferyuv = (unsigned char *) malloc(W_HIGH * H_HIGH * 3 / 2);
-    }
+
+    bufferyuv = (unsigned char *) malloc(width * height * 3 / 2);
     if (bufferyuv == NULL) {
         fprintf(stderr, "Unable to allocate memory\n");
         exit -1;
     }
 
-    if (hl_frame[res].vps_len != 0) {
-        cb_memcpy(bufferh26x, addr + hl_frame[res].vps_addr, hl_frame[res].vps_len);
+    if (hl_frame[hl_frame_index].vps_len != 0) {
+        cb_memcpy(bufferh26x, addr + hl_frame[hl_frame_index].vps_addr, hl_frame[hl_frame_index].vps_len);
     }
-    cb_memcpy(bufferh26x + hl_frame[res].vps_len, addr + hl_frame[res].sps_addr, hl_frame[res].sps_len);
-    cb_memcpy(bufferh26x + hl_frame[res].vps_len + hl_frame[res].sps_len, addr + hl_frame[res].pps_addr, hl_frame[res].pps_len);
-    cb_memcpy(bufferh26x + hl_frame[res].vps_len + hl_frame[res].sps_len + hl_frame[res].pps_len, addr + hl_frame[res].idr_addr, hl_frame[res].idr_len);
+    cb_memcpy(bufferh26x + hl_frame[hl_frame_index].vps_len, addr + hl_frame[hl_frame_index].sps_addr, hl_frame[hl_frame_index].sps_len);
+    cb_memcpy(bufferh26x + hl_frame[hl_frame_index].vps_len + hl_frame[hl_frame_index].sps_len, addr + hl_frame[hl_frame_index].pps_addr, hl_frame[hl_frame_index].pps_len);
+    cb_memcpy(bufferh26x + hl_frame[hl_frame_index].vps_len + hl_frame[hl_frame_index].sps_len + hl_frame[hl_frame_index].pps_len, addr + hl_frame[hl_frame_index].idr_addr, hl_frame[hl_frame_index].idr_len);
 
-    if (hl_frame[res].vps_len == 0) {
+    if (hl_frame[hl_frame_index].vps_len == 0) {
         if (debug) fprintf(stderr, "Decoding h264 frame\n");
-        if(frame_decode(bufferyuv, bufferh26x, hl_frame[res].sps_len + hl_frame[res].pps_len + hl_frame[res].idr_len, 4) < 0) {
+        if(frame_decode(bufferyuv, bufferh26x, hl_frame[hl_frame_index].sps_len + hl_frame[hl_frame_index].pps_len + hl_frame[hl_frame_index].idr_len, 4) < 0) {
             fprintf(stderr, "Error decoding h264 frame\n");
             exit(-2);
         }
     } else {
         if (debug) fprintf(stderr, "Decoding h265 frame\n");
-        if(frame_decode(bufferyuv, bufferh26x, hl_frame[res].vps_len + hl_frame[res].sps_len + hl_frame[res].pps_len + hl_frame[res].idr_len, 5) < 0) {
+        if(frame_decode(bufferyuv, bufferh26x, hl_frame[hl_frame_index].vps_len + hl_frame[hl_frame_index].sps_len + hl_frame[hl_frame_index].pps_len + hl_frame[hl_frame_index].idr_len, 5) < 0) {
             fprintf(stderr, "Error decoding h265 frame\n");
             exit(-2);
         }
@@ -371,23 +406,16 @@ int main(int argc, char **argv)
 
     if (watermark) {
         if (debug) fprintf(stderr, "Adding watermark\n");
-        if (add_watermark(bufferyuv, res) < 0) {
+        if (add_watermark(bufferyuv, width, height) < 0) {
             fprintf(stderr, "Error adding watermark\n");
             exit -3;
         }
     }
 
     if (debug) fprintf(stderr, "Encoding jpeg image\n");
-    if (res == RESOLUTION_LOW) {
-        if(YUVtoJPG("stdout", bufferyuv, W_LOW, H_LOW, W_LOW, H_LOW) < 0) {
-            fprintf(stderr, "Error encoding jpeg file\n");
-            exit(-4);
-        }
-    } else {
-        if(YUVtoJPG("stdout", bufferyuv, W_HIGH, H_HIGH, W_HIGH, H_HIGH) < 0) {
-            fprintf(stderr, "Error encoding jpeg file\n");
-            exit(-4);
-        }
+    if(YUVtoJPG("stdout", bufferyuv, width, height, width, height) < 0) {
+        fprintf(stderr, "Error encoding jpeg file\n");
+        exit(-4);
     }
 
     free(bufferyuv);

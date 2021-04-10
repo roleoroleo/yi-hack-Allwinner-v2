@@ -52,11 +52,28 @@
 #define LOWRES_BYTE_H52GA 8
 #define HIGHRES_BYTE_H52GA 4
 
+#define BUF_OFFSET_H51GA 368
+#define BUF_SIZE_H51GA 524656
+#define FRAME_HEADER_SIZE_H51GA 28
+#define DATA_OFFSET_H51GA 4
+#define LOWRES_BYTE_H51GA 8
+#define HIGHRES_BYTE_H51GA 4
+
+#define BUF_OFFSET_Q321BR_LSX 300
+#define BUF_SIZE_Q321BR_LSX 524588
+#define FRAME_HEADER_SIZE_Q321BR_LSX 26
+#define DATA_OFFSET_Q321BR_LSX 4
+#define LOWRES_BYTE_Q321BR_LSX 8
+#define HIGHRES_BYTE_Q321BR_LSX 4
+
 #define MILLIS_25 25000
 
 #define RESOLUTION_NONE 0
 #define RESOLUTION_LOW  360
 #define RESOLUTION_HIGH 1080
+
+#define RESOLUTION_FHD  1080
+#define RESOLUTION_3K   1296
 
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
 
@@ -95,6 +112,13 @@ unsigned char SPS4_1920X1080_TI[]  = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 
                                         0x96, 0x54, 0x03, 0xC0, 0x11, 0x2F, 0x2C, 0xDC,
                                         0x04, 0x04, 0x05, 0x00, 0x00, 0x03, 0x01, 0xF4,
                                         0x00, 0x00, 0x4E, 0x20, 0x84};
+unsigned char SPS4_2304X1296[]     = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
+                                        0x96, 0x54, 0x01, 0x20, 0x05, 0x19, 0x37, 0x01,
+                                        0x01, 0x01, 0x02};
+unsigned char SPS4_2304X1296_TI[]   = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
+                                        0x96, 0x54, 0x01, 0x20, 0x05, 0x19, 0x37, 0x01,
+                                        0x00, 0x00, 0x40, 0x00, 0x00, 0x7D, 0x00, 0x00,
+                                        0x13, 0x88, 0x21};
 unsigned char VPS5_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
                                         0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
                                         0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
@@ -177,7 +201,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-r RES] [-d]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, r30gb or h52ga (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, r30gb, h52ga, h51ga or q321br_lsx (default y21ga)\n");
     fprintf(stderr, "\t-r RES, --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: LOW or HIGH (default HIGH)\n");
     fprintf(stderr, "\t-d, --debug\n");
@@ -250,6 +274,20 @@ int main(int argc, char **argv) {
                 data_offset = DATA_OFFSET_H52GA;
                 lowres_byte = LOWRES_BYTE_H52GA;
                 highres_byte = HIGHRES_BYTE_H52GA;
+            } else if (strcasecmp("h51ga", optarg) == 0) {
+                buf_offset = BUF_OFFSET_H51GA;
+                buf_size = BUF_SIZE_H51GA;
+                frame_header_size = FRAME_HEADER_SIZE_H51GA;
+                data_offset = DATA_OFFSET_H51GA;
+                lowres_byte = LOWRES_BYTE_H51GA;
+                highres_byte = HIGHRES_BYTE_H51GA;
+            } else if (strcasecmp("q321br_lsx", optarg) == 0) {
+                buf_offset = BUF_OFFSET_Q321BR_LSX;
+                buf_size = BUF_SIZE_Q321BR_LSX;
+                frame_header_size = FRAME_HEADER_SIZE_Q321BR_LSX;
+                data_offset = DATA_OFFSET_Q321BR_LSX;
+                lowres_byte = LOWRES_BYTE_Q321BR_LSX;
+                highres_byte = HIGHRES_BYTE_Q321BR_LSX;
             }
             break;
 
@@ -336,6 +374,8 @@ int main(int argc, char **argv) {
                 fwrite(SPS4_640X360_TI, 1, sizeof(SPS4_640X360_TI), stdout);
             } else if (cb_memcmp(SPS4_1920X1080, buf_idx_start, sizeof(SPS4_1920X1080)) == 0) {
                 fwrite(SPS4_1920X1080_TI, 1, sizeof(SPS4_1920X1080_TI), stdout);
+            } else if (cb_memcmp(SPS4_2304X1296, buf_idx_start, sizeof(SPS4_2304X1296)) == 0) {
+                fwrite(SPS4_2304X1296_TI, 1, sizeof(SPS4_2304X1296_TI), stdout);
             } else if (cb_memcmp(VPS5_1920X1080, buf_idx_start, sizeof(VPS5_1920X1080)) == 0) {
                 fwrite(VPS5_1920X1080_TI, 1, sizeof(VPS5_1920X1080_TI), stdout);
             } else {

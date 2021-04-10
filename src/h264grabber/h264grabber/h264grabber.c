@@ -219,6 +219,8 @@ int main(int argc, char **argv) {
     int frame_counter_last_valid = -1;
     int frame_counter_invalid = 0;
 
+    unsigned char *frame_header;
+
     int i, c;
     int write_enable = 0;
     int sps_sync = 0;
@@ -326,6 +328,8 @@ int main(int argc, char **argv) {
         }
     }
 
+    frame_header = (unsigned char *) malloc(frame_header_size * sizeof(unsigned char));
+
     // Opening an existing file
     fFid = fopen(BUFFER_FILE, "r") ;
     if ( fFid == NULL ) {
@@ -402,17 +406,19 @@ int main(int argc, char **argv) {
             write_enable = 1;
             sps_sync = 1;
             buf_idx_1 = cb_move(buf_idx_1, - (6 + frame_header_size));
-            if (buf_idx_1[17 + data_offset] == lowres_byte) {
+            cb2s_memcpy(frame_header, buf_idx_1, frame_header_size);
+            buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
+            if (frame_header[17 + data_offset] == lowres_byte) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17 + data_offset] == highres_byte) {
+            } else if (frame_header[17 + data_offset] == highres_byte) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 frame_res = RESOLUTION_NONE;
             }
             if (frame_res == resolution) {
-                cb2s_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
+                memcpy((unsigned char *) &frame_len, frame_header, 4);
                 frame_len -= 6;                                                              // -6 only for SPS
-                frame_counter = (int) buf_idx_1[18 + data_offset] + (int) buf_idx_1[19 + data_offset] * 256;
+                frame_counter = (int) frame_header[18 + data_offset] + (int) frame_header[19 + data_offset] * 256;
                 if ((frame_counter - frame_counter_last_valid > 20) ||
                             ((frame_counter < frame_counter_last_valid) && (frame_counter - frame_counter_last_valid > -65515))) {
 
@@ -437,7 +443,7 @@ int main(int argc, char **argv) {
             if (debug) fprintf(stderr, "%lld: SPS   detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
                         current_timestamp(), frame_len, frame_counter,
                         frame_counter_last_valid, frame_res);
-            buf_idx_1 = cb_move(buf_idx_1, 6 + frame_header_size);
+
             buf_idx_start = buf_idx_1;
         } else if ((cb_memcmp(PPS4_START, buf_idx_1, sizeof(PPS4_START)) == 0) ||
                         (cb_memcmp(PPS5_START, buf_idx_1, sizeof(PPS5_START)) == 0) ||
@@ -449,16 +455,18 @@ int main(int argc, char **argv) {
             // PPS, VPS, IDR and PFR frames
             write_enable = 1;
             buf_idx_1 = cb_move(buf_idx_1, -frame_header_size);
-            if (buf_idx_1[17 + data_offset] == lowres_byte) {
+            cb2s_memcpy(frame_header, buf_idx_1, frame_header_size);
+            buf_idx_1 = cb_move(buf_idx_1, frame_header_size);
+            if (frame_header[17 + data_offset] == lowres_byte) {
                 frame_res = RESOLUTION_LOW;
-            } else if (buf_idx_1[17 + data_offset] == highres_byte) {
+            } else if (frame_header[17 + data_offset] == highres_byte) {
                 frame_res = RESOLUTION_HIGH;
             } else {
                 frame_res = RESOLUTION_NONE;
             }
             if (frame_res == resolution) {
-                cb2s_memcpy((unsigned char *) &frame_len, buf_idx_1, 4);
-                frame_counter = (int) buf_idx_1[18 + data_offset] + (int) buf_idx_1[19 + data_offset] * 256;
+                memcpy((unsigned char *) &frame_len, frame_header, 4);
+                frame_counter = (int) frame_header[18 + data_offset] + (int) frame_header[19 + data_offset] * 256;
                 if ((frame_counter - frame_counter_last_valid > 20) ||
                             ((frame_counter < frame_counter_last_valid) && (frame_counter - frame_counter_last_valid > -65515))) {
 
@@ -483,7 +491,7 @@ int main(int argc, char **argv) {
             if (debug) fprintf(stderr, "%lld: frame detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
                         current_timestamp(), frame_len, frame_counter,
                         frame_counter_last_valid, frame_res);
-            buf_idx_1 = cb_move(buf_idx_1, frame_header_size);
+
             buf_idx_start = buf_idx_1;
         } else {
             write_enable = 0;
@@ -500,6 +508,8 @@ int main(int argc, char **argv) {
     } else {
         if (debug) fprintf(stderr, "unmapping file %s, size %d, from %08x\n", BUFFER_FILE, buf_size, (unsigned int) addr);
     }
+
+    free(frame_header);
 
     return 0;
 }

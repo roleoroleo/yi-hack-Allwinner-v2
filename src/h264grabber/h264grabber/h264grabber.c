@@ -77,8 +77,6 @@
 
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
 
-#define SPS_TIMING_INFO 1
-
 int buf_offset;
 int buf_size;
 int frame_header_size;
@@ -130,8 +128,9 @@ unsigned char VPS5_1920X1080_TI[]  = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 
                                         0x00, 0x01, 0x38, 0x81, 0x40};
 
 unsigned char *addr;                      /* Pointer to shared memory region (header) */
-int debug = 0;                            /* Set to 1 to debug this .c */
 int resolution;
+int sps_timing_info;
+int debug;
 
 long long current_timestamp() {
     struct timeval te; 
@@ -204,6 +203,8 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tset model: y21ga, r30gb, h52ga, h51ga or q321br_lsx (default y21ga)\n");
     fprintf(stderr, "\t-r RES, --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: LOW or HIGH (default HIGH)\n");
+    fprintf(stderr, "\t-s, --sti\n");
+    fprintf(stderr, "\t\tdon't overwrite SPS timing info (default overwrite)\n");
     fprintf(stderr, "\t-d, --debug\n");
     fprintf(stderr, "\t\tenable debug\n");
 }
@@ -223,6 +224,7 @@ int main(int argc, char **argv) {
     int sps_sync = 0;
 
     resolution = RESOLUTION_HIGH;
+    sps_timing_info = 1;
     debug = 0;
 
     buf_offset = BUF_OFFSET_Y21GA;
@@ -237,6 +239,7 @@ int main(int argc, char **argv) {
         {
             {"model",  required_argument, 0, 'm'},
             {"resolution",  required_argument, 0, 'r'},
+            {"sti",  no_argument, 0, 's'},
             {"debug",  no_argument, 0, 'd'},
             {"help",  no_argument, 0, 'h'},
             {0, 0, 0, 0}
@@ -244,7 +247,7 @@ int main(int argc, char **argv) {
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "m:r:dh",
+        c = getopt_long (argc, argv, "m:r:sdh",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -297,6 +300,10 @@ int main(int argc, char **argv) {
             } else if (strcasecmp("high", optarg) == 0) {
                 resolution = RESOLUTION_HIGH;
             }
+            break;
+
+        case 's':
+            sps_timing_info = 0;
             break;
 
         case 'd':
@@ -369,26 +376,24 @@ int main(int argc, char **argv) {
 //        if (debug) fprintf(stderr, "found buf_idx_2: %08x\n", (unsigned int) buf_idx_2);
 
         if ((write_enable) && (sps_sync)) {
-#ifdef SPS_TIMING_INFO
-            if (cb_memcmp(SPS4_640X360, buf_idx_start, sizeof(SPS4_640X360)) == 0) {
-                fwrite(SPS4_640X360_TI, 1, sizeof(SPS4_640X360_TI), stdout);
-            } else if (cb_memcmp(SPS4_1920X1080, buf_idx_start, sizeof(SPS4_1920X1080)) == 0) {
-                fwrite(SPS4_1920X1080_TI, 1, sizeof(SPS4_1920X1080_TI), stdout);
-            } else if (cb_memcmp(SPS4_2304X1296, buf_idx_start, sizeof(SPS4_2304X1296)) == 0) {
-                fwrite(SPS4_2304X1296_TI, 1, sizeof(SPS4_2304X1296_TI), stdout);
-            } else if (cb_memcmp(VPS5_1920X1080, buf_idx_start, sizeof(VPS5_1920X1080)) == 0) {
-                fwrite(VPS5_1920X1080_TI, 1, sizeof(VPS5_1920X1080_TI), stdout);
+            if (sps_timing_info) {
+                if (cb_memcmp(SPS4_640X360, buf_idx_start, sizeof(SPS4_640X360)) == 0) {
+                    fwrite(SPS4_640X360_TI, 1, sizeof(SPS4_640X360_TI), stdout);
+                } else if (cb_memcmp(SPS4_1920X1080, buf_idx_start, sizeof(SPS4_1920X1080)) == 0) {
+                    fwrite(SPS4_1920X1080_TI, 1, sizeof(SPS4_1920X1080_TI), stdout);
+                } else if (cb_memcmp(SPS4_2304X1296, buf_idx_start, sizeof(SPS4_2304X1296)) == 0) {
+                    fwrite(SPS4_2304X1296_TI, 1, sizeof(SPS4_2304X1296_TI), stdout);
+                } else if (cb_memcmp(VPS5_1920X1080, buf_idx_start, sizeof(VPS5_1920X1080)) == 0) {
+                    fwrite(VPS5_1920X1080_TI, 1, sizeof(VPS5_1920X1080_TI), stdout);
+                }
             } else {
-#endif
                 if (buf_idx_start + frame_len > addr + buf_size) {
                     fwrite(buf_idx_start, 1, addr + buf_size - buf_idx_start, stdout);
                     fwrite(addr + buf_offset, 1, frame_len - (addr + buf_size - buf_idx_start), stdout);
                 } else {
                     fwrite(buf_idx_start, 1, frame_len, stdout);
                 }
-#ifdef SPS_TIMING_INFO
             }
-#endif
         }
 
         if ((cb_memcmp(SPS4_START, buf_idx_1, sizeof(SPS4_START)) == 0) ||

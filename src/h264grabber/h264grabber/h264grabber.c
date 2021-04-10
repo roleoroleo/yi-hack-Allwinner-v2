@@ -333,14 +333,14 @@ int main(int argc, char **argv) {
     // Opening an existing file
     fFid = fopen(BUFFER_FILE, "r") ;
     if ( fFid == NULL ) {
-        fprintf(stderr, "could not open file %s\n", BUFFER_FILE) ;
+        fprintf(stderr, "error - could not open file %s\n", BUFFER_FILE) ;
         return -1;
     }
 
     // Map file to memory
     addr = (unsigned char*) mmap(NULL, buf_size, PROT_READ, MAP_SHARED, fileno(fFid), 0);
     if (addr == MAP_FAILED) {
-        fprintf(stderr, "error mapping file %s\n", BUFFER_FILE);
+        fprintf(stderr, "error - mapping file %s\n", BUFFER_FILE);
         fclose(fFid);
         return -2;
     }
@@ -422,12 +422,12 @@ int main(int argc, char **argv) {
                 if ((frame_counter - frame_counter_last_valid > 20) ||
                             ((frame_counter < frame_counter_last_valid) && (frame_counter - frame_counter_last_valid > -65515))) {
 
-                    if (debug) fprintf(stderr, "%lld: incorrect frame counter - frame_counter: %d - frame_counter_last_valid: %d\n",
+                    if (debug) fprintf(stderr, "%lld: warning - incorrect frame counter - frame_counter: %d - frame_counter_last_valid: %d\n",
                                 current_timestamp(), frame_counter, frame_counter_last_valid);
                     frame_counter_invalid++;
                     // Check if sync is lost
                     if (frame_counter_invalid > 40) {
-                        if (debug) fprintf(stderr, "%lld: sync lost\n", current_timestamp());
+                        if (debug) fprintf(stderr, "%lld: error - sync lost\n", current_timestamp());
                         frame_counter_last_valid = frame_counter;
                         frame_counter_invalid = 0;
                     } else {
@@ -470,12 +470,12 @@ int main(int argc, char **argv) {
                 if ((frame_counter - frame_counter_last_valid > 20) ||
                             ((frame_counter < frame_counter_last_valid) && (frame_counter - frame_counter_last_valid > -65515))) {
 
-                    if (debug) fprintf(stderr, "%lld: incorrect frame counter - frame_counter: %d - frame_counter_last_valid: %d\n",
+                    if (debug) fprintf(stderr, "%lld: warning - incorrect frame counter - frame_counter: %d - frame_counter_last_valid: %d\n",
                                 current_timestamp(), frame_counter, frame_counter_last_valid);
                     frame_counter_invalid++;
                     // Check if sync is lost
                     if (frame_counter_invalid > 40) {
-                        if (debug) fprintf(stderr, "%lld: sync lost\n", current_timestamp());
+                        if (debug) fprintf(stderr, "%lld: error - sync lost\n", current_timestamp());
                         frame_counter_last_valid = frame_counter;
                         frame_counter_invalid = 0;
                     } else {
@@ -504,7 +504,7 @@ int main(int argc, char **argv) {
 
     // Unmap file from memory
     if (munmap(addr, buf_size) == -1) {
-        if (debug) fprintf(stderr, "error munmapping file");
+        if (debug) fprintf(stderr, "error - unmapping file");
     } else {
         if (debug) fprintf(stderr, "unmapping file %s, size %d, from %08x\n", BUFFER_FILE, buf_size, (unsigned int) addr);
     }

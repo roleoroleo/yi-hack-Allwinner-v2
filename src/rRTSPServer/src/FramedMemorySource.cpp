@@ -61,7 +61,7 @@ void FramedMemorySource::seekToByteRelative(int64_t offset, u_int64_t numBytesTo
 }
 
 // The second argument is the circular buffer
-int FramedMemorySource::cb_memcmp(unsigned char *str1, unsigned char*str2, size_t n)
+int FramedMemorySource::cb_memcmp(unsigned char *str1, unsigned char *str2, size_t n)
 {
     int ret;
 
@@ -103,14 +103,14 @@ void FramedMemorySource::doGetNextFrame() {
             continue;
         } else if (fBuffer->output_frame[fBuffer->frame_read_index].ptr == NULL) {
             pthread_mutex_unlock(&(fBuffer->mutex));
-            if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() ptr NULL\n");
+            if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() error - NULL ptr\n");
             usleep(MILLIS_10);
             pthread_mutex_lock(&(fBuffer->mutex));
             continue;
         } else if (cb_memcmp(NALU_HEADER, fBuffer->output_frame[fBuffer->frame_read_index].ptr, sizeof(NALU_HEADER)) != 0) {
             fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
             pthread_mutex_unlock(&(fBuffer->mutex));
-            if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() wrong frame header\n");
+            if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() error - wrong frame header\n");
             usleep(MILLIS_10);
             pthread_mutex_lock(&(fBuffer->mutex));
             continue;
@@ -135,8 +135,13 @@ void FramedMemorySource::doGetNextFrame() {
         if (ptr + fFrameSize > fBuffer->buffer + fBuffer->size) {
             memmove(fTo, ptr, fBuffer->buffer + fBuffer->size - ptr);
             memmove(fTo + (fBuffer->buffer + fBuffer->size - ptr), fBuffer->buffer, fFrameSize - (fBuffer->buffer + fBuffer->size - ptr));
+//            if (debug & 4) fwrite("\0\0\0\1", 1, 4, stderr);
+//            if (debug & 4) fwrite(ptr, 1, fBuffer->buffer + fBuffer->size - ptr, stderr);
+//            if (debug & 4) fwrite(fBuffer->buffer, 1, fFrameSize - (fBuffer->buffer + fBuffer->size - ptr), stderr);
         } else {
             memmove(fTo, ptr, fFrameSize);
+//            if (debug & 4) fwrite("\0\0\0\1", 1, 4, stderr);
+//            if (debug & 4) fwrite(ptr, 1, fFrameSize, stderr);
         }
         fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
 

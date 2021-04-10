@@ -32,10 +32,10 @@ fi
 
 read -r POST_DATA
 
-KEYS=$(echo "$POST_DATA" | jq keys_unsorted[])
-for KEY in $KEYS; do
-    KEY=$(echo $KEY | removedoublequotes)
-    VALUE=$(echo "$POST_DATA" | jq .$KEY | removedoublequotes)
+ROWS=$(echo "$POST_DATA" | jq -r '. | keys[] as $k | "\($k)=\(.[$k])"')
+for ROW in $ROWS; do
+    KEY=$(echo $ROW | cut -d'=' -f1)
+    VALUE=$(echo $ROW | cut -d'=' -f2)
 
     if [ "$KEY" == "HOSTNAME" ] ; then
         if [ -z $VALUE ] ; then

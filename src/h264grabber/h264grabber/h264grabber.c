@@ -213,6 +213,7 @@ int main(int argc, char **argv) {
     unsigned char *buf_idx_1, *buf_idx_2;
     unsigned char *buf_idx_w, *buf_idx_tmp;
     unsigned char *buf_idx_start = NULL;
+    int buf_idx_diff;
     FILE *fFid;
 
     int frame_res, frame_len, frame_counter = -1;
@@ -418,33 +419,41 @@ int main(int argc, char **argv) {
             if (frame_res == resolution) {
                 memcpy((unsigned char *) &frame_len, frame_header, 4);
                 frame_len -= 6;                                                              // -6 only for SPS
-                frame_counter = (int) frame_header[18 + data_offset] + (int) frame_header[19 + data_offset] * 256;
-                if ((frame_counter - frame_counter_last_valid > 20) ||
-                            ((frame_counter < frame_counter_last_valid) && (frame_counter - frame_counter_last_valid > -65515))) {
+                // Check if buf_idx_2 is greater than buf_idx_1 + frame_len
+                buf_idx_diff = buf_idx_2 - buf_idx_1;
+                if (buf_idx_diff < 0) buf_idx_diff += (buf_size - buf_offset);
+                if (buf_idx_diff > frame_len) {
+                    frame_counter = (int) frame_header[18 + data_offset] + (int) frame_header[19 + data_offset] * 256;
+                    if ((frame_counter - frame_counter_last_valid > 20) ||
+                                ((frame_counter < frame_counter_last_valid) && (frame_counter - frame_counter_last_valid > -65515))) {
 
-                    if (debug) fprintf(stderr, "%lld: warning - incorrect frame counter - frame_counter: %d - frame_counter_last_valid: %d\n",
-                                current_timestamp(), frame_counter, frame_counter_last_valid);
-                    frame_counter_invalid++;
-                    // Check if sync is lost
-                    if (frame_counter_invalid > 40) {
-                        if (debug) fprintf(stderr, "%lld: error - sync lost\n", current_timestamp());
-                        frame_counter_last_valid = frame_counter;
-                        frame_counter_invalid = 0;
+                        if (debug) fprintf(stderr, "%lld: warning - incorrect frame counter - frame_counter: %d - frame_counter_last_valid: %d\n",
+                                    current_timestamp(), frame_counter, frame_counter_last_valid);
+                        frame_counter_invalid++;
+                        // Check if sync is lost
+                        if (frame_counter_invalid > 40) {
+                            if (debug) fprintf(stderr, "%lld: error - sync lost\n", current_timestamp());
+                            frame_counter_last_valid = frame_counter;
+                            frame_counter_invalid = 0;
+                        } else {
+                            write_enable = 0;
+                        }
                     } else {
-                        write_enable = 0;
+                        frame_counter_invalid = 0;
+                        frame_counter_last_valid = frame_counter;
                     }
                 } else {
-                    frame_counter_invalid = 0;
-                    frame_counter_last_valid = frame_counter;
+                    write_enable = 0;
                 }
+                if (debug) fprintf(stderr, "%lld: SPS   detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
+                            current_timestamp(), frame_len, frame_counter,
+                            frame_counter_last_valid, frame_res);
+
+                buf_idx_start = buf_idx_1;
             } else {
                 write_enable = 0;
+                if (debug & 1) fprintf(stderr, "%lld: warning - unexpected NALU header\n", current_timestamp());
             }
-            if (debug) fprintf(stderr, "%lld: SPS   detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
-                        current_timestamp(), frame_len, frame_counter,
-                        frame_counter_last_valid, frame_res);
-
-            buf_idx_start = buf_idx_1;
         } else if ((cb_memcmp(PPS4_START, buf_idx_1, sizeof(PPS4_START)) == 0) ||
                         (cb_memcmp(PPS5_START, buf_idx_1, sizeof(PPS5_START)) == 0) ||
                         (cb_memcmp(VPS5_START, buf_idx_1, sizeof(VPS5_START)) == 0) ||
@@ -466,33 +475,41 @@ int main(int argc, char **argv) {
             }
             if (frame_res == resolution) {
                 memcpy((unsigned char *) &frame_len, frame_header, 4);
-                frame_counter = (int) frame_header[18 + data_offset] + (int) frame_header[19 + data_offset] * 256;
-                if ((frame_counter - frame_counter_last_valid > 20) ||
-                            ((frame_counter < frame_counter_last_valid) && (frame_counter - frame_counter_last_valid > -65515))) {
+                // Check if buf_idx_2 is greater than buf_idx_1 + frame_len
+                buf_idx_diff = buf_idx_2 - buf_idx_1;
+                if (buf_idx_diff < 0) buf_idx_diff += (buf_size - buf_offset);
+                if (buf_idx_diff > frame_len) {
+                    frame_counter = (int) frame_header[18 + data_offset] + (int) frame_header[19 + data_offset] * 256;
+                    if ((frame_counter - frame_counter_last_valid > 20) ||
+                                ((frame_counter < frame_counter_last_valid) && (frame_counter - frame_counter_last_valid > -65515))) {
 
-                    if (debug) fprintf(stderr, "%lld: warning - incorrect frame counter - frame_counter: %d - frame_counter_last_valid: %d\n",
-                                current_timestamp(), frame_counter, frame_counter_last_valid);
-                    frame_counter_invalid++;
-                    // Check if sync is lost
-                    if (frame_counter_invalid > 40) {
-                        if (debug) fprintf(stderr, "%lld: error - sync lost\n", current_timestamp());
-                        frame_counter_last_valid = frame_counter;
-                        frame_counter_invalid = 0;
+                        if (debug) fprintf(stderr, "%lld: warning - incorrect frame counter - frame_counter: %d - frame_counter_last_valid: %d\n",
+                                    current_timestamp(), frame_counter, frame_counter_last_valid);
+                        frame_counter_invalid++;
+                        // Check if sync is lost
+                        if (frame_counter_invalid > 40) {
+                            if (debug) fprintf(stderr, "%lld: error - sync lost\n", current_timestamp());
+                            frame_counter_last_valid = frame_counter;
+                            frame_counter_invalid = 0;
+                        } else {
+                            write_enable = 0;
+                        }
                     } else {
-                        write_enable = 0;
+                        frame_counter_invalid = 0;
+                        frame_counter_last_valid = frame_counter;
                     }
                 } else {
-                    frame_counter_invalid = 0;
-                    frame_counter_last_valid = frame_counter;
+                    write_enable = 0;
                 }
+                if (debug) fprintf(stderr, "%lld: frame detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
+                            current_timestamp(), frame_len, frame_counter,
+                            frame_counter_last_valid, frame_res);
+
+                buf_idx_start = buf_idx_1;
             } else {
                 write_enable = 0;
+                if (debug & 1) fprintf(stderr, "%lld: warning - unexpected NALU header\n", current_timestamp());
             }
-            if (debug) fprintf(stderr, "%lld: frame detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
-                        current_timestamp(), frame_len, frame_counter,
-                        frame_counter_last_valid, frame_res);
-
-            buf_idx_start = buf_idx_1;
         } else {
             write_enable = 0;
         }

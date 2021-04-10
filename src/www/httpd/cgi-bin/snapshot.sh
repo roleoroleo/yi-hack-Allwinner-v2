@@ -31,6 +31,8 @@ do
     fi
 done
 
+MODEL=$(cat /tmp/sd/yi-hack/model_suffix)
+
 REDIRECT=""
 if [ "$OUTPUT_FILE" != "none" ] ; then
     OUTPUT_FILE=$(validateFile "$OUTPUT_FILE")
@@ -51,9 +53,9 @@ fi
 
 if [ "$REDIRECT" == "yes" ] ; then
     if [ "$BASE64" == "no" ] ; then
-        imggrabber $RES $WATERMARK > /tmp/sd/record/$OUTPUT_FILE
+        imggrabber -m $MODEL $RES $WATERMARK > /tmp/sd/record/$OUTPUT_FILE
     elif [ "$BASE64" == "yes" ] ; then
-        imggrabber $RES $WATERMARK | base64 > /tmp/sd/record/$OUTPUT_FILE
+        imggrabber -m $MODEL $RES $WATERMARK | base64 > /tmp/sd/record/$OUTPUT_FILE
     fi
     printf "Content-type: application/json\r\n\r\n"
     printf "{\n"
@@ -62,9 +64,9 @@ if [ "$REDIRECT" == "yes" ] ; then
 else
     if [ "$BASE64" == "no" ] ; then
         printf "Content-type: image/jpeg\r\n\r\n"
-        imggrabber $RES $WATERMARK
+        imggrabber -m $MODEL $RES $WATERMARK
     elif [ "$BASE64" == "yes" ] ; then
         printf "Content-type: image/jpeg;base64\r\n\r\n"
-        imggrabber $RES $WATERMARK | base64
+        imggrabber -m $MODEL $RES $WATERMARK | base64
     fi
 fi

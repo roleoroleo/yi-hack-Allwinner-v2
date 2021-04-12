@@ -21,6 +21,7 @@ typedef struct
     char        host[128];
     char        bind_address[128];
     int         port;
+    char       *client_id;
     char       *mqtt_prefix_config;
 } mqtt_conf_t;
 

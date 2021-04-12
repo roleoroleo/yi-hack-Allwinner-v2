@@ -111,8 +111,6 @@ void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_
 
 int main(int argc, char *argv[])
 {
-    char id[24];
-
     debug = 1;
 
     /*
@@ -131,15 +129,25 @@ int main(int argc, char *argv[])
      * Initialize library. Call it before any other function.
      */
     mosquitto_lib_init();
-    memset(id, 0, 24);
-    snprintf(id, 23, "%d", getpid());
 
     /*
      * Create a new client instance
      */
-    mosq = mosquitto_new(id, true, 0);
+    mosq = mosquitto_new(conf.client_id, true, 0);
 
     if(mosq) {
+        /* 
+         * Set connection credentials.
+         */
+        if (conf.user!=NULL && strcmp(conf.user, "") != 0) {
+            rc = mosquitto_username_pw_set(mosq, conf.user, conf.password);
+
+            if(rc != MOSQ_ERR_SUCCESS) {
+                printf("Unable to set the auth parameters (%s).\n", mosquitto_strerror(rc));
+                return -2;
+            }
+        }
+
         /* 
          * Set connection callback.
          * It's called when the broker send CONNACK message.
@@ -156,11 +164,11 @@ int main(int argc, char *argv[])
         rc = mosquitto_connect(mosq, conf.host, conf.port, 15);
         if (rc != MOSQ_ERR_SUCCESS) {
             printf("Unable to connect to the broker\n");
-            return -2;
+            return -3;
         }
         if (conf.mqtt_prefix_config == NULL) {
             printf("Wrong topic prefix, please check configuration.\n");
-            return -3;
+            return -4;
         }
         /*
          * Subscribe a topic.
@@ -172,7 +180,7 @@ int main(int argc, char *argv[])
         rc = mosquitto_subscribe(mosq, NULL, conf.mqtt_prefix_config, 0);
         if (rc != MOSQ_ERR_SUCCESS) {
             printf("Unable to subscribe to the broker\n");
-            return -4;
+            return -5;
         }
 
         /*
@@ -220,6 +228,9 @@ void handle_config(const char *key, const char *value)
     if(strcmp(key, "MQTT_IP") == 0) {
         if (strlen(value) < sizeof(conf.host))
             strcpy(conf.host, value);
+    } else if(strcmp(key, "MQTT_CLIENT_ID")==0) {
+        conf.client_id = malloc((char) strlen(value) + 1 + 2);
+        sprintf(conf.client_id, "%s_c", value);
     } else if(strcmp(key, "MQTT_USER") == 0) {
         conf.user = malloc((char) strlen(value) + 1);
         strcpy(conf.user, value);

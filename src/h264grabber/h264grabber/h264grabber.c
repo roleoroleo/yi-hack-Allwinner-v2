@@ -38,6 +38,20 @@
 #define LOWRES_BYTE_Y21GA 8
 #define HIGHRES_BYTE_Y21GA 4
 
+#define BUF_OFFSET_Y211GA 368
+#define BUF_SIZE_Y211GA 1786224
+#define FRAME_HEADER_SIZE_Y211GA 28
+#define DATA_OFFSET_Y211GA 4
+#define LOWRES_BYTE_Y211GA 8
+#define HIGHRES_BYTE_Y211GA 4
+
+#define BUF_OFFSET_H30GA 368
+#define BUF_SIZE_H30GA 1786224
+#define FRAME_HEADER_SIZE_H30GA 28
+#define DATA_OFFSET_H30GA 4
+#define LOWRES_BYTE_H30GA 8
+#define HIGHRES_BYTE_H30GA 4
+
 #define BUF_OFFSET_R30GB 300
 #define BUF_SIZE_R30GB 1786156
 #define FRAME_HEADER_SIZE_R30GB 22
@@ -200,7 +214,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-r RES] [-d]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, r30gb, h52ga, h51ga or q321br_lsx (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, h52ga, h51ga or q321br_lsx (default y21ga)\n");
     fprintf(stderr, "\t-r RES, --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: LOW or HIGH (default HIGH)\n");
     fprintf(stderr, "\t-s, --sti\n");
@@ -266,6 +280,20 @@ int main(int argc, char **argv) {
                 data_offset = DATA_OFFSET_Y21GA;
                 lowres_byte = LOWRES_BYTE_Y21GA;
                 highres_byte = HIGHRES_BYTE_Y21GA;
+            } else if (strcasecmp("y211ga", optarg) == 0) {
+                buf_offset = BUF_OFFSET_Y211GA;
+                buf_size = BUF_SIZE_Y211GA;
+                frame_header_size = FRAME_HEADER_SIZE_Y211GA;
+                data_offset = DATA_OFFSET_Y211GA;
+                lowres_byte = LOWRES_BYTE_Y211GA;
+                highres_byte = HIGHRES_BYTE_Y211GA;
+            } else if (strcasecmp("h30ga", optarg) == 0) {
+                buf_offset = BUF_OFFSET_H30GA;
+                buf_size = BUF_SIZE_H30GA;
+                frame_header_size = FRAME_HEADER_SIZE_H30GA;
+                data_offset = DATA_OFFSET_H30GA;
+                lowres_byte = LOWRES_BYTE_H30GA;
+                highres_byte = HIGHRES_BYTE_H30GA;
             } else if (strcasecmp("r30gb", optarg) == 0) {
                 buf_offset = BUF_OFFSET_R30GB;
                 buf_size = BUF_SIZE_R30GB;

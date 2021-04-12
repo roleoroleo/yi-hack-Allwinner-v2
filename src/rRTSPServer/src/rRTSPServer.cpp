@@ -632,7 +632,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-r RES] [-p PORT] [-d]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, r30gb, h52ga, h51ga or q321br_lsx (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, h52ga, h51ga or q321br_lsx (default y21ga)\n");
     fprintf(stderr, "\t-r RES,   --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: low, high or both (default high)\n");
     fprintf(stderr, "\t-a AUDIO, --audio AUDIO\n");
@@ -874,6 +874,22 @@ int main(int argc, char** argv)
         data_offset = DATA_OFFSET_Y21GA;
         lowres_byte = LOWRES_BYTE_Y21GA;
         highres_byte = HIGHRES_BYTE_Y21GA;
+        model_high_res = RESOLUTION_FHD;
+    } else if (model == Y211GA) {
+        buf_offset = BUF_OFFSET_Y211GA;
+        buf_size = BUF_SIZE_Y211GA;
+        frame_header_size = FRAME_HEADER_SIZE_Y211GA;
+        data_offset = DATA_OFFSET_Y211GA;
+        lowres_byte = LOWRES_BYTE_Y211GA;
+        highres_byte = HIGHRES_BYTE_Y211GA;
+        model_high_res = RESOLUTION_FHD;
+    } else if (model == H30GA) {
+        buf_offset = BUF_OFFSET_H30GA;
+        buf_size = BUF_SIZE_H30GA;
+        frame_header_size = FRAME_HEADER_SIZE_H30GA;
+        data_offset = DATA_OFFSET_H30GA;
+        lowres_byte = LOWRES_BYTE_H30GA;
+        highres_byte = HIGHRES_BYTE_H30GA;
         model_high_res = RESOLUTION_FHD;
     } else if (model == R30GB) {
         buf_offset = BUF_OFFSET_R30GB;

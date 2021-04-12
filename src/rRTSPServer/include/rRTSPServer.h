@@ -38,10 +38,12 @@
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
 
 #define Y21GA 0
-#define R30GB 1
-#define H52GA 2
-#define H51GA 3
-#define Q321BR_LSX 4
+#define Y211GA 1
+#define H30GA 2
+#define R30GB 3
+#define H52GA 4
+#define H51GA 5
+#define Q321BR_LSX 6
 
 #define BUF_OFFSET_Y21GA 368
 #define BUF_SIZE_Y21GA 1786224
@@ -49,6 +51,20 @@
 #define DATA_OFFSET_Y21GA 4
 #define LOWRES_BYTE_Y21GA 8
 #define HIGHRES_BYTE_Y21GA 4
+
+#define BUF_OFFSET_Y211GA 368
+#define BUF_SIZE_Y211GA 1786224
+#define FRAME_HEADER_SIZE_Y211GA 28
+#define DATA_OFFSET_Y211GA 4
+#define LOWRES_BYTE_Y211GA 8
+#define HIGHRES_BYTE_Y211GA 4
+
+#define BUF_OFFSET_H30GA 368
+#define BUF_SIZE_H30GA 1786224
+#define FRAME_HEADER_SIZE_H30GA 28
+#define DATA_OFFSET_H30GA 4
+#define LOWRES_BYTE_H30GA 8
+#define HIGHRES_BYTE_H30GA 4
 
 #define BUF_OFFSET_R30GB 300
 #define BUF_SIZE_R30GB 1786156

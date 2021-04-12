@@ -698,6 +698,10 @@ int main(int argc, char** argv)
         case 'm':
             if (strcasecmp("y21ga", optarg) == 0) {
                 model = Y21GA;
+            } else if (strcasecmp("y211ga", optarg) == 0) {
+                model = Y211GA;
+            } else if (strcasecmp("h30ga", optarg) == 0) {
+                model = H30GA;
             } else if (strcasecmp("r30gb", optarg) == 0) {
                 model = R30GB;
             } else if (strcasecmp("h52ga", optarg) == 0) {
@@ -797,6 +801,10 @@ int main(int argc, char** argv)
     if (str != NULL) {
         if (strcasecmp("y21ga", str) == 0) {
             model = Y21GA;
+        } else if (strcasecmp("y211ga", str) == 0) {
+            model = Y211GA;
+        } else if (strcasecmp("h30ga", str) == 0) {
+            model = H30GA;
         } else if (strcasecmp("r30gb", str) == 0) {
             model = R30GB;
         } else if (strcasecmp("h52ga", str) == 0) {

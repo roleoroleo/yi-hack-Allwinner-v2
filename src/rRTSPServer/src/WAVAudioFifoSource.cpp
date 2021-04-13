@@ -245,8 +245,10 @@ void WAVAudioFifoSource::doReadFromFile() {
 
 #ifndef PRES_TIME_CLOCK
   // Set the 'presentation time' and 'duration' of this frame:
-  if (fPresentationTime.tv_sec == 0 && fPresentationTime.tv_usec == 0) {
-    // This is the first frame, so use the current time:
+  struct timeval newPT;
+  gettimeofday(&newPT, NULL);
+  if ((fPresentationTime.tv_sec == 0 && fPresentationTime.tv_usec == 0) || (newPT.tv_sec % 60 == 0)) {
+    // At the first frame and every minute use the current time:
     gettimeofday(&fPresentationTime, NULL);
   } else {
     // Increment by the play time of the previous data:

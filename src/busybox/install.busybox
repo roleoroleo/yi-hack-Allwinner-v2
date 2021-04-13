@@ -21,6 +21,7 @@ cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/find
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/free
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/ftpget
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/ftpput
+cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/lsof
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/mkpasswd
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/nc
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/sort

@@ -37,7 +37,7 @@ if [ -f /tmp/sd/yi-hack/bin/nanotts ] && [ -e /tmp/audio_in_fifo ]; then
     if [ ! -f $TMP_FILE ]; then
         speaker on > /dev/null
         echo "$POST_DATA" | /tmp/sd/yi-hack/bin/nanotts -l /tmp/sd/yi-hack/share/pico/lang -v $LANG -c > $TMP_FILE
-        dd if=$TMP_FILE of=/tmp/audio_in_fifo
+        cat $TMP_FILE > /tmp/audio_in_fifo
         sleep 1
         speaker off > /dev/null
         rm $TMP_FILE

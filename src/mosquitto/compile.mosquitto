@@ -11,6 +11,7 @@ make clean
 make -j$(nproc) \
     CROSS_COMPILE=arm-openwrt-linux- \
     CC=gcc \
+    AR=ar \
     ARCH=arm \
     CFLAGS="-mcpu=cortex-a7 -mfpu=neon-vfpv4 -I/opt/yi/toolchain-sunxi-musl/toolchain/include -L/opt/yi/toolchain-sunxi-musl/toolchain/lib" \
     WITH_SRV=no \

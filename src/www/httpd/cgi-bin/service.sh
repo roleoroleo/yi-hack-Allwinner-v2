@@ -47,11 +47,25 @@ init_config()
     if [[ $HTTPD_PORT != "80" ]] ; then
         D_HTTPD_PORT=:$HTTPD_PORT
     fi
+
+    if [[ $(get_config RTSP) == "yes" ]] ; then
+        RTSP_AUDIO_COMPRESSION=$(get_config RTSP_AUDIO)
+        if [[ "$RTSP_AUDIO_COMPRESSION" == "none" ]]; then
+            RTSP_AUDIO_COMPRESSION="no"
+        fi
+    fi
 }
 
 start_rtsp()
 {
-    RRTSP_MODEL=$MODEL_SUFFIX RRTSP_RES=$1 RRTSP_PORT=$RTSP_PORT RRTSP_USER=$USERNAME RRTSP_PWD=$PASSWORD rRTSPServer >/dev/null &
+    if [ ! -z $1 ]; then
+        RTSP_RES=$1
+    fi
+    if [ ! -z $2 ]; then
+        RTSP_AUDIO_COMPRESSION=$2
+    fi
+
+    RRTSP_MODEL=$MODEL_SUFFIX RRTSP_RES=$RTSP_RES RRTSP_PORT=$RTSP_PORT RRTSP_USER=$USERNAME RRTSP_PWD=$PASSWORD RRTSP_AUDIO=$RTSP_AUDIO_COMPRESSION rRTSPServer >/dev/null &
     $YI_HACK_PREFIX/script/wd_rtsp.sh >/dev/null &
 }
 
@@ -153,7 +167,7 @@ init_config
 
 if [ "$ACTION" == "start" ] ; then
     if [ "$NAME" == "rtsp" ]; then
-        start_rtsp $PARAM1
+        start_rtsp $PARAM1 $PARAM2
     elif [ "$NAME" == "onvif" ]; then
         start_onvif $PARAM1 $PARAM2
     elif [ "$NAME" == "wsdd" ]; then

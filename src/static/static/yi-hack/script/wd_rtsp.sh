@@ -20,7 +20,7 @@ get_config()
 
 restart_rtsp()
 {
-    RRTSP_MODEL=$MODEL_SUFFIX RRTSP_RES=$(get_config RTSP_STREAM) RRTSP_AUDIO=$(get_config RTSP_AUDIO) RRTSP_PORT=$RTSP_PORT RRTSP_USER=$USERNAME RRTSP_PWD=$PASSWORD rRTSPServer &
+    RRTSP_MODEL=$MODEL_SUFFIX RRTSP_RES=$(get_config RTSP_STREAM) RRTSP_AUDIO=$RTSP_AUDIO_COMPRESSION RRTSP_PORT=$RTSP_PORT RRTSP_USER=$USERNAME RRTSP_PWD=$PASSWORD rRTSPServer &
 }
 
 check_rtsp()
@@ -76,6 +76,11 @@ case $(get_config RTSP_PORT) in
     ''|*[!0-9]*) RTSP_PORT=554 ;;
     *) RTSP_PORT=$(get_config RTSP_PORT) ;;
 esac
+
+RTSP_AUDIO_COMPRESSION=$(get_config RTSP_AUDIO)
+if [[ "$RTSP_AUDIO_COMPRESSION" == "none" ]] ; then
+    RTSP_AUDIO_COMPRESSION="no"
+fi
 
 echo "$(date +'%Y-%m-%d %H:%M:%S') - Starting RTSP watchdog..." >> $LOG_FILE
 

@@ -116,11 +116,17 @@ esac
 
 if [[ $(get_config DISABLE_CLOUD) == "no" ]] ; then
     (
+        if [ $(get_config RTSP_AUDIO) != "no" ]; then
+            touch /tmp/audio_fifo.requested
+        fi
+        if [ $(get_config SPEAKER_AUDIO) != "no" ]; then
+            touch /tmp/audio_in_fifo.requested
+        fi
         cd /home/app
         LD_LIBRARY_PATH="/tmp/sd/yi-hack/lib:/lib:/usr/lib:/home/lib:/home/qigan/lib:/home/app/locallib:/tmp/sd:/tmp/sd/gdb" ./rmm &
-        sleep 4
+        sleep 6
         dd if=/tmp/audio_fifo of=/dev/null bs=1 count=8192
-        dd if=/dev/zero of=/tmp/audio_in_fifo bs=1 count=1024
+#        dd if=/dev/zero of=/tmp/audio_in_fifo bs=1 count=1024
         ./mp4record &
         ./cloud &
         ./p2p_tnp &
@@ -136,11 +142,17 @@ if [[ $(get_config DISABLE_CLOUD) == "no" ]] ; then
     )
 else
     (
+        if [ $(get_config RTSP_AUDIO) != "no" ]; then
+            touch /tmp/audio_fifo.requested
+        fi
+        if [ $(get_config SPEAKER_AUDIO) != "no" ]; then
+            touch /tmp/audio_in_fifo.requested
+        fi
         cd /home/app
         LD_LIBRARY_PATH="/tmp/sd/yi-hack/lib:/lib:/usr/lib:/home/lib:/home/qigan/lib:/home/app/locallib:/tmp/sd:/tmp/sd/gdb" ./rmm &
-        sleep 4
+        sleep 6
         dd if=/tmp/audio_fifo of=/dev/null bs=1 count=8192
-        dd if=/dev/zero of=/tmp/audio_in_fifo bs=1 count=1024
+#        dd if=/dev/zero of=/tmp/audio_in_fifo bs=1 count=1024
         # Trick to start circular buffer filling
         start_buffer
         if [[ $(get_config REC_WITHOUT_CLOUD) == "yes" ]] ; then

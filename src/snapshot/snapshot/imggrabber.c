@@ -154,13 +154,8 @@ int frame_decode(unsigned char *outbuffer, unsigned char *p, int length, int h26
         return -2;
     }
 
-    inbuf = (uint8_t *) malloc(length + FF_INPUT_BUFFER_PADDING_SIZE);
-    if (inbuf == NULL) {
-        if (debug) fprintf(stderr, "Error allocating memory\n");
-        avcodec_close(c);
-        av_free(c);
-        return -2;
-    }
+    // inbuf is already allocated in the main function
+    inbuf = p;
     memset(inbuf + length, 0, FF_INPUT_BUFFER_PADDING_SIZE);
 
     // Get only 1 frame
@@ -206,7 +201,6 @@ int frame_decode(unsigned char *outbuffer, unsigned char *p, int length, int h26
 
     // Clean memory
     if (debug) fprintf(stderr, "Cleaning ffmpeg memory\n");
-    free(inbuf);
     av_frame_free(&picture);
     avcodec_close(c);
     av_free(c);
@@ -384,7 +378,8 @@ int main(int argc, char **argv)
     // Closing the file
     fclose(fBuf) ;
 
-    bufferh26x = (unsigned char *) malloc(hl_frame[hl_frame_index].vps_len + hl_frame[hl_frame_index].sps_len + hl_frame[hl_frame_index].pps_len + hl_frame[hl_frame_index].idr_len);
+    // Add FF_INPUT_BUFFER_PADDING_SIZE to make the size compatible with ffmpeg conversion
+    bufferh26x = (unsigned char *) malloc(hl_frame[hl_frame_index].vps_len + hl_frame[hl_frame_index].sps_len + hl_frame[hl_frame_index].pps_len + hl_frame[hl_frame_index].idr_len + FF_INPUT_BUFFER_PADDING_SIZE);
     if (bufferh26x == NULL) {
         fprintf(stderr, "Unable to allocate memory\n");
         exit -1;

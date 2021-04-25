@@ -12,6 +12,8 @@ else
         insmod /backup/ko/8188fu.ko
     elif [ -f /backup/ko/8189fs.ko ];then
         insmod /backup/ko/8189fs.ko
+    elif [ -f /backup/ko/atbm603x_wifi_usb.ko ];then
+        insmod /backup/ko/atbm603x_wifi_usb.ko
     elif [ -f /backup/ko/ssv6x5x.ko ];then
         if [ -f /home/base/firmware/ssv6x5x/ssv6x5x-wifi.cfg ];then
             insmod /backup/ko/ssv6x5x.ko stacfgpath="/home/base/firmware/ssv6x5x/ssv6x5x-wifi.cfg"

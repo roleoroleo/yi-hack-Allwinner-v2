@@ -1,5 +1,13 @@
 #!/bin/sh
 
+echo 198 > /sys/class/gpio/export 
+echo out > /sys/class/gpio/gpio198/direction  
+echo 0 > /sys/class/gpio/gpio198/value 
+sleep 1
+echo 1 > /sys/class/gpio/gpio198/value
+
+
+
 ### wifi 8188 ###
 if [ "${enable_4g}" = "y" ];then
     echo "4g is running...."
@@ -12,6 +20,8 @@ else
         insmod /backup/ko/8188fu.ko
     elif [ -f /backup/ko/8189fs.ko ];then
         insmod /backup/ko/8189fs.ko
+    elif [ -f /backup/ko/atbm603x_wifi_usb.ko ];then
+        insmod /backup/ko/atbm603x_wifi_usb.ko
     elif [ -f /backup/ko/ssv6x5x.ko ];then
         if [ -f /home/base/firmware/ssv6x5x/ssv6x5x-wifi.cfg ];then
             insmod /backup/ko/ssv6x5x.ko stacfgpath="/home/base/firmware/ssv6x5x/ssv6x5x-wifi.cfg"

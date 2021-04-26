@@ -2,6 +2,12 @@
 	<img height="200" src="https://user-images.githubusercontent.com/39277388/96489837-43d26180-1240-11eb-9d0e-5cfa84040fe1.png">
 </p>
 
+<p align="center">
+	<a target="_blank" href="https://github.com/roleoroleo/yi-hack-Allwinner-v2/releases">
+		<img src="https://img.shields.io/github/downloads/roleoroleo/yi-hack-Allwinner-v2/total.svg" alt="Releases Downloads">
+	</a>
+</p>
+
 yi-hack-Allwinner-v2 is a modification of the firmware for the Allwinner-based Yi Camera platform.
 
 ## Table of Contents

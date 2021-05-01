@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ARCHIVE=live.2021.03.22.tar.gz
+ARCHIVE=live.2021.04.06.tar.gz
 FDKAAC_VER=2.0.1
 ARCHIVE_FDKAAC=v${FDKAAC_VER}.tar.gz
 

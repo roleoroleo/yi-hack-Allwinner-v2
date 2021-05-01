@@ -12,7 +12,11 @@ if [ "$MODEL_SUFFIX" == "r30gb" ] || [ "$MODEL_SUFFIX" == "h52ga" ] || [ "$MODEL
 else
     PTZ="no"
 fi
-SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
+if [ "$MODEL_SUFFIX" == "y211ga" ]; then
+    SERIAL_NUMBER=$(dd bs=1 count=20 skip=784 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
+else
+    SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
+fi
 LOCAL_TIME=$(date)
 UPTIME=$(cat /proc/uptime | cut -d ' ' -f1)
 LOAD_AVG=$(cat /proc/loadavg | cut -d ' ' -f1-3)
@@ -30,7 +34,7 @@ NETMASK=$(ifconfig wlan0 | awk '/inet addr/{print substr($4,6)}')
 GATEWAY=$(route -n | awk 'NR==3{print $2}')
 MAC_ADDR=$(ifconfig wlan0 | awk '/HWaddr/{print substr($5,1)}')
 WLAN_ESSID=$(iwconfig wlan0 | grep ESSID | cut -d\" -f2)
-WLAN_STRENGTH=$(cat /proc/net/wireless | awk 'END { print $3 }' | sed 's/\.$//')
+WLAN_STRENGTH=$(cat /proc/net/wireless | grep wlan0 | awk '{ print $3 }' | sed 's/\.$//')
 
 # Yeah, it's pretty ugly.. but hey, it works.
 

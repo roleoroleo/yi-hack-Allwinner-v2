@@ -2,8 +2,6 @@
 
 printf "Content-type: application/json\r\n\r\n"
 
-mount | grep /tmp/sd > /dev/null
-
 if [ ! -e /tmp/audio_in_fifo ]; then
     printf "{\n"
     printf "\"%s\":\"%s\"\\n" "error" "true"
@@ -13,6 +11,7 @@ if [ ! -e /tmp/audio_in_fifo ]; then
 fi
 
 # Check if sd is mounted
+mount | grep /tmp/sd > /dev/null
 if [ $? -eq 0 ]; then
     # If yes, create temp file in /tmp/sd and don't wait for completion
     TMP_FILE="/tmp/sd/speaker.pcm"

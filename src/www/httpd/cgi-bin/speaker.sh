@@ -16,7 +16,7 @@ if [ $? -eq 0 ]; then
     # If yes, create temp file in /tmp/sd and don't wait for completion
     TMP_FILE="/tmp/sd/speaker.pcm"
     cat - > $TMP_FILE
-    cat $TMP_FILE > /tmp/audio_in_fifo &
+    (speaker on > /dev/null; cat $TMP_FILE > /tmp/audio_in_fifo; sleep 1; speaker off > /dev/null; rm $TMP_FILE) &
 
     printf "{\n"
     printf "\"%s\":\"%s\"\\n" "error" "false"
@@ -31,8 +31,10 @@ else
     if [ "$CONTENT_LENGTH" -le "512000" ]; then
         TMP_FILE="/tmp/speaker.pcm"
         cat - > $TMP_FILE
+        speaker on > /dev/null
         cat $TMP_FILE > /tmp/audio_in_fifo
         sleep 1
+        speaker off > /dev/null
         rm $TMP_FILE
 
         printf "{\n"

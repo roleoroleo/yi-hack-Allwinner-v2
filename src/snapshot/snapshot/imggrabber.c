@@ -358,20 +358,20 @@ int main(int argc, char **argv)
     }
     if (fread(hl_frame, 1, 2 * sizeof(frame), fIdx) != 2 * sizeof(frame)) {
         fprintf(stderr, "Error reading file %s\n", I_FILE);
-        exit(-1);
+        exit(-2);
     }
 
     fBuf = fopen(BUFFER_FILE, "r") ;
     if (fBuf == NULL) {
         fprintf(stderr, "Could not open file %s\n", BUFFER_FILE);
-        exit(-1);
+        exit(-3);
     }
 
     // Map file to memory
     addr = (unsigned char*) mmap(NULL, buf_size, PROT_READ, MAP_SHARED, fileno(fBuf), 0);
     if (addr == MAP_FAILED) {
         fprintf(stderr, "Error mapping file %s\n", BUFFER_FILE);
-        exit(-1);
+        exit(-4);
     }
     if (debug) fprintf(stderr, "Mapping file %s, size %d, to %08x\n", BUFFER_FILE, buf_size, addr);
 
@@ -382,13 +382,13 @@ int main(int argc, char **argv)
     bufferh26x = (unsigned char *) malloc(hl_frame[hl_frame_index].vps_len + hl_frame[hl_frame_index].sps_len + hl_frame[hl_frame_index].pps_len + hl_frame[hl_frame_index].idr_len + FF_INPUT_BUFFER_PADDING_SIZE);
     if (bufferh26x == NULL) {
         fprintf(stderr, "Unable to allocate memory\n");
-        exit -1;
+        exit(-5);
     }
 
     bufferyuv = (unsigned char *) malloc(width * height * 3 / 2);
     if (bufferyuv == NULL) {
         fprintf(stderr, "Unable to allocate memory\n");
-        exit -1;
+        exit(-6);
     }
 
     if (hl_frame[hl_frame_index].vps_len != 0) {
@@ -402,13 +402,13 @@ int main(int argc, char **argv)
         if (debug) fprintf(stderr, "Decoding h264 frame\n");
         if(frame_decode(bufferyuv, bufferh26x, hl_frame[hl_frame_index].sps_len + hl_frame[hl_frame_index].pps_len + hl_frame[hl_frame_index].idr_len, 4) < 0) {
             fprintf(stderr, "Error decoding h264 frame\n");
-            exit(-2);
+            exit(-7);
         }
     } else {
         if (debug) fprintf(stderr, "Decoding h265 frame\n");
         if(frame_decode(bufferyuv, bufferh26x, hl_frame[hl_frame_index].vps_len + hl_frame[hl_frame_index].sps_len + hl_frame[hl_frame_index].pps_len + hl_frame[hl_frame_index].idr_len, 5) < 0) {
             fprintf(stderr, "Error decoding h265 frame\n");
-            exit(-2);
+            exit(-7);
         }
     }
     free(bufferh26x);
@@ -417,14 +417,14 @@ int main(int argc, char **argv)
         if (debug) fprintf(stderr, "Adding watermark\n");
         if (add_watermark(bufferyuv, width, height) < 0) {
             fprintf(stderr, "Error adding watermark\n");
-            exit -3;
+            exit(-8);
         }
     }
 
     if (debug) fprintf(stderr, "Encoding jpeg image\n");
     if(YUVtoJPG("stdout", bufferyuv, width, height, width, height) < 0) {
         fprintf(stderr, "Error encoding jpeg file\n");
-        exit(-4);
+        exit(-9);
     }
 
     free(bufferyuv);

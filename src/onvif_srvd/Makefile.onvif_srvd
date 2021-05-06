@@ -222,7 +222,7 @@ $(GENERATED_DIR)/onvif.h:
 	@$(build_openssl)
 	@$(build_gsoap)
 	@mkdir -p $(GENERATED_DIR)
-	$(WSDL2H) -d -t ./wsdl/typemap.dat  -o $@  $(WSDL_FILES)
+	$(WSDL2H) -O2 -d -t ./wsdl/typemap.dat  -o $@  $(WSDL_FILES)
 	$(WSSE_IMPORT)
 
 

@@ -32,6 +32,7 @@ fi
 
 read -r POST_DATA
 
+IFS=$(echo -en "\n\b")
 ROWS=$(echo "$POST_DATA" | jq -r '. | keys[] as $k | "\($k)=\(.[$k])"')
 for ROW in $ROWS; do
     KEY=$(echo $ROW | cut -d'=' -f1)

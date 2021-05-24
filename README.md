@@ -19,6 +19,7 @@ yi-hack-Allwinner-v2 is a modification of the firmware for the Allwinner-based Y
 - [Performance](#performance)
 - [Supported cameras](#supported-cameras)
 - [Is my cam supported?](#is-my-cam-supported)
+- [Home Assistant integration](#home-assistant-integration)
 - [Build your own firmware](#build-your-own-firmware)
 - [Unbricking](#unbricking)
 - [License](#license)
@@ -123,6 +124,15 @@ If not, check the other projects related to Yi cams:
 - https://github.com/TheCrypt0/yi-hack-v4 and previous
 - https://github.com/roleoroleo/yi-hack-MStar
 - https://github.com/roleoroleo/yi-hack-Allwinner
+
+
+## Home Assistant integration
+Are you using Home Assistant?
+
+Do you want to integrate your cam?
+
+Try this custom integration:
+https://github.com/roleoroleo/yi-hack_ha_integration
 
 
 ## Build your own firmware

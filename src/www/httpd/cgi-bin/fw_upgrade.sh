@@ -26,7 +26,7 @@ if [ "$VAL" == "info" ] ; then
 
 elif [ "$VAL" == "upgrade" ] ; then
 
-    FREE_SD=$(df /tmp/sd/ | grep mmc | awk '{print $4}')
+    FREE_SD=$(df | grep -m1 '/tmp/sd' | grep mmc | awk '{print $4}')
     if [ -z "$FREE_SD" ]; then
         printf "Content-type: text/html\r\n\r\n"
         printf "No SD detected."

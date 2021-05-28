@@ -4,7 +4,7 @@ YI_HACK_PREFIX="/tmp/sd/yi-hack"
 
 sedencode(){
 #  echo -e "$(sed 's/\\/\\\\\\/g;s/\&/\\\&/g;s/\//\\\//g;')"
-  echo "$(sed 's/\\/\\\\/g;s/\&/\\\&/g;s/\//\\\//g;')"
+  echo "$(sed 's/\\/\\\\/g;s/\"/\\\"/g;s/\&/\\\&/g;s/\//\\\//g;')"
 }
 
 removedoublequotes(){
@@ -31,12 +31,15 @@ else
 fi
 
 read -r POST_DATA
-
+# Change temporarily \n with \t (2 bytes)
+POST_DATA="${POST_DATA/\\n/\\t}"
 IFS=$(echo -en "\n\b")
 ROWS=$(echo "$POST_DATA" | jq -r '. | keys[] as $k | "\($k)=\(.[$k])"')
 for ROW in $ROWS; do
-    KEY=$(echo $ROW | cut -d'=' -f1)
-    VALUE=$(echo $ROW | cut -d'=' -f2)
+    ROW=$(echo "$ROW" | removedoublequotes)
+    KEY=$(echo "$ROW" | cut -d'=' -f1)
+    # Change back tab with \n
+    VALUE=$(echo "$ROW" | cut -d'=' -f2 | sed 's/\t/\\n/g')
 
     if [ "$KEY" == "HOSTNAME" ] ; then
         if [ -z $VALUE ] ; then
@@ -57,6 +60,7 @@ for ROW in $ROWS; do
         VALUE=$(echo "$VALUE" | sedencode)
         sed -i "s/^\(${KEY}\s*=\s*\).*$/\1${VALUE}/" $CONF_FILE
     fi
+
 done
 
 # Yeah, it's pretty ugly.

@@ -20,7 +20,7 @@ USED_SPACE_LIMIT=$((100-$1))
 echo "$USED_SPACE_LIMIT"
 
 cd /tmp/sd/record
-USED_SPACE=`df /tmp/sd/ | grep mmc | awk '{print $5}' | tr -d '%'`
+USED_SPACE=`df | grep -m1 '/tmp/sd' |  grep mmc | awk '{print $5}' | tr -d '%'`
 
 if [ -z "$USED_SPACE" ]; then
     exit
@@ -35,7 +35,7 @@ do
     else
         exit
     fi
-    USED_SPACE=`df /tmp/sd/ | grep mmc | awk '{print $5}' | tr -d '%'`
+    USED_SPACE=`df | grep -m1 '/tmp/sd' |  grep mmc | awk '{print $5}' | tr -d '%'`
 done
 
 echo "Done!"

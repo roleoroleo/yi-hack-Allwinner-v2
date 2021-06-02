@@ -80,13 +80,18 @@ start_onvif()
     if [[ $2 == "yes" ]; then
         WATERMARK="&watermark=yes"
     fi
-    if [[ $1 == "high" ]]; then
+    if [[ -z $1 ]]; then
+        ONVIF_PROFILE=$(get_config ONVIF_PROFILE)
+    else
+        ONVIF_PROFILE=$1
+    fi
+    if [[ $ONVIF_PROFILE == "high" ]]; then
         ONVIF_PROFILE_0="--name Profile_0 --width 1920 --height 1080 --url rtsp://%s$D_RTSP_PORT/ch0_0.h264 --snapurl http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK --type H264"
     fi
-    if [[ $1 == "low" ]]; then
+    if [[ $ONVIF_PROFILE == "low" ]]; then
         ONVIF_PROFILE_1="--name Profile_1 --width 640 --height 360 --url rtsp://%s$D_RTSP_PORT/ch0_1.h264 --snapurl http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK --type H264"
     fi
-    if [[ $1 == "both" ]]; then
+    if [[ $ONVIF_PROFILE == "both" ]]; then
         ONVIF_PROFILE_0="--name Profile_0 --width 1920 --height 1080 --url rtsp://%s$D_RTSP_PORT/ch0_0.h264 --snapurl http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK --type H264"
         ONVIF_PROFILE_1="--name Profile_1 --width 640 --height 360 --url rtsp://%s$D_RTSP_PORT/ch0_1.h264 --snapurl http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK --type H264"
     fi
@@ -179,6 +184,14 @@ if [ "$ACTION" == "start" ] ; then
     elif [ "$NAME" == "mp4record" ]; then
         cd /home/app
         ./mp4record >/dev/null &
+    elif [ "$NAME" == "all" ]; then
+        start_rtsp
+        start_onvif
+        start_wsdd
+        start_ftpd
+        mqttv4 >/dev/null &
+        cd /home/app
+        ./mp4record >/dev/null &
     fi
 elif [ "$ACTION" == "stop" ] ; then
     if [ "$NAME" == "rtsp" ]; then
@@ -192,6 +205,13 @@ elif [ "$ACTION" == "stop" ] ; then
     elif [ "$NAME" == "mqtt" ]; then
         killall mqttv4
     elif [ "$NAME" == "mp4record" ]; then
+        killall mp4record
+    elif [ "$NAME" == "all" ]; then
+        stop_rtsp
+        stop_onvif
+        stop_wsdd
+        stop_ftpd $PARAM1
+        killall mqttv4
         killall mp4record
     fi
 elif [ "$ACTION" == "status" ] ; then
@@ -207,6 +227,8 @@ elif [ "$ACTION" == "status" ] ; then
         RES=$(ps_program mqttv4)
     elif [ "$NAME" == "mp4record" ]; then
         RES=$(ps_program mp4record)
+    elif [ "$NAME" == "all" ]; then
+        RES=$(ps_program rRTSPServer)
     fi
 fi
 

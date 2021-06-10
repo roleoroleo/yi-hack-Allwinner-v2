@@ -1,6 +1,6 @@
 var APP = APP || {};
 
-APP.wifi = (function ($) {
+APP.wifi = (function($) {
 
     function init() {
         registerEventHandler();
@@ -8,7 +8,7 @@ APP.wifi = (function ($) {
     }
 
     function registerEventHandler() {
-        $(document).on("click", '#button-save-wifi', function (e) {
+        $(document).on("click", '#button-save-wifi', function(e) {
             saveWiFi();
         });
     }
@@ -30,8 +30,8 @@ APP.wifi = (function ($) {
             saveStatusElem.text("Not saved, passwords don't match.");
         } else {
             var configData = JSON.stringify(configs);
-            var escapedConfigData = configData.replace(/\\/g,  "\\")
-                                          .replace(/\\"/g, '\\"');
+            var escapedConfigData = configData.replace(/\\/g, "\\")
+                .replace(/\\"/g, '\\"');
 
             $.ajax({
                 type: "POST",

@@ -1,11 +1,11 @@
-String.format = function () {
+String.format = function() {
     var a = [];
     for (var i = 1; i < arguments.length; i++)
         a.push(arguments[i]);
     return ''.format.apply(arguments[0], a);
 };
 
-String.prototype.format = function () {
+String.prototype.format = function() {
     if (!RegExp)
         return;
 
@@ -13,7 +13,7 @@ String.prototype.format = function () {
     var quot_esc = [/"/g, '&#34;', /'/g, '&#39;'];
 
     function esc(s, r) {
-        if (typeof (s) !== 'string' && !(s instanceof String))
+        if (typeof(s) !== 'string' && !(s instanceof String))
             return '';
 
         for (var i = 0; i < r.length; i += 2)
@@ -24,12 +24,18 @@ String.prototype.format = function () {
     var str = this;
     var out = '';
     var re = /^(([^%]*)%('.|0|\x20)?(-)?(\d+)?(\.\d+)?(%|b|c|d|u|f|o|s|x|X|q|h|j|t|m))/;
-    var a = b = [], numSubstitutions = 0, numMatches = 0;
+    var a = b = [],
+        numSubstitutions = 0,
+        numMatches = 0;
 
     while (a = re.exec(str)) {
         var m = a[1];
-        var leftpart = a[2], pPad = a[3], pJustify = a[4], pMinLength = a[5];
-        var pPrecision = a[6], pType = a[7];
+        var leftpart = a[2],
+            pPad = a[3],
+            pJustify = a[4],
+            pMinLength = a[5];
+        var pPrecision = a[6],
+            pType = a[7];
 
         numMatches++;
 
@@ -79,9 +85,9 @@ String.prototype.format = function () {
                         break;
 
                     case 'f':
-                        subst = (precision > -1)
-                            ? ((+param || 0.0)).toFixed(precision)
-                            : (+param || 0.0);
+                        subst = (precision > -1) ?
+                            ((+param || 0.0)).toFixed(precision) :
+                            (+param || 0.0);
                         break;
 
                     case 'o':
@@ -129,9 +135,9 @@ String.prototype.format = function () {
                             th = (th % 24);
                         }
 
-                        subst = (td > 0)
-                            ? String.format('%dd %dh %dm %ds', td, th, tm, ts)
-                            : String.format('%dh %dm %ds', th, tm, ts);
+                        subst = (td > 0) ?
+                            String.format('%dd %dh %dm %ds', td, th, tm, ts) :
+                            String.format('%dh %dm %ds', th, tm, ts);
 
                         break;
 
@@ -143,7 +149,8 @@ String.prototype.format = function () {
                         var val = (+param || 0);
                         var units = [' ', ' K', ' M', ' G', ' T', ' P', ' E'];
 
-                        for (i = 0; (i < units.length) && (val > mf); i++)
+                        for (i = 0;
+                            (i < units.length) && (val > mf); i++)
                             val /= mf;
 
                         subst = (i ? val.toFixed(pr) : val) + units[i];
@@ -168,3 +175,25 @@ String.prototype.format = function () {
 
     return out + str;
 };
+
+// Wait for document to load
+document.addEventListener("DOMContentLoaded", function(event) {
+    document.documentElement.setAttribute("data-theme", window.localStorage.getItem('data-theme') || "light");
+
+    // Get our button switcher
+    var themeSwitcher = document.getElementById("theme-switcher");
+
+    // When our button gets clicked
+    themeSwitcher.onclick = function() {
+      // Get the current selected theme, on the first run
+      // it should be `light`
+      var currentTheme = document.documentElement.getAttribute("data-theme");
+
+      // Switch between `dark` and `light`
+      var switchToTheme = currentTheme === "dark" ? "light" : "dark"
+
+      // Set our currenet theme to the new one
+      document.documentElement.setAttribute("data-theme", switchToTheme);
+      window.localStorage.setItem('data-theme', switchToTheme);
+    }
+});

@@ -1,6 +1,6 @@
 var APP = APP || {};
 
-APP.ptz = (function ($) {
+APP.ptz = (function($) {
 
     function init() {
         registerEventHandler();
@@ -9,19 +9,19 @@ APP.ptz = (function ($) {
     }
 
     function registerEventHandler() {
-        $(document).on("click", '#img-au', function (e) {
+        $(document).on("click", '#img-au', function(e) {
             move('#img-au', 'up');
         });
-        $(document).on("click", '#img-al', function (e) {
+        $(document).on("click", '#img-al', function(e) {
             move('#img-al', 'left');
         });
-        $(document).on("click", '#img-ar', function (e) {
+        $(document).on("click", '#img-ar', function(e) {
             move('#img-ar', 'right');
         });
-        $(document).on("click", '#img-ad', function (e) {
+        $(document).on("click", '#img-ad', function(e) {
             move('#img-ad', 'down');
         });
-        $(document).on("click", '#button-goto', function (e) {
+        $(document).on("click", '#button-goto', function(e) {
             gotoPreset('#button-goto', '#select-goto');
         });
     }
@@ -30,7 +30,7 @@ APP.ptz = (function ($) {
         $(button).attr("disabled", true);
         $.ajax({
             type: "GET",
-            url: 'cgi-bin/ptz.sh?dir='+dir,
+            url: 'cgi-bin/ptz.sh?dir=' + dir,
             dataType: "json",
             error: function(response) {
                 console.log('error', response);
@@ -46,7 +46,7 @@ APP.ptz = (function ($) {
         $(button).attr("disabled", true);
         $.ajax({
             type: "GET",
-            url: 'cgi-bin/preset.sh?num='+$(select + " option:selected").text(),
+            url: 'cgi-bin/preset.sh?num=' + $(select + " option:selected").text(),
             dataType: "json",
             error: function(response) {
                 console.log('error', response);

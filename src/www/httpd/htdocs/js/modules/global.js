@@ -1,6 +1,6 @@
 var APP = APP || {};
 
-APP.global = (function ($) {
+APP.global = (function($) {
 
     function init() {
         registerEventHandler();
@@ -8,11 +8,11 @@ APP.global = (function ($) {
     }
 
     function registerEventHandler() {
-        $(document).on('click', 'html', function (e) {
+        $(document).on('click', 'html', function(e) {
             $('nav').removeClass('mobile');
         });
 
-        $(document).on('click', '.nav-toggler', function (e) {
+        $(document).on('click', '.nav-toggler', function(e) {
             $('nav').toggleClass('mobile');
             e.preventDefault();
             e.stopPropagation();
@@ -22,7 +22,7 @@ APP.global = (function ($) {
     function initPage() {
         let currentPage = retrievePageFromUrl();
         loadPage(currentPage);
-//        $('#nav-title').text(hostname);
+        //        $('#nav-title').text(hostname);
         document.title = hostname + " - " + currentPage;
     }
 

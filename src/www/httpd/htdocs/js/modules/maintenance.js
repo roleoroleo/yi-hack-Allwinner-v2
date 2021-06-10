@@ -1,6 +1,6 @@
 var APP = APP || {};
 
-APP.maintenance = (function ($) {
+APP.maintenance = (function($) {
 
     var timeoutVar;
 
@@ -11,19 +11,19 @@ APP.maintenance = (function ($) {
     }
 
     function registerEventHandler() {
-        $(document).on("click", '#button-save', function (e) {
+        $(document).on("click", '#button-save', function(e) {
             saveConfig();
         });
-        $(document).on("click", '#button-load', function (e) {
+        $(document).on("click", '#button-load', function(e) {
             loadConfig();
         });
-        $(document).on("click", '#button-reboot', function (e) {
+        $(document).on("click", '#button-reboot', function(e) {
             rebootCamera();
         });
-        $(document).on("click", '#button-reset', function (e) {
+        $(document).on("click", '#button-reset', function(e) {
             resetCamera();
         });
-        $(document).on("click", '#button-upgrade', function (e) {
+        $(document).on("click", '#button-upgrade', function(e) {
             upgradeFirmware();
         });
     }
@@ -61,7 +61,7 @@ APP.maintenance = (function ($) {
 
         var xhr = new XMLHttpRequest();
         xhr.open('POST', 'cgi-bin/load.sh', true);
-        xhr.onload = function () {
+        xhr.onload = function() {
             if (xhr.status === 200) {
                 $('#button-load').attr("disabled", false);
             }
@@ -89,14 +89,14 @@ APP.maintenance = (function ($) {
     }
 
     function waitForBoot() {
-        setInterval(function(){
+        setInterval(function() {
             $.ajax({
                 url: 'index.html',
                 cache: false,
                 success: function(data) {
                     setRebootStatus("Camera is back online, redirecting to home.");
                     $('#button-reboot').attr("disabled", false);
-                    window.location.href="index.html";
+                    window.location.href = "index.html";
                 },
                 error: function(data) {
                     setRebootStatus("Waiting for the camera to come back online.");
@@ -140,14 +140,14 @@ APP.maintenance = (function ($) {
     }
 
     function waitForUpgrade() {
-        setInterval(function(){
+        setInterval(function() {
             $.ajax({
                 url: 'index.html',
                 cache: false,
                 success: function(data) {
                     setFwStatus("Camera is upgrading.");
                     $('#button-upgrade').attr("disabled", false);
-                    window.location.href="index.html";
+                    window.location.href = "index.html";
                 },
                 error: function(data) {
                     setFwStatus("Waiting for the camera to come back online...");
@@ -157,18 +157,15 @@ APP.maintenance = (function ($) {
         }, 5000);
     }
 
-    function setRebootStatus(text)
-    {
+    function setRebootStatus(text) {
         $('input[type="text"][data-key="STATUS"]').prop('value', text);
     }
 
-    function setResetStatus(text)
-    {
+    function setResetStatus(text) {
         $('input[type="text"][data-key="RESET"]').prop('value', text);
     }
 
-    function setFwStatus(text)
-    {
+    function setFwStatus(text) {
         $('input[type="text"][data-key="FW"]').prop('value', text);
     }
 

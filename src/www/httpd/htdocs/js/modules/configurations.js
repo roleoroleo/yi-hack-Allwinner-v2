@@ -1,6 +1,6 @@
 var APP = APP || {};
 
-APP.configurations = (function ($) {
+APP.configurations = (function($) {
 
     function init() {
         registerEventHandler();
@@ -8,7 +8,7 @@ APP.configurations = (function ($) {
     }
 
     function registerEventHandler() {
-        $(document).on("click", '#button-save', function (e) {
+        $(document).on("click", '#button-save', function(e) {
             saveConfigs();
         });
     }
@@ -24,17 +24,17 @@ APP.configurations = (function ($) {
             success: function(response) {
                 loadingStatusElem.fadeOut(500);
 
-                $.each(response, function (key, state) {
-                    if(key=="HOSTNAME" || key=="TIMEZONE" || key=="NTP_SERVER" || key=="HTTPD_PORT" || key=="RTSP_PORT" || key=="ONVIF_PORT" || key=="USERNAME")
-                        $('input[type="text"][data-key="' + key +'"]').prop('value', state);
-                    else if(key=="RTSP_STREAM" || key=="RTSP_AUDIO" || key=="ONVIF_PROFILE" || key=="ONVIF_NETIF")
-                        $('select[data-key="' + key +'"]').prop('value', state);
-                    else if(key=="PASSWORD" || key=="SSH_PASSWORD")
-                        $('input[type="password"][data-key="' + key +'"]').prop('value', state);
-                    else if(key=="CRONTAB")
+                $.each(response, function(key, state) {
+                    if (key == "HOSTNAME" || key == "TIMEZONE" || key == "NTP_SERVER" || key == "HTTPD_PORT" || key == "RTSP_PORT" || key == "ONVIF_PORT" || key == "USERNAME")
+                        $('input[type="text"][data-key="' + key + '"]').prop('value', state);
+                    else if (key == "RTSP_STREAM" || key == "RTSP_AUDIO" || key == "ONVIF_PROFILE" || key == "ONVIF_NETIF")
+                        $('select[data-key="' + key + '"]').prop('value', state);
+                    else if (key == "PASSWORD" || key == "SSH_PASSWORD")
+                        $('input[type="password"][data-key="' + key + '"]').prop('value', state);
+                    else if (key == "CRONTAB")
                         $('textarea#' + key).prop('value', state);
                     else
-                        $('input[type="checkbox"][data-key="' + key +'"]').prop('checked', state === 'yes');
+                        $('input[type="checkbox"][data-key="' + key + '"]').prop('checked', state === 'yes');
                 });
             },
             error: function(response) {
@@ -51,18 +51,18 @@ APP.configurations = (function ($) {
 
         saveStatusElem.text("Saving...");
 
-        $('.configs-switch input[type="checkbox"]').each(function () {
+        $('.configs-switch input[type="checkbox"]').each(function() {
             configs[$(this).attr('data-key')] = $(this).prop('checked') ? 'yes' : 'no';
         });
 
         configs["HOSTNAME"] = $('input[type="text"][data-key="HOSTNAME"]').prop('value');
 
-//        if(!validateHostname(configs["HOSTNAME"]))
-//        {
-//            saveStatusElem.text("Failed");
-//            alert("Hostname not valid!");
-//            return;
-//        }
+        //        if(!validateHostname(configs["HOSTNAME"]))
+        //        {
+        //            saveStatusElem.text("Failed");
+        //            alert("Hostname not valid!");
+        //            return;
+        //        }
 
         configs["TIMEZONE"] = $('input[type="text"][data-key="TIMEZONE"]').prop('value');
         configs["NTP_SERVER"] = $('input[type="text"][data-key="NTP_SERVER"]').prop('value');
@@ -79,8 +79,8 @@ APP.configurations = (function ($) {
         configs["CRONTAB"] = $('textarea#CRONTAB').prop('value');
 
         var configData = JSON.stringify(configs);
-        var escapedConfigData = configData.replace(/\\/g,  "\\")
-                                          .replace(/\\"/g, '\\"');
+        var escapedConfigData = configData.replace(/\\/g, "\\")
+            .replace(/\\"/g, '\\"');
 
         $.ajax({
             type: "POST",

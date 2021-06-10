@@ -1,6 +1,6 @@
 var APP = APP || {};
 
-APP.eventsdir = (function ($) {
+APP.eventsdir = (function($) {
 
     function init() {
         fetchConfigs();
@@ -9,13 +9,13 @@ APP.eventsdir = (function ($) {
     }
 
     function registerEventHandler() {
-        $(document).on("click", '.button-primary', function (e) {
+        $(document).on("click", '.button-primary', function(e) {
             buttonClick();
         });
     }
 
     function buttonClick() {
-        if (event.target.id=="button-save") {
+        if (event.target.id == "button-save") {
             saveConfigs();
         } else {
             deleteDir();
@@ -25,7 +25,7 @@ APP.eventsdir = (function ($) {
     function deleteDir() {
         $.ajax({
             type: "GET",
-            url: 'cgi-bin/eventsdirdel.sh?dir='+event.target.id.substring(14),
+            url: 'cgi-bin/eventsdirdel.sh?dir=' + event.target.id.substring(14),
             dataType: "json",
             success: function(response) {
                 window.location.reload();
@@ -47,13 +47,13 @@ APP.eventsdir = (function ($) {
             success: function(response) {
                 loadingStatusElem.fadeOut(500);
 
-                $.each(response, function (key, state) {
-                    if(key=="FREE_SPACE"  || key=="FTP_HOST" || key=="FTP_DIR" || key=="FTP_USERNAME")
-                        $('input[type="text"][data-key="' + key +'"]').prop('value', state);
-                    else if(key=="FTP_PASSWORD")
-                        $('input[type="password"][data-key="' + key +'"]').prop('value', state);
+                $.each(response, function(key, state) {
+                    if (key == "FREE_SPACE" || key == "FTP_HOST" || key == "FTP_DIR" || key == "FTP_USERNAME")
+                        $('input[type="text"][data-key="' + key + '"]').prop('value', state);
+                    else if (key == "FTP_PASSWORD")
+                        $('input[type="password"][data-key="' + key + '"]').prop('value', state);
                     else
-                        $('input[type="checkbox"][data-key="' + key +'"]').prop('checked', state === 'yes');
+                        $('input[type="checkbox"][data-key="' + key + '"]').prop('checked', state === 'yes');
                 });
             },
             error: function(response) {
@@ -63,7 +63,7 @@ APP.eventsdir = (function ($) {
     }
 
 
-   function saveConfigs() {
+    function saveConfigs() {
         var saveStatusElem;
         let configs = {};
 
@@ -71,7 +71,7 @@ APP.eventsdir = (function ($) {
 
         saveStatusElem.text("Saving...");
 
-        $('.configs-switch input[type="checkbox"]').each(function () {
+        $('.configs-switch input[type="checkbox"]').each(function() {
             configs[$(this).attr('data-key')] = $(this).prop('checked') ? 'yes' : 'no';
         });
 

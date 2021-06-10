@@ -1,6 +1,6 @@
 var APP = APP || {};
 
-APP.camera_settings = (function ($) {
+APP.camera_settings = (function($) {
 
     function init() {
         registerEventHandler();
@@ -8,7 +8,7 @@ APP.camera_settings = (function ($) {
     }
 
     function registerEventHandler() {
-        $(document).on("click", '#button-save', function (e) {
+        $(document).on("click", '#button-save', function(e) {
             saveConfigs();
         });
     }
@@ -24,11 +24,11 @@ APP.camera_settings = (function ($) {
             success: function(response) {
                 loadingStatusElem.fadeOut(500);
 
-                $.each(response, function (key, state) {
+                $.each(response, function(key, state) {
                     if(key=="SENSITIVITY" || key=="SOUND_SENSITIVITY")
-                        $('select[data-key="' + key +'"]').prop('value', state);
+                        $('select[data-key="' + key + '"]').prop('value', state);
                     else
-                        $('input[type="checkbox"][data-key="' + key +'"]').prop('checked', state === 'yes');
+                        $('input[type="checkbox"][data-key="' + key + '"]').prop('checked', state === 'yes');
                 });
             },
             error: function(response) {
@@ -45,7 +45,7 @@ APP.camera_settings = (function ($) {
 
         saveStatusElem.text("Saving...");
 
-        $('.configs-switch input[type="checkbox"]').each(function () {
+        $('.configs-switch input[type="checkbox"]').each(function() {
             configs[$(this).attr('data-key')] = $(this).prop('checked') ? 'yes' : 'no';
         });
 

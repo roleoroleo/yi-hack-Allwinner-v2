@@ -1,6 +1,6 @@
 var APP = APP || {};
 
-APP.snapshot = (function ($) {
+APP.snapshot = (function($) {
 
     function init() {
         initPage();
@@ -8,9 +8,9 @@ APP.snapshot = (function ($) {
 
     function initPage() {
         jQuery.get('cgi-bin/snapshot.sh?res=high&base64=yes&watermark=yes', function(data) {
-        image = document.getElementById('imgSnap');
-        image.src = 'data:image/png;base64,' + data;
-        image.style = 'width:100%;';
+            image = document.getElementById('imgSnap');
+            image.src = 'data:image/png;base64,' + data;
+            image.style = 'width:100%;';
         })
     }
 

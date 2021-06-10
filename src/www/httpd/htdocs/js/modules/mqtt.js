@@ -1,6 +1,6 @@
 var APP = APP || {};
 
-APP.mqtt = (function ($) {
+APP.mqtt = (function($) {
 
     function init() {
         registerEventHandler();
@@ -8,7 +8,7 @@ APP.mqtt = (function ($) {
     }
 
     function registerEventHandler() {
-        $(document).on("click", '#button-save', function (e) {
+        $(document).on("click", '#button-save', function(e) {
             saveConfigs();
         });
     }
@@ -24,11 +24,11 @@ APP.mqtt = (function ($) {
             success: function(response) {
                 loadingStatusElem.fadeOut(500);
 
-                $.each(response, function (key, state) {
-                    if(key == "MQTT_PASSWORD")
-                        $('input[type="password"][data-key="' + key +'"]').prop('value', state);
+                $.each(response, function(key, state) {
+                    if (key == "MQTT_PASSWORD")
+                        $('input[type="password"][data-key="' + key + '"]').prop('value', state);
                     else
-                        $('input[type="text"][data-key="' + key +'"]').prop('value', state);
+                        $('input[type="text"][data-key="' + key + '"]').prop('value', state);
                 });
             },
             error: function(response) {
@@ -42,9 +42,9 @@ APP.mqtt = (function ($) {
             dataType: "json",
             success: function(response) {
 
-                $.each(response, function (key, state) {
-                    if(key == "MQTT")
-                        $('input[type="checkbox"][data-key="' + key +'"]').prop('checked', state === 'yes');
+                $.each(response, function(key, state) {
+                    if (key == "MQTT")
+                        $('input[type="checkbox"][data-key="' + key + '"]').prop('checked', state === 'yes');
                 });
             },
             error: function(response) {
@@ -62,15 +62,15 @@ APP.mqtt = (function ($) {
         saveStatusElem = $('#save-status');
         saveStatusElem.text("Saving...");
 
-        $('.configs-switch input[type="text"]').each(function () {
+        $('.configs-switch input[type="text"]').each(function() {
             configs[$(this).attr('data-key')] = $(this).prop('value');
         });
 
-        $('.configs-switch input[type="password"]').each(function () {
+        $('.configs-switch input[type="password"]').each(function() {
             configs[$(this).attr('data-key')] = $(this).prop('value');
         });
 
-        configsSystem["MQTT"]=$("#enable-mqtt").prop('checked') ? 'yes' : 'no';
+        configsSystem["MQTT"] = $("#enable-mqtt").prop('checked') ? 'yes' : 'no';
 
         $.ajax({
             type: "POST",
@@ -91,8 +91,7 @@ APP.mqtt = (function ($) {
             url: 'cgi-bin/set_configs.sh?conf=system',
             data: JSON.stringify(configsSystem),
             dataType: "json",
-            success: function(response) {
-            },
+            success: function(response) {},
             error: function(response) {
                 saveStatusElem.text("Error while saving");
                 console.log('error', response);

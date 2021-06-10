@@ -1,84 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html class="no-js" lang="en" data-theme="dark">
 	<head>
-
-		<!-- Basic Page Needs
-		–––––––––––––––––––––––––––––––––––––––––––––––––– -->
 		<meta charset="utf-8" />
         <title>Yi Cam Config</title>
         <meta name="author" content="gaggi, TheCrypt0, ramundomario, roleoroleo" />
-
-		<!-- Mobile Specific Metas
-		–––––––––––––––––––––––––––––––––––––––––––––––––– -->
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-
-        <!-- CSS
-        –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-		<link rel="stylesheet" href="css/all.css" />
-
-		<!-- Favicon
-		–––––––––––––––––––––––––––––––––––––––––––––––––– -->
-		<link rel="icon" type="image/png" href="images/favicon.png" />
-
-        <!-- Device Icons
-        –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-        <!-- iPhone(first generation or 2G), iPhone 3G, iPhone 3GS -->
-        <link rel="apple-touch-icon" sizes="57x57" href="image/touch-icon-iphone.png" />
-        <!-- iPad and iPad mini @1x -->
-        <link rel="apple-touch-icon" sizes="76x76" href="image/touch-icon-ipad.png" />
-        <!-- iPhone 4, iPhone 4s, iPhone 5, iPhone 5c, iPhone 5s, iPhone 6, iPhone 6s, iPhone 7, iPhone 7s, iPhone8 -->
-        <link rel="apple-touch-icon" sizes="120x120" href="image/touch-icon-iphone-retina.png" />
-        <!-- iPad and iPad mini @2x -->
-        <link rel="apple-touch-icon" sizes="152x152" href="image/touch-icon-ipad-retina.png" />
-        <!-- iPad Pro -->
-        <link rel="apple-touch-icon" sizes="167x167" href="image/touch-icon-ipad-pro.png" />
-        <!-- iPhone X, iPhone 8 Plus, iPhone 7 Plus, iPhone 6s Plus, iPhone 6 Plus -->
-        <link rel="apple-touch-icon" sizes="180x180" href="image/touch-icon-iphone-6-plus.png" />
-        <!-- Android Devices High Resolution -->
-        <link rel="icon" sizes="192x192" href="image/icon-hd.png" />
-        <!-- Android Devices Normal Resolution -->
-        <link rel="icon" sizes="128x128" href="image/icon.png" />
-
-        <!-- JavaScript
-        –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-        <script src="js/jquery.min.js"> </script>
-        <script src="cgi-bin/hostname.js"> </script>
-        <script src="js/all.js"> </script>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />  
+        <link rel="apple-touch-icon" href="img/icon.png" />
+        <link rel="stylesheet" href="css/all.css" />
     </head>
 
 	<body>
-
-		<!-- Navigation
-		–––––––––––––––––––––––––––––––––––––––––––––––––– -->
 		<nav class="nav-show">
 			<div class="container">
 				<ul>
                     <li>
-                        <a id="nav-title" href="index.html"><img src="images/yi-hack-header.png" alt="Yi-Hack Logo" style="width:100px"></a>
-                    </li>
-                    <!-- <li>
-                        <a href="?page=status">Status</a>
-                    </li> -->
-                    <li>
-                        <a href="?page=configurations">Configurations</a>
+                        <a id="nav-title" href="index.html">
+                            <svg width="88" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m 57.181128,2.0656951 c -0.91041,0.2280188 -1.711964,0.8426784 -2.097898,1.5862181 -0.405725,0.773282 -0.445309,1.3482854 -0.445309,6.2457352 0,3.8763226 0.02969,4.8181396 0.158332,5.3534896 0.267184,1.150006 0.761972,1.774581 1.771337,2.250446 0.534371,0.247847 0.692703,0.277588 1.682276,0.277588 0.989575,0 1.147907,-0.02973 1.682278,-0.277588 1.454673,-0.684057 1.929669,-1.715098 1.929669,-4.262962 v -1.3582 h -2.276021 v 1.209492 c 0,1.943117 -0.247394,2.458638 -1.187488,2.458638 -0.60364,0 -1.009367,-0.188364 -1.167698,-0.545262 -0.08907,-0.188363 -0.11876,-1.566391 -0.11876,-5.1353828 0,-4.659517 0.0099,-4.8875357 0.197916,-5.1948661 0.346351,-0.5750035 1.454674,-0.6642281 1.899982,-0.1586212 0.257289,0.2875022 0.376038,0.912075 0.376038,1.9332038 v 0.9715585 h 2.276022 V 6.2989155 c 0,-2.2603613 -0.524476,-3.3608007 -1.919774,-3.9952876 -0.474997,-0.2181056 -0.761973,-0.2775882 -1.484362,-0.2974163 -0.494787,-0.019832 -1.06874,0.00992 -1.27655,0.059487 z M 16.786712,2.3730244 c 0.0396,0.1090534 0.732284,2.4388107 1.543735,5.1750378 l 1.474466,4.9668468 v 5.115555 h 2.473935 v -5.284091 l 1.484361,-4.9965873 c 0.821347,-2.7461411 1.484362,-5.0362437 1.484362,-5.0858131 0,-0.059487 -0.474996,-0.099139 -1.138011,-0.099139 H 22.981447 L 22.89238,2.4820772 C 22.842903,2.6605267 22.427283,4.2467448 21.97208,6.0114134 21.437711,8.0734972 21.121047,9.1441946 21.081463,9.0252286 21.0023,8.8170369 19.310125,2.313542 19.310125,2.2243163 c 0,-0.029739 -0.583849,-0.059487 -1.296342,-0.059487 -1.25676,0 -1.286446,0.00992 -1.227071,0.2081907 z m 9.549388,7.524624 v 7.7328156 h 2.473936 V 2.1648339 H 26.3361 Z m 10.093657,0 v 7.7328156 h 2.473936 v -6.64229 h 2.67185 v 6.64229 h 2.473934 V 2.1648339 h -2.473934 v 6.6422899 h -2.67185 V 2.1648339 H 36.429757 Z M 47.67132,2.4325079 C 47.64163,2.5911302 47.097368,5.9420158 46.473934,9.8976484 45.840608,13.853282 45.306237,17.204168 45.276549,17.36279 l -0.05937,0.267674 h 2.266125 l 0.168227,-1.219405 c 0.09896,-0.664229 0.197914,-1.288803 0.227602,-1.38794 0.03957,-0.148709 0.197915,-0.168537 1.523943,-0.168537 0.811452,0 1.474467,0.02973 1.474467,0.06939 0,0.04957 0.08907,0.634487 0.197916,1.318544 0.108853,0.684056 0.197913,1.268975 0.197913,1.30863 0,0.04957 0.564057,0.07931 1.246864,0.07931 H 53.7671 L 53.70772,17.362782 C 53.678036,17.204162 53.143664,13.853275 52.510337,9.8976415 51.886905,5.9420089 51.34264,2.5911232 51.312952,2.432501 l -0.05939,-0.267674 h -3.522884 z m 2.27602,6.2754771 c 0.296873,2.022429 0.53437,3.767269 0.53437,3.876321 0,0.17845 -0.07916,0.188363 -1.147906,0.188363 h -1.147906 l 0.04948,-0.277588 c 0.02969,-0.148708 0.286976,-1.903461 0.573954,-3.9060629 0.296872,-1.9926863 0.544264,-3.6185607 0.564056,-3.5987326 0.01979,0.00992 0.277081,1.685357 0.573952,3.7176995 z m 13.398834,1.1896634 v 7.7328156 h 2.473935 v -2.409069 l -0.0099,-2.399156 0.32656,-0.61466 c 0.178123,-0.346985 0.346351,-0.624573 0.376039,-0.624573 0.02968,0 0.564056,1.348286 1.197384,3.003902 l 1.147905,2.993987 1.246864,0.02973 c 0.692702,0.0099 1.256759,0.0099 1.256759,0 0,-0.01983 -0.752077,-1.953032 -1.682276,-4.292705 l -1.6724,-4.2629624 1.434883,-2.9245905 c 0.801554,-1.6060454 1.553632,-3.1625223 1.682276,-3.4500246 l 0.237488,-0.5155156 h -2.424456 l -1.533842,3.2814892 -1.53384,3.2914033 -0.02968,-3.2914033 -0.01979,-3.2814892 h -2.473935 z m -32.952818,0 v 1.0905256 h 4.453083 V 8.8071238 H 30.393356 Z M 2.1113267,21.120146 c -0.1484356,0.148708 -0.1484356,0.604745 0,0.753453 0.168228,0.168535 83.6091183,0.168535 83.7773463,0 0.148436,-0.148708 0.148436,-0.604745 0,-0.753453 -0.168228,-0.168536 -83.6091182,-0.168536 -83.7773463,0 z" fill="currentColor"/></svg>
+                        </a>
                     </li>
                     <li>
-                        <a href="?page=mqtt">MQTT</a>
+                        <a href="?page=configurations" title="Configurations">
+                            <svg width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 6a1 1 0 000 2h6a1 1 0 100-2H9zM9 10a1 1 0 100 2h6a1 1 0 100-2H9zM13 17a1 1 0 11-2 0 1 1 0 012 0z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M4 5a3 3 0 013-3h10a3 3 0 013 3v14a3 3 0 01-3 3H7a3 3 0 01-3-3V5zm3-1h10a1 1 0 011 1v14a1 1 0 01-1 1H7a1 1 0 01-1-1V5a1 1 0 011-1z" fill="currentColor"/></svg>
+                        </a>
                     </li>
                     <li>
-                        <a href="?page=camera_settings">Camera Settings</a>
+                        <a href="?page=mqtt" title="MQTT">
+                            <svg width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M14.924 18v-4a3 3 0 00-6 0v4a3 3 0 106 0zm-3-9a5 5 0 00-5 5v4a5 5 0 0010 0v-4a5 5 0 00-5-5z" fill="currentColor"/><path d="M10.924 14a1 1 0 112 0v3h-2v-3zM11.924 1a9.97 9.97 0 017.105 2.963l-1.415 1.414A7.976 7.976 0 0011.924 3c-2.15 0-4.1.847-5.538 2.227L4.97 3.812A9.967 9.967 0 0111.924 1z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M11.923 5a6.97 6.97 0 014.38 1.539l-1.426 1.426A4.978 4.978 0 0011.923 7c-1.075 0-2.071.34-2.886.917l-1.43-1.429A6.97 6.97 0 0111.924 5z" fill="currentColor"/></svg>
+                        </a>
                     </li>
                     <li>
-                        <a href="?page=eventsdir">Motion Events</a>
+                        <a href="?page=camera_settings" title="Camera Settings">
+                            <svg width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M4 4.5v2h8v1H3a3 3 0 00-3 3v6a3 3 0 003 3h12a3 3 0 002.99-2.751L24 17.5v-8l-6.01.751A3 3 0 0015 7.5h-1v-2a1 1 0 00-1-1H4zm14 7.766v2.468l4 .5v-3.468l-4 .5zM16 10.5a1 1 0 00-1-1H3a1 1 0 00-1 1v6a1 1 0 001 1h12a1 1 0 001-1v-6z" fill="currentColor"/></svg>
+                        </a>
                     </li>
                     <li>
-                        <a href="?page=snapshot">Snapshot</a>
+                        <a href="?page=eventsdir" title="Motion Events">
+                            <svg width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.993 12.984a1 1 0 00-.531 1.848L7.15 17.52a1 1 0 101.414-1.415l-1.121-1.12h7.55a1 1 0 000-2h-10zM19.007 11.016a1 1 0 00.531-1.848L16.85 6.48a1 1 0 00-1.414 1.415l1.121 1.12h-7.55a1 1 0 000 2h10z" fill="currentColor"/></svg>
+                        </a>
                     </li>
                     <li>
-                        <a href="?page=ptz">PTZ</a>
+                        <a href="?page=snapshot" title="Snapshot">
+                            <svg width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M7 7a3 3 0 100 6 3 3 0 000-6zm-1 3a1 1 0 112 0 1 1 0 01-2 0z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M3 3a3 3 0 00-3 3v12a3 3 0 003 3h18a3 3 0 003-3V6a3 3 0 00-3-3H3zm18 2H3a1 1 0 00-1 1v12a1 1 0 001 1h4.314l6.878-6.879a3 3 0 014.243 0L22 15.686V6a1 1 0 00-1-1zm0 14H10.142l5.465-5.464a1 1 0 011.414 0l4.886 4.886A1 1 0 0121 19z" fill="currentColor"/></svg>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="?page=ptz" title="PTZ">
+                            <svg width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.828 6.343l1.415-1.414L12 .686 7.757 4.93l1.415 1.414L12 3.515l2.828 2.828zM4.929 16.243l1.414-1.415L3.515 12l2.828-2.828L4.93 7.757.686 12l4.243 4.243zM7.757 19.071L12 23.314l4.243-4.243-1.415-1.414L12 20.485l-2.828-2.828-1.415 1.414zM17.657 9.172L20.485 12l-2.828 2.828 1.414 1.415L23.314 12 19.07 7.757l-1.414 1.415z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 8a4 4 0 110 8 4 4 0 010-8zm0 2a2 2 0 110 4 2 2 0 010-4z" fill="currentColor"/></svg>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="?page=maintenance" title="Maintenance">
+                            <svg width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.26 21.997a10.276 10.276 0 01-.52 0 10.004 10.004 0 01-8.983-6.173 10.034 10.034 0 01.017-7.69A10.015 10.015 0 014.908 4.95l.042-.042a10.015 10.015 0 013.167-2.126 10.034 10.034 0 017.753-.006 10.015 10.015 0 013.186 2.138l.03.03c.913.917 1.65 2.01 2.153 3.223a10.012 10.012 0 01.76 3.985 10.004 10.004 0 01-6.226 9.112 10.013 10.013 0 01-3.512.733zm1.772-6.55l2.874 2.873a8.004 8.004 0 01-9.812 0l2.874-2.874a4.007 4.007 0 004.064 0zm-5.478-1.415L5.68 16.906a8.004 8.004 0 010-9.812l2.874 2.874a4.007 4.007 0 000 4.064zm1.528-1.463a2.01 2.01 0 01-.014-1.087 1.99 1.99 0 01.518-.896 1.99 1.99 0 011.932-.518c.328.088.639.26.896.518a1.99 1.99 0 01.518 1.932c-.088.328-.26.639-.518.896a1.99 1.99 0 01-1.932.518 1.991 1.991 0 01-.896-.518 1.99 1.99 0 01-.504-.845zm3.95-4.015a4.007 4.007 0 00-4.064 0L7.094 5.68a8.004 8.004 0 019.812 0l-2.874 2.874zm4.288 8.352a8.004 8.004 0 000-9.812l-2.874 2.874a4.007 4.007 0 010 4.064l2.874 2.874z" fill="currentColor"/></svg>
+                        </a>
                     </li>
                     <li class="nav-elem-right">
-                        <a href="?page=maintenance">Maintenance</a>
+                        <div id="theme-switcher">
+                            <a href="#" title="Switch Mode">
+                                <svg width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 16a4 4 0 000-8v8z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 2v4a4 4 0 100 8v4a8 8 0 100-16z" fill="currentColor"/></svg>
+                            </a>
+                        </div>
                     </li>
                     <li class="icon">
                         <a class="nav-toggler ios-onclick-fix">&#9776;</a>
@@ -87,13 +67,11 @@
 			</div>
         </nav>
 
-		<!-- Website Data
-		–––––––––––––––––––––––––––––––––––––––––––––––––– -->
         <div id="container" class="container">
-
         </div>
 
-	<!-- End Document
-	–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+        <script src="js/jquery.min.js"></script>
+        <script src="cgi-bin/hostname.js"></script>
+        <script src="js/all.js"></script>
 	</body>
 </html>

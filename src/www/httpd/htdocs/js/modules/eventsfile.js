@@ -1,11 +1,9 @@
 var APP = APP || {};
 
-function getUrlVar(key)
-{
+function getUrlVar(key) {
     var hash;
     var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-    for(var i = 0; i < hashes.length; i++)
-    {
+    for (var i = 0; i < hashes.length; i++) {
         hash = hashes[i].split('=');
         if (hash[0] == key)
             return hash[1];
@@ -13,7 +11,7 @@ function getUrlVar(key)
     return '';
 }
 
-APP.eventsfile = (function ($) {
+APP.eventsfile = (function($) {
 
     function init() {
         updateEventsFilePage();
@@ -21,10 +19,10 @@ APP.eventsfile = (function ($) {
     }
 
     function registerEventHandler() {
-        $(document).on("click", '.button-delete', function (e) {
+        $(document).on("click", '.button-delete', function(e) {
             deleteFile();
         });
-        $(document).on("click", '.button-play', function (e) {
+        $(document).on("click", '.button-play', function(e) {
             playFile();
         });
     }
@@ -32,7 +30,7 @@ APP.eventsfile = (function ($) {
     function deleteFile() {
         $.ajax({
             type: "GET",
-            url: 'cgi-bin/eventsfiledel.sh?file='+event.target.id.substring(14),
+            url: 'cgi-bin/eventsfiledel.sh?file=' + event.target.id.substring(14),
             dataType: "json",
             success: function(response) {
                 window.location.reload();
@@ -68,7 +66,7 @@ APP.eventsfile = (function ($) {
                     for (var i = 0; i < data.records.length; i++) {
                         var record = data.records[i];
                         html += "<tr><td>" + record.time + "</td>";
-                        html += "<td><a href=\"record/" + getUrlVar('dirname') + "/" + record.filename + "\">" +  record.filename + "</a></td>";
+                        html += "<td><a href=\"record/" + getUrlVar('dirname') + "/" + record.filename + "\">" + record.filename + "</a></td>";
                         html += "<td><input class=\"button-primary button-play\" type=\"button\" id=\"button-play-" + "record/" + getUrlVar('dirname') + "/" + record.filename + "\" value=\"Play\"/></td>";
                         html += "<td><input class=\"button-primary button-delete\" type=\"button\" id=\"button-delete-" + getUrlVar('dirname') + "/" + record.filename + "\" value=\"Delete\"/></td></tr>";
                     }

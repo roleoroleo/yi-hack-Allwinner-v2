@@ -17,14 +17,14 @@ SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
 mkdir -p ./_install/www/cgi-bin
-mkdir -p ./_install/www/images
+mkdir -p ./_install/www/img
 mkdir -p ./_install/www/css
 mkdir -p ./_install/www/js
 mkdir -p ./_install/www/pages
 
 echo "Compressing CSS files..."
 #find ./httpd/htdocs/css/* ! -name all.css -exec cat {} \+  > ./_install/www/htdocs/css/tmp.css
-cat ./httpd/htdocs/css/normalize.css ./httpd/htdocs/css/skeleton.css ./httpd/htdocs/css/custom.css > ./_install/www/css/tmp.css
+cat ./httpd/htdocs/css/normalize.min.css ./httpd/htdocs/css/skeleton.min.css ./httpd/htdocs/css/custom.css > ./_install/www/css/tmp.css
 yui-compressor --type css -o ./_install/www/css/all.css ./_install/www/css/tmp.css
 rm ./_install/www/css/tmp.css
 
@@ -45,7 +45,7 @@ for PAGE in ./httpd/htdocs/pages/*.html ; do
 done
 
 echo "Copying image files..."
-cp -R ./httpd/htdocs/images/. ./_install/www/images/
+cp -R ./httpd/htdocs/img/. ./_install/www/img/
 
 # To exlude more directories add the following line to the find command (after "-type f")
 # -not \( -path './_install/www/DIRECTORY_NAME/*' -prune \)

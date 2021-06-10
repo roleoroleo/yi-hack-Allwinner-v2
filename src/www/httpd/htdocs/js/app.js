@@ -1,4 +1,4 @@
-var APP = (function () {
+var APP = (function() {
 
     function init() {
         APP.global.init();
@@ -10,6 +10,6 @@ var APP = (function () {
 
 })(jQuery);
 
-$(function () {
+$(function() {
     APP.init();
 });

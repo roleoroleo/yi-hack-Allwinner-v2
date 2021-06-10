@@ -24,7 +24,10 @@ ulimit -s 1024
 
 echo 100 > /proc/sys/vm/dirty_writeback_centisecs
 echo 50 > /proc/sys/vm/dirty_expire_centisecs
-#echo 2048 > /proc/sys/vm/extra_free_kbytes
+
+if [ "${pix}" = "2m" ];then
+echo 2048 > /proc/sys/vm/extra_free_kbytes
+fi
 
 echo 400 > /proc/sys/vm/vfs_cache_pressure
 echo 0 > /proc/sys/vm/drop_caches
@@ -133,6 +136,11 @@ if [ -f /backup/url ];then
         if [ -f /backup/ko/8189fs.ko ];then
             insmod /backup/ko/8189fs.ko
         fi
+
+        if [ -f /backup/ko/atbm603x_wifi_usb.ko ];then
+            insmod /backup/ko/atbm603x_wifi_usb.ko
+        fi
+
         sleep 1
         ifconfig lo up
         ifconfig ${NETWORK_IFACE} up

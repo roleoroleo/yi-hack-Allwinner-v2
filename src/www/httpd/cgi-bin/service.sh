@@ -7,7 +7,7 @@ YI_HACK_PREFIX="/tmp/sd/yi-hack"
 YI_HACK_VER=$(cat /tmp/sd/yi-hack/version)
 MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
 SERIAL_NUMBER=$(dd bs=1 count=20 skip=592 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
-HW_ID=$(dd bs=1 count=4 skip=592 if=/tmp/mmap.info 2>/dev/null | cut -c1-4)
+HW_ID=$(dd bs=1 count=4 skip=656 if=/tmp/mmap.info 2>/dev/null | cut -c1-4)
 
 get_config()
 {

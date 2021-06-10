@@ -59,12 +59,12 @@
 #define LOWRES_BYTE_R30GB 8
 #define HIGHRES_BYTE_R30GB 4
 
-#define BUF_OFFSET_H52GA 368
-#define BUF_SIZE_H52GA 1048944
-#define FRAME_HEADER_SIZE_H52GA 28
-#define DATA_OFFSET_H52GA 4
-#define LOWRES_BYTE_H52GA 8
-#define HIGHRES_BYTE_H52GA 4
+#define BUF_OFFSET_R40GA 300
+#define BUF_SIZE_R40GA 1786156
+#define FRAME_HEADER_SIZE_R40GA 26
+#define DATA_OFFSET_R40GA 4
+#define LOWRES_BYTE_R40GA 8
+#define HIGHRES_BYTE_R40GA 4
 
 #define BUF_OFFSET_H51GA 368
 #define BUF_SIZE_H51GA 524656
@@ -72,6 +72,21 @@
 #define DATA_OFFSET_H51GA 4
 #define LOWRES_BYTE_H51GA 8
 #define HIGHRES_BYTE_H51GA 4
+
+#define BUF_OFFSET_H52GA 368
+#define BUF_SIZE_H52GA 1048944
+#define FRAME_HEADER_SIZE_H52GA 28
+#define DATA_OFFSET_H52GA 4
+#define LOWRES_BYTE_H52GA 8
+#define HIGHRES_BYTE_H52GA 4
+
+#define BUF_OFFSET_H60GA 368
+#define BUF_SIZE_H60GA 1048944
+#define FRAME_HEADER_SIZE_H60GA 28
+#define DATA_OFFSET_H60GA 4
+#define LOWRES_BYTE_H60GA 8
+#define HIGHRES_BYTE_H60GA 4
+#define SPS_TYPE_H60GA 2
 
 #define BUF_OFFSET_Q321BR_LSX 300
 #define BUF_SIZE_Q321BR_LSX 524588
@@ -127,10 +142,31 @@ unsigned char SPS4_1920X1080_TI[]  = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 
 unsigned char SPS4_2304X1296[]     = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
                                         0x96, 0x54, 0x01, 0x20, 0x05, 0x19, 0x37, 0x01,
                                         0x01, 0x01, 0x02};
-unsigned char SPS4_2304X1296_TI[]   = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
+unsigned char SPS4_2304X1296_TI[]  = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x20,
                                         0x96, 0x54, 0x01, 0x20, 0x05, 0x19, 0x37, 0x01,
                                         0x00, 0x00, 0x40, 0x00, 0x00, 0x7D, 0x00, 0x00,
                                         0x13, 0x88, 0x21};
+unsigned char SPS4_2_640X360[]     = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x14,
+                                        0xAC, 0x2C, 0xA8, 0x0A, 0x02, 0xF7, 0x96, 0x6E,
+                                        0x02, 0x02, 0x02, 0x04};
+unsigned char SPS4_2_640X360_TI[]  = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x14,
+                                        0xAC, 0x2C, 0xA8, 0x0A, 0x02, 0xF7, 0x96, 0x6E,
+                                        0x02, 0x02, 0x02, 0x80, 0x00, 0x00, 0xFA, 0x00,
+                                        0x00, 0x27, 0x10, 0x42};
+unsigned char SPS4_2_1920X1080[]   = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x20,
+                                        0xAC, 0x2C, 0xA8, 0x07, 0x80, 0x22, 0x5E, 0x59,
+                                        0xB8, 0x08, 0x08, 0x08, 0x10};
+unsigned char SPS4_2_1920X1080_TI[] = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x20,
+                                        0xAC, 0x2C, 0xA8, 0x07, 0x80, 0x22, 0x5E, 0x59,
+                                        0xB8, 0x08, 0x08, 0x0A, 0x00, 0x00, 0x03, 0x03,
+                                        0xE8, 0x00, 0x00, 0x9C, 0x41, 0x08};
+unsigned char SPS4_2_2304X1296[]   = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x20,
+                                        0xAC, 0x2C, 0xA8, 0x02, 0x40, 0x0A, 0x32, 0x6E,
+                                        0x02, 0x02, 0x02, 0x04};
+unsigned char SPS4_2_2304X1296_TI[] = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x20,
+                                        0xAC, 0x2C, 0xA8, 0x02, 0x40, 0x0A, 0x32, 0x6E,
+                                        0x02, 0x02, 0x02, 0x80, 0x00, 0x00, 0xFA, 0x00,
+                                        0x00, 0x27, 0x10, 0x42};
 unsigned char VPS5_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
                                         0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
                                         0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
@@ -214,7 +250,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-r RES] [-d]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, h52ga, h51ga or q321br_lsx (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga or q321br_lsx (default y21ga)\n");
     fprintf(stderr, "\t-r RES, --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: LOW or HIGH (default HIGH)\n");
     fprintf(stderr, "\t-s, --sti\n");
@@ -301,13 +337,13 @@ int main(int argc, char **argv) {
                 data_offset = DATA_OFFSET_R30GB;
                 lowres_byte = LOWRES_BYTE_R30GB;
                 highres_byte = HIGHRES_BYTE_R30GB;
-            } else if (strcasecmp("h52ga", optarg) == 0) {
-                buf_offset = BUF_OFFSET_H52GA;
-                buf_size = BUF_SIZE_H52GA;
-                frame_header_size = FRAME_HEADER_SIZE_H52GA;
-                data_offset = DATA_OFFSET_H52GA;
-                lowres_byte = LOWRES_BYTE_H52GA;
-                highres_byte = HIGHRES_BYTE_H52GA;
+            } else if (strcasecmp("r40ga", optarg) == 0) {
+                buf_offset = BUF_OFFSET_R40GA;
+                buf_size = BUF_SIZE_R40GA;
+                frame_header_size = FRAME_HEADER_SIZE_R40GA;
+                data_offset = DATA_OFFSET_R40GA;
+                lowres_byte = LOWRES_BYTE_R40GA;
+                highres_byte = HIGHRES_BYTE_R40GA;
             } else if (strcasecmp("h51ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_H51GA;
                 buf_size = BUF_SIZE_H51GA;
@@ -315,6 +351,20 @@ int main(int argc, char **argv) {
                 data_offset = DATA_OFFSET_H51GA;
                 lowres_byte = LOWRES_BYTE_H51GA;
                 highres_byte = HIGHRES_BYTE_H51GA;
+            } else if (strcasecmp("h52ga", optarg) == 0) {
+                buf_offset = BUF_OFFSET_H52GA;
+                buf_size = BUF_SIZE_H52GA;
+                frame_header_size = FRAME_HEADER_SIZE_H52GA;
+                data_offset = DATA_OFFSET_H52GA;
+                lowres_byte = LOWRES_BYTE_H52GA;
+                highres_byte = HIGHRES_BYTE_H52GA;
+            } else if (strcasecmp("h60ga", optarg) == 0) {
+                buf_offset = BUF_OFFSET_H60GA;
+                buf_size = BUF_SIZE_H60GA;
+                frame_header_size = FRAME_HEADER_SIZE_H60GA;
+                data_offset = DATA_OFFSET_H60GA;
+                lowres_byte = LOWRES_BYTE_H60GA;
+                highres_byte = HIGHRES_BYTE_H60GA;
             } else if (strcasecmp("q321br_lsx", optarg) == 0) {
                 buf_offset = BUF_OFFSET_Q321BR_LSX;
                 buf_size = BUF_SIZE_Q321BR_LSX;
@@ -416,6 +466,12 @@ int main(int argc, char **argv) {
                     fwrite(SPS4_1920X1080_TI, 1, sizeof(SPS4_1920X1080_TI), stdout);
                 } else if (cb_memcmp(SPS4_2304X1296, buf_idx_start, sizeof(SPS4_2304X1296)) == 0) {
                     fwrite(SPS4_2304X1296_TI, 1, sizeof(SPS4_2304X1296_TI), stdout);
+                } else if (cb_memcmp(SPS4_2_640X360, buf_idx_start, sizeof(SPS4_2_640X360)) == 0) {
+                    fwrite(SPS4_2_640X360_TI, 1, sizeof(SPS4_2_640X360_TI), stdout);
+                } else if (cb_memcmp(SPS4_2_1920X1080, buf_idx_start, sizeof(SPS4_2_1920X1080)) == 0) {
+                    fwrite(SPS4_2_1920X1080_TI, 1, sizeof(SPS4_2_1920X1080_TI), stdout);
+                } else if (cb_memcmp(SPS4_2_2304X1296, buf_idx_start, sizeof(SPS4_2_2304X1296)) == 0) {
+                    fwrite(SPS4_2_2304X1296_TI, 1, sizeof(SPS4_2_2304X1296_TI), stdout);
                 } else if (cb_memcmp(VPS5_1920X1080, buf_idx_start, sizeof(VPS5_1920X1080)) == 0) {
                     fwrite(VPS5_1920X1080_TI, 1, sizeof(VPS5_1920X1080_TI), stdout);
                 }

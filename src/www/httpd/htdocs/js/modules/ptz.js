@@ -78,7 +78,7 @@ APP.ptz = (function ($) {
             success: function(data) {
                 for (let key in data) {
                     if (key == "model_suffix") {
-                        if ((data[key] == "r30gb") || (data[key] == "h52ga") || (data[key] == "h51ga")  || (data[key] == "q321br_lsx")) {
+                        if ((data[key] == "r30gb") || (data[key] == "r40ga") || (data[key] == "h51ga") || (data[key] == "h52ga") || (data[key] == "h60ga") || (data[key] == "q321br_lsx")) {
                             $('#ptz_description').show();
                             $('#ptz_available').hide();
                             $('#ptz_main').show();

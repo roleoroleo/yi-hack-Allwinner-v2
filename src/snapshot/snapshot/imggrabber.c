@@ -46,11 +46,17 @@
 #define BUF_OFFSET_R30GB 300
 #define BUF_SIZE_R30GB 1786156
 
-#define BUF_OFFSET_H52GA 368
-#define BUF_SIZE_H52GA 1048944
+#define BUF_OFFSET_R40GA 300
+#define BUF_SIZE_R40GA 1786156
 
 #define BUF_OFFSET_H51GA 368
 #define BUF_SIZE_H51GA 524656
+
+#define BUF_OFFSET_H52GA 368
+#define BUF_SIZE_H52GA 1048944
+
+#define BUF_OFFSET_H60GA 368
+#define BUF_SIZE_H60GA 1048944
 
 #define BUF_OFFSET_Q321BR_LSX 300
 #define BUF_SIZE_Q321BR_LSX 524588
@@ -239,7 +245,7 @@ int add_watermark(char *buffer, int w_res, int h_res)
 void usage(char *prog_name)
 {
     fprintf(stderr, "Usage: %s [options]\n", prog_name);
-    fprintf(stderr, "\t-m, --model MODEL       Set model: \"y21ga\", \"y211ga\", \"h30ga\", \"r30gb\", \"h52ga\", \"h51ga\" of q321br_lsx (default \"y21ga\")\n");
+    fprintf(stderr, "\t-m, --model MODEL       Set model: \"y21ga\", \"y211ga\", \"h30ga\", \"r30gb\", \"r40ga\", \"h51ga\", \"h52ga\", \"h60ga\" of q321br_lsx (default \"y21ga\")\n");
     fprintf(stderr, "\t-r, --res RES           Set resolution: \"low\" or \"high\" (default \"high\")\n");
     fprintf(stderr, "\t-w, --watermark         Add watermark to image\n");
     fprintf(stderr, "\t-h, --help              Show this help\n");
@@ -299,13 +305,21 @@ int main(int argc, char **argv)
                     buf_offset = BUF_OFFSET_R30GB;
                     buf_size = BUF_SIZE_R30GB;
                     model_high_res = RESOLUTION_FHD;
-                } else if (strcasecmp("h52ga", optarg) == 0) {
-                    buf_offset = BUF_OFFSET_H52GA;
-                    buf_size = BUF_SIZE_H52GA;
+                } else if (strcasecmp("r40ga", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_R40GA;
+                    buf_size = BUF_SIZE_R40GA;
                     model_high_res = RESOLUTION_FHD;
                 } else if (strcasecmp("h51ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_H51GA;
                     buf_size = BUF_SIZE_H51GA;
+                    model_high_res = RESOLUTION_3K;
+                } else if (strcasecmp("h52ga", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_H52GA;
+                    buf_size = BUF_SIZE_H52GA;
+                    model_high_res = RESOLUTION_FHD;
+                } else if (strcasecmp("h60ga", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_H60GA;
+                    buf_size = BUF_SIZE_H60GA;
                     model_high_res = RESOLUTION_3K;
                 } else if (strcasecmp("q321br_lsx", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Q321BR_LSX;

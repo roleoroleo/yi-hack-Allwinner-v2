@@ -1,7 +1,7 @@
 diff -Naur onvif_srvd.ori/src/daemon.c onvif_srvd/src/daemon.c
 --- onvif_srvd.ori/src/daemon.c	2020-04-16 10:35:42.652985671 +0200
 +++ onvif_srvd/src/daemon.c	2020-04-16 10:28:48.060441054 +0200
-@@ -207,11 +207,11 @@
+@@ -214,11 +214,11 @@
          return -1; // Could not create on PID file
  
  

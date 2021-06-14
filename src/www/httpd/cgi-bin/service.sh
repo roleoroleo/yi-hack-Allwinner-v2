@@ -6,8 +6,19 @@ YI_HACK_PREFIX="/tmp/sd/yi-hack"
 
 YI_HACK_VER=$(cat /tmp/sd/yi-hack/version)
 MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
-SERIAL_NUMBER=$(dd bs=1 count=20 skip=592 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
-HW_ID=$(dd bs=1 count=4 skip=656 if=/tmp/mmap.info 2>/dev/null | cut -c1-4)
+if [ "$MODEL_SUFFIX" == "y211ga" ] || [ "$MODEL_SUFFIX" == "h60ga" ]; then
+    SERIAL_NUMBER=$(dd bs=1 count=20 skip=784 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
+    HW_ID=$(dd bs=1 count=4 skip=784 if=/tmp/mmap.info 2>/dev/null | cut -c1-4)
+else
+    SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
+    HW_ID=$(dd bs=1 count=4 skip=656 if=/tmp/mmap.info 2>/dev/null | cut -c1-4)
+fi
+
+if [[ $(get_config ONVIF_NETIF) == "wlan0" ]] ; then
+    ONVIF_NETIF="wlan0"
+else
+    ONVIF_NETIF="eth0"
+fi
 
 get_config()
 {
@@ -20,7 +31,7 @@ init_config()
     if [[ x$(get_config USERNAME) != "x" ]] ; then
         USERNAME=$(get_config USERNAME)
         PASSWORD=$(get_config PASSWORD)
-        ONVIF_USERPWD="--user $USERNAME --password $PASSWORD"
+        ONVIF_USERPWD="user=$USERNAME\npassword=$PASSWORD"
     fi
 
     case $(get_config RTSP_PORT) in
@@ -58,10 +69,10 @@ init_config()
 
 start_rtsp()
 {
-    if [ ! -z $1 ]; then
+    if [ "$1" != "none" ]; then
         RTSP_RES=$1
     fi
-    if [ ! -z $2 ]; then
+    if [ "$2" != "none" ]; then
         RTSP_AUDIO_COMPRESSION=$2
     fi
 
@@ -77,30 +88,64 @@ stop_rtsp()
 
 start_onvif()
 {
-    if [[ $2 == "yes" ]; then
+    if [[ "$2" == "yes" ]]; then
         WATERMARK="&watermark=yes"
     fi
-    if [[ -z $1 ]]; then
+    if [[ "$1" == "none" ]]; then
         ONVIF_PROFILE=$(get_config ONVIF_PROFILE)
     else
         ONVIF_PROFILE=$1
     fi
     if [[ $ONVIF_PROFILE == "high" ]]; then
-        ONVIF_PROFILE_0="--name Profile_0 --width 1920 --height 1080 --url rtsp://%s$D_RTSP_PORT/ch0_0.h264 --snapurl http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK --type H264"
+        ONVIF_PROFILE_0="name=Profile_0\nwidth=1920\nheight=1080\nurl=rtsp://%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264"
     fi
     if [[ $ONVIF_PROFILE == "low" ]]; then
-        ONVIF_PROFILE_1="--name Profile_1 --width 640 --height 360 --url rtsp://%s$D_RTSP_PORT/ch0_1.h264 --snapurl http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK --type H264"
+        ONVIF_PROFILE_1="name=Profile_1\nwidth=640\nheight=360\nurl=rtsp://%s$D_RTSP_PORT/ch0_1.h264\nsnapurl=http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK\ntype=H264"
     fi
     if [[ $ONVIF_PROFILE == "both" ]]; then
-        ONVIF_PROFILE_0="--name Profile_0 --width 1920 --height 1080 --url rtsp://%s$D_RTSP_PORT/ch0_0.h264 --snapurl http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK --type H264"
-        ONVIF_PROFILE_1="--name Profile_1 --width 640 --height 360 --url rtsp://%s$D_RTSP_PORT/ch0_1.h264 --snapurl http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK --type H264"
+        ONVIF_PROFILE_0="name=Profile_0\nwidth=1920\nheight=1080\nurl=rtsp://%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264"
+        ONVIF_PROFILE_1="name=Profile_1\nwidth=640\nheight=360\nurl=rtsp://%s$D_RTSP_PORT/ch0_1.h264\nsnapurl=http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK\ntype=H264"
+    fi
+
+    ONVIF_SRVD_CONF="/tmp/onvif_srvd.conf"
+
+    echo "pid_file=/var/run/onvif_srvd.pid" > $ONVIF_SRVD_CONF
+    echo "model=Yi Hack" >> $ONVIF_SRVD_CONF
+    echo "manufacturer=Yi" >> $ONVIF_SRVD_CONF
+    echo "firmware_ver=$YI_HACK_VER" >> $ONVIF_SRVD_CONF
+    echo "hardware_id=$HW_ID" >> $ONVIF_SRVD_CONF
+    echo "serial_num=$SERIAL_NUMBER" >> $ONVIF_SRVD_CONF
+    echo "ifs=$ONVIF_NETIF" >> $ONVIF_SRVD_CONF
+    echo "port=$ONVIF_PORT" >> $ONVIF_SRVD_CONF
+    echo "scope=onvif://www.onvif.org/Profile/S" >> $ONVIF_SRVD_CONF
+    echo "" >> $ONVIF_SRVD_CONF
+    if [ ! -z $ONVIF_PROFILE_0 ]; then
+        echo "#Profile 0" >> $ONVIF_SRVD_CONF
+        echo -e $ONVIF_PROFILE_0 >> $ONVIF_SRVD_CONF
+        echo "" >> $ONVIF_SRVD_CONF
+    fi
+    if [ ! -z $ONVIF_PROFILE_1 ]; then
+        echo "#Profile 1" >> $ONVIF_SRVD_CONF
+        echo -e $ONVIF_PROFILE_1 >> $ONVIF_SRVD_CONF
+        echo "" >> $ONVIF_SRVD_CONF
+    fi
+    if [ ! -z $ONVIF_USERPWD ]; then
+        echo -e $ONVIF_USERPWD >> $ONVIF_SRVD_CONF
+        echo "" >> $ONVIF_SRVD_CONF
     fi
 
     if [[ $MODEL_SUFFIX == "r30gb" ]] || [[ $MODEL_SUFFIX == "r40gb" ]] || [[ $MODEL_SUFFIX == "h51ga" ]] || [[ $MODEL_SUFFIX == "h52ga" ]] || [[ $MODEL_SUFFIX == "h60ga" ]] || [[ $MODEL_SUFFIX == "q321br_lsx" ]] ; then
-        onvif_srvd --pid_file /var/run/onvif_srvd.pid --model "Yi Hack" --manufacturer "Yi" --firmware_ver $YI_HACK_VER --hardware_id $HW_ID --serial_num $SERIAL_NUMBER --ifs wlan0 --port $ONVIF_PORT --scope onvif://www.onvif.org/Profile/S $ONVIF_PROFILE_0 $ONVIF_PROFILE_1 $ONVIF_USERPWD --ptz --move_left "/tmp/sd/yi-hack/bin/ipc_cmd -M left" --move_right "/tmp/sd/yi-hack/bin/ipc_cmd -M right" --move_up "/tmp/sd/yi-hack/bin/ipc_cmd -M up" --move_down "/tmp/sd/yi-hack/bin/ipc_cmd -M down" --move_stop "/tmp/sd/yi-hack/bin/ipc_cmd -M stop" --move_preset "/tmp/sd/yi-hack/bin/ipc_cmd -p %t"
-    else
-        onvif_srvd --pid_file /var/run/onvif_srvd.pid --model "Yi Hack" --manufacturer "Yi" --firmware_ver $YI_HACK_VER --hardware_id $HW_ID --serial_num $SERIAL_NUMBER --ifs wlan0 --port $ONVIF_PORT --scope onvif://www.onvif.org/Profile/S $ONVIF_PROFILE_0 $ONVIF_PROFILE_1 $ONVIF_USERPWD
+        echo "#PTZ" >> $ONVIF_SRVD_CONF
+        echo "ptz=1" >> $ONVIF_SRVD_CONF
+        echo "move_left=/tmp/sd/yi-hack/bin/ipc_cmd -M left" >> $ONVIF_SRVD_CONF
+        echo "move_right=/tmp/sd/yi-hack/bin/ipc_cmd -M right" >> $ONVIF_SRVD_CONF
+        echo "move_up=/tmp/sd/yi-hack/bin/ipc_cmd -M up" >> $ONVIF_SRVD_CONF
+        echo "move_down=/tmp/sd/yi-hack/bin/ipc_cmd -M down" >> $ONVIF_SRVD_CONF
+        echo "move_stop=/tmp/sd/yi-hack/bin/ipc_cmd -M stop" >> $ONVIF_SRVD_CONF
+        echo "move_preset=/tmp/sd/yi-hack/bin/ipc_cmd -p %t" >> $ONVIF_SRVD_CONF
     fi
+
+    onvif_srvd --conf_file $ONVIF_SRVD_CONF
 }
 
 stop_onvif()
@@ -110,7 +155,7 @@ stop_onvif()
 
 start_wsdd()
 {
-    wsdd --pid_file /var/run/wsdd.pid --if_name wlan0 --type tdn:NetworkVideoTransmitter --xaddr http://%s$D_ONVIF_PORT --scope "onvif://www.onvif.org/name/Unknown onvif://www.onvif.org/Profile/Streaming"
+    wsdd --pid_file /var/run/wsdd.pid --if_name $ONVIF_NETIF --type tdn:NetworkVideoTransmitter --xaddr http://%s$D_ONVIF_PORT --scope "onvif://www.onvif.org/name/Unknown onvif://www.onvif.org/Profile/Streaming"
 }
 
 stop_wsdd()

@@ -165,18 +165,38 @@ stop_wsdd()
 
 start_ftpd()
 {
-    if [[ $1 == "busybox" ]] ; then
+    if [[ "$1" == "none" ]] ; then
+        if [[ $(get_config BUSYBOX_FTPD) == "yes" ]] ; then
+            FTPD_DAEMON="busybox"
+        else
+            FTPD_DAEMON="pure-ftpd"
+        fi
+    else
+        FTPD_DAEMON=$1
+    fi
+
+    if [[ $FTPD_DAEMON == "busybox" ]] ; then
         tcpsvd -vE 0.0.0.0 21 ftpd -w >/dev/null &
-    elif [[ $1 == "pure-ftpd" ]] ; then
+    elif [[ $FTPD_DAEMON == "pure-ftpd" ]] ; then
         pure-ftpd -B
     fi
 }
 
 stop_ftpd()
 {
-    if [[ $1 == "busybox" ]] ; then
+    if [[ "$1" == "none" ]] ; then
+        if [[ $(get_config BUSYBOX_FTPD) == "yes" ]] ; then
+            FTPD_DAEMON="busybox"
+        else
+            FTPD_DAEMON="pure-ftpd"
+        fi
+    else
+        FTPD_DAEMON=$1
+    fi
+
+    if [[ $FTPD_DAEMON == "busybox" ]] ; then
         killall tcpsvd
-    elif [[ $1 == "pure-ftpd" ]] ; then
+    elif [[ $FTPD_DAEMON == "pure-ftpd" ]] ; then
         killall pure-ftpd
     fi
 }
@@ -255,7 +275,7 @@ elif [ "$ACTION" == "stop" ] ; then
         stop_rtsp
         stop_onvif
         stop_wsdd
-        stop_ftpd $PARAM1
+        stop_ftpd
         killall mqttv4
         killall mp4record
     fi

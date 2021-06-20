@@ -7,6 +7,9 @@ on:
       - main
       - master
 
+env:
+  SUNXI_TOOLCHAIN: /opt/yi/toolchain-sunxi-musl
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,6 +17,26 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
+      - name: Install deps
+        run: |
+          sudo apt update
+          sudo apt install -y git unzip build-essential \
+            bison++ bisonc++ libbison-dev autoconf autotools-dev \
+            automake libssl-dev zlibc zlib1g-dev libzzip-dev flex libfl-dev \
+            yui-compressor closure-compiler optipng jpegoptim libtidy5deb1 node-less \
+            sassc sass-spec libhtml-tidy-perl libxml2-utils rsync
+      - name: Cache Primes
+        id: cache-toolchain
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.SUNXI_TOOLCHAIN }}
+          key: ${{ runner.os }}-sunxi
+      - name: Download toolchain
+        if: steps.cache-toolchain.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/lindenis-org/lindenis-v536-prebuilt
+          sudo mkdir -p ${SUNXI_TOOLCHAIN}
+          sudo cp -r lindenis-v536-prebuilt/gcc/linux-x86/arm/toolchain-sunxi-musl/toolchain ${SUNXI_TOOLCHAIN}/
       - name: Build
         run: bash -ex scripts/compile.sh
       - name: Pack

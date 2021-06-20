@@ -1,0 +1,20 @@
+name: Build
+
+on:
+  push:
+    tags:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Build
+        run: bash -ex scripts/compile.sh
+      - name: Pack
+        run: sudo bash -ex scripts/pack_fw_all.sh

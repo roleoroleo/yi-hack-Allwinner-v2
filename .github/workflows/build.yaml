@@ -1,0 +1,41 @@
+name: Build
+
+on:
+  push:
+    tags:
+    branches:
+      - main
+      - master
+
+env:
+  SUNXI_TOOLCHAIN: /opt/yi/toolchain-sunxi-musl
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Install deps
+        run: |
+          sudo apt update
+          sudo apt install -y git unzip build-essential \
+            bison bisonc++ libbison-dev autoconf autotools-dev \
+            automake libssl-dev zlibc zlib1g-dev libzzip-dev flex libfl-dev \
+            yui-compressor closure-compiler optipng jpegoptim libtidy5deb1 node-less \
+            sassc sass-spec libhtml-tidy-perl libxml2-utils rsync
+      - name: Download toolchain
+        run: |
+          git clone https://github.com/lindenis-org/lindenis-v536-prebuilt
+          sudo mkdir -p ${SUNXI_TOOLCHAIN}
+          sudo cp -r lindenis-v536-prebuilt/gcc/linux-x86/arm/toolchain-sunxi-musl/toolchain ${SUNXI_TOOLCHAIN}/
+      - name: Build
+        run: bash -ex scripts/compile.sh
+      - name: Pack
+        run: sudo bash -ex scripts/pack_fw.all.sh
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: out/**/*.tgz

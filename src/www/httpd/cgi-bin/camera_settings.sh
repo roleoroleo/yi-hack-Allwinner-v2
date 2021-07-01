@@ -45,7 +45,7 @@ do
             ipc_cmd -b on
         fi
     elif [ "$CONF" == "sound_sensitivity" ] ; then
-        if [ "$VAL" == "50" ] || [ "$VAL" == "60" ] || [ "$VAL" == "70" ] || [ "$VAL" == "80" ] || [ "$VAL" == "90" ] ; then
+        if [ "$VAL" == "30" ] || [ "$VAL" == "35" ] || [ "$VAL" == "40" ] || [ "$VAL" == "45" ] || [ "$VAL" == "50" ] || [ "$VAL" == "60" ] || [ "$VAL" == "70" ] || [ "$VAL" == "80" ] || [ "$VAL" == "90" ] ; then
             ipc_cmd -n $VAL
         fi
     elif [ "$CONF" == "led" ] ; then

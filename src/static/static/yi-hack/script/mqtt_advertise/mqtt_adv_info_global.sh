@@ -22,10 +22,15 @@ FW_VERSION=$(cat $YI_HACK_PREFIX/version)
 HOME_VERSION=$(cat /home/app/.appver)
 MODEL_SUFFIX=$(cat $YI_HACK_PREFIX/model_suffix)
 SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
-LOCAL_IP=$(ifconfig wlan0 | awk '/inet addr/{print substr($2,6)}')
-NETMASK=$(ifconfig wlan0 | awk '/inet addr/{print substr($4,6)}')
+LOCAL_IP=$(ifconfig eth0 | awk '/inet addr/{print substr($2,6)}')
+NETMASK=$(ifconfig eth0 | awk '/inet addr/{print substr($4,6)}')
+MAC_ADDR=$(ifconfig eth0 | awk '/HWaddr/{print substr($5,1)}')
+if [ -z $LOCAL_IP ]; then
+    LOCAL_IP=$(ifconfig wlan0 | awk '/inet addr/{print substr($2,6)}')
+    NETMASK=$(ifconfig wlan0 | awk '/inet addr/{print substr($4,6)}')
+    MAC_ADDR=$(ifconfig wlan0 | awk '/HWaddr/{print substr($5,1)}')
+fi
 GATEWAY=$(route -n | awk 'NR==3{print $2}')
-MAC_ADDR=$(ifconfig wlan0 | awk '/HWaddr/{print substr($5,1)}')
 WLAN_ESSID=$(iwconfig wlan0 | grep ESSID | cut -d\" -f2)
 
 # MQTT configuration

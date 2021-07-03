@@ -10,7 +10,10 @@ get_config()
     grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2
 }
 
-LOCAL_IP=$(ifconfig wlan0 | awk '/inet addr/{print substr($2,6)}')
+LOCAL_IP=$(ifconfig eth0 | awk '/inet addr/{print substr($2,6)}')
+if [ -z $LOCAL_IP ]; then
+    LOCAL_IP=$(ifconfig wlan0 | awk '/inet addr/{print substr($2,6)}')
+fi
 
 case $(get_config RTSP_PORT) in
     ''|*[!0-9]*) RTSP_PORT=554 ;;

@@ -95,7 +95,10 @@ for f in `ls -At /tmp/sd/record/$DIRNAME`; do
 done
 
 if [ "$TYPE" == "2" ]; then
-    LOCAL_IP=$(ifconfig wlan0 | awk '/inet addr/{print substr($2,6)}')
+    LOCAL_IP=$(ifconfig eth0 | awk '/inet addr/{print substr($2,6)}')
+    if [ -z $LOCAL_IP ]; then
+        LOCAL_IP=$(ifconfig wlan0 | awk '/inet addr/{print substr($2,6)}')
+    fi
     source /tmp/sd/yi-hack/etc/system.conf
 
     printf "Content-type: text/plain\r\n\r\n"

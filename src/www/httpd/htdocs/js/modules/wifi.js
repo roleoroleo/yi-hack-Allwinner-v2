@@ -3,6 +3,7 @@ var APP = APP || {};
 APP.wifi = (function($) {
 
     function init() {
+        $('#input-container').hide();
         registerEventHandler();
         updateWiFiPage();
     }
@@ -10,6 +11,9 @@ APP.wifi = (function($) {
     function registerEventHandler() {
         $(document).on("click", '#button-save-wifi', function(e) {
             saveWiFi();
+        });
+        $(document).on("change", '#WIFI_ESSID', function(e) {
+            toggleESSIDInput();
         });
     }
 
@@ -20,11 +24,17 @@ APP.wifi = (function($) {
         saveStatusElem = $('#save-wifi-status');
         saveStatusElem.text("Saving...");
 
-        configs["WIFI_ESSID"] = $('select[data-key="WIFI_ESSID"]').prop('value');
+        if ($('select[data-key="WIFI_ESSID"]').prop('value') == "Other...") {
+            configs["WIFI_ESSID"] = $('input[type="text"][data-key="WIFI_ESSID_MANUAL"]').prop('value')
+        } else {
+            configs["WIFI_ESSID"] = $('select[data-key="WIFI_ESSID"]').prop('value');
+        }
         configs["WIFI_PASSWORD"] = $('input[type="password"][data-key="WIFI_PASSWORD"]').prop('value');
         configs["WIFI_PASSWORD2"] = $('input[type="password"][data-key="WIFI_PASSWORD2"]').prop('value');
 
-        if (configs["WIFI_PASSWORD"] == "") {
+        if (configs["WIFI_ESSID"] == "") {
+            saveStatusElem.text("Not saved, essid is blank.");
+        } else if (configs["WIFI_PASSWORD"] == "") {
             saveStatusElem.text("Not saved, password is blank.");
         } else if (configs["WIFI_PASSWORD"] == "" || configs["WIFI_PASSWORD"] != configs["WIFI_PASSWORD2"]) {
             saveStatusElem.text("Not saved, passwords don't match.");
@@ -72,6 +82,7 @@ APP.wifi = (function($) {
                         html += "<option value=\"" + data.wifi[i] + "\">" + data.wifi[i] + "</option>";
                     }
                 }
+                html += "<option value=\"Other...\">Other...</option>";
                 html += "</select>"
                 document.getElementById("select-container").innerHTML = html;
             },
@@ -79,6 +90,14 @@ APP.wifi = (function($) {
                 console.log('error', response);
             }
         });
+    }
+
+    function toggleESSIDInput() {
+        if ($("#WIFI_ESSID option:selected" ).text() == "Other...") {
+            $('#input-container').show();
+        } else {
+            $('#input-container').hide();
+        }
     }
 
     return {

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
+
 DIR="none"
 TIME="0.3"
 
@@ -9,7 +11,15 @@ do
     VAL="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f2)"
 
     if [ "$CONF" == "dir" ] ; then
-        DIR="-M $VAL"
+        if [ "$MODEL_SUFFIX" == "h60ga" ]; then
+            if [ "$VAL" == "up" ] || [ "$VAL" == "down" ]; then
+                DIR="-m $VAL"
+            else
+                DIR="-M $VAL"
+            fi
+        else
+            DIR="-M $VAL"
+        fi
     elif [ "$CONF" == "time" ] ; then
         TIME="$VAL"
     fi

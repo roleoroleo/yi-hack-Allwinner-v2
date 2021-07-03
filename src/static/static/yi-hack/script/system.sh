@@ -259,6 +259,10 @@ else
     SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
     HW_ID=$(dd bs=1 count=4 skip=656 if=/tmp/mmap.info 2>/dev/null | cut -c1-4)
 fi
+PTZ_UD_INV="-M"
+if [ "$MODEL_SUFFIX" == "h60ga" ]; then
+    PTZ_UD_INV="-m"
+fi
 
 if [[ $(get_config ONVIF) == "yes" ]] ; then
     if [[ $(get_config ONVIF_NETIF) == "wlan0" ]] ; then
@@ -299,8 +303,8 @@ if [[ $(get_config ONVIF) == "yes" ]] ; then
         echo "ptz=1" >> $ONVIF_SRVD_CONF
         echo "move_left=/tmp/sd/yi-hack/bin/ipc_cmd -M left" >> $ONVIF_SRVD_CONF
         echo "move_right=/tmp/sd/yi-hack/bin/ipc_cmd -M right" >> $ONVIF_SRVD_CONF
-        echo "move_up=/tmp/sd/yi-hack/bin/ipc_cmd -M up" >> $ONVIF_SRVD_CONF
-        echo "move_down=/tmp/sd/yi-hack/bin/ipc_cmd -M down" >> $ONVIF_SRVD_CONF
+        echo "move_up=/tmp/sd/yi-hack/bin/ipc_cmd $PTZ_UD_INV up" >> $ONVIF_SRVD_CONF
+        echo "move_down=/tmp/sd/yi-hack/bin/ipc_cmd $PTZ_UD_INV down" >> $ONVIF_SRVD_CONF
         echo "move_stop=/tmp/sd/yi-hack/bin/ipc_cmd -M stop" >> $ONVIF_SRVD_CONF
         echo "move_preset=/tmp/sd/yi-hack/bin/ipc_cmd -p %t" >> $ONVIF_SRVD_CONF
     fi

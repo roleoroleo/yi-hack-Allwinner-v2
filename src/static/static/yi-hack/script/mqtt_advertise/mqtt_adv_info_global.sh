@@ -21,7 +21,11 @@ HOSTNAME=$(hostname)
 FW_VERSION=$(cat $YI_HACK_PREFIX/version)
 HOME_VERSION=$(cat /home/app/.appver)
 MODEL_SUFFIX=$(cat $YI_HACK_PREFIX/model_suffix)
-SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
+if [ "$MODEL_SUFFIX" == "h60ga" ]; then
+    SERIAL_NUMBER=$(dd bs=1 count=20 skip=784 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)
+else
+    SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)
+fi
 LOCAL_IP=$(ifconfig eth0 | awk '/inet addr/{print substr($2,6)}')
 NETMASK=$(ifconfig eth0 | awk '/inet addr/{print substr($4,6)}')
 MAC_ADDR=$(ifconfig eth0 | awk '/HWaddr/{print substr($5,1)}')

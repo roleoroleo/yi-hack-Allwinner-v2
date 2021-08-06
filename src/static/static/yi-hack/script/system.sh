@@ -252,12 +252,12 @@ if [[ $(get_config RTSP) == "yes" ]] ; then
     $YI_HACK_PREFIX/script/wd_rtsp.sh &
 fi
 
-if [ "$MODEL_SUFFIX" == "y211ga" ] || [ "$MODEL_SUFFIX" == "h60ga" ]; then
-    SERIAL_NUMBER=$(dd bs=1 count=20 skip=784 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
-    HW_ID=$(dd bs=1 count=4 skip=784 if=/tmp/mmap.info 2>/dev/null | cut -c1-4)
+if [ "$MODEL_SUFFIX" == "h60ga" ]; then
+    SERIAL_NUMBER=$(dd bs=1 count=20 skip=784 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)
+    HW_ID=$(dd bs=1 count=4 skip=784 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-4)
 else
-    SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
-    HW_ID=$(dd bs=1 count=4 skip=656 if=/tmp/mmap.info 2>/dev/null | cut -c1-4)
+    SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)
+    HW_ID=$(dd bs=1 count=4 skip=656 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-4)
 fi
 PTZ_UD_INV="-M"
 if [ "$MODEL_SUFFIX" == "h60ga" ]; then

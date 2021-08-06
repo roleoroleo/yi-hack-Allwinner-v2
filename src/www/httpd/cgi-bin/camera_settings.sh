@@ -38,6 +38,12 @@ do
         else
             ipc_cmd -a on
         fi
+    elif [ "$CONF" == "face_detection" ] ; then
+        if [ "$VAL" == "no" ] ; then
+            ipc_cmd -c off
+        else
+            ipc_cmd -c on
+        fi
     elif [ "$CONF" == "sound_detection" ] ; then
         if [ "$VAL" == "no" ] ; then
             ipc_cmd -b off

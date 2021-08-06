@@ -56,7 +56,7 @@ void ipc_stop()
 
 void print_usage(char *progname)
 {
-    fprintf(stderr, "\nUsage: %s [t ON/OFF] [-s SENS] [-l LED] [-v WHEN] [-i IR] [-r ROTATE] [-a AIHUMANDETECTION] [-m MOVE] [-p NUM] [-f FILE] [-S] [-T] [-d]\n\n", progname);
+    fprintf(stderr, "\nUsage: %s [t ON/OFF] [-s SENS] [-l LED] [-v WHEN] [-i IR] [-r ROTATE] [-a AIHUMANDETECTION] [-c FACEDETECTION] [-m MOVE] [-p NUM] [-f FILE] [-S] [-T] [-d]\n\n", progname);
     fprintf(stderr, "\t-t ON/OFF, --switch ON/OFF\n");
     fprintf(stderr, "\t\tswitch ON or OFF the cam\n");
     fprintf(stderr, "\t-s SENS, --sensitivity SENS\n");
@@ -71,6 +71,8 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tset rotate: ON or OFF\n");
     fprintf(stderr, "\t-a AIHUMANDETECTION, --aihumandetection AIHUMANDETECTION\n");
     fprintf(stderr, "\t\tset AI Human Detection: ON or OFF\n");
+    fprintf(stderr, "\t-c FACEDETECTION, --facedetection FACEDETECTION\n");
+    fprintf(stderr, "\t\tset Face Detection: ON or OFF\n");
     fprintf(stderr, "\t-b SOUNDDETECTION, --sounddetection SOUNDDETECTION\n");
     fprintf(stderr, "\t\tset Sound Detection: ON or OFF\n");
 //    fprintf(stderr, "\t-b BABYCRYING, --babycrying BABYCRYING\n");
@@ -106,6 +108,7 @@ int main(int argc, char ** argv)
     int ir = NONE;
     int rotate = NONE;
     int aihumandetection = NONE;
+    int facedetection = NONE;
     int sounddetection = NONE;
     int soundsensitivity = NONE;
 //    int babycrying = NONE;
@@ -134,6 +137,7 @@ int main(int argc, char ** argv)
             {"ir",  required_argument, 0, 'i'},
             {"rotate",  required_argument, 0, 'r'},
             {"aihumandetection",  required_argument, 0, 'a'},
+            {"facedetection",  required_argument, 0, 'c'},
             {"sounddetection",  required_argument, 0, 'b'},
             {"soundsensitivity",  required_argument, 0, 'n'},
             {"move",  required_argument, 0, 'm'},
@@ -150,7 +154,7 @@ int main(int argc, char ** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:b:n:m:M:p:f:S:Txdh",
+        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:c:b:n:m:M:p:f:S:Txdh",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -213,6 +217,14 @@ int main(int argc, char ** argv)
                 aihumandetection = AI_HUMAN_DETECTION_OFF;
             } else if (strcasecmp("on", optarg) == 0) {
                 aihumandetection = AI_HUMAN_DETECTION_ON;
+            }
+            break;
+
+        case 'c':
+            if (strcasecmp("off", optarg) == 0) {
+                facedetection = FACE_DETECTION_OFF;
+            } else if (strcasecmp("on", optarg) == 0) {
+                facedetection = FACE_DETECTION_ON;
             }
             break;
 
@@ -391,6 +403,12 @@ int main(int argc, char ** argv)
         mq_send(ipc_mq, IPC_AI_HUMAN_DETECTION_OFF, sizeof(IPC_AI_HUMAN_DETECTION_OFF) - 1, 0);
     } else if (aihumandetection == AI_HUMAN_DETECTION_ON) {
         mq_send(ipc_mq, IPC_AI_HUMAN_DETECTION_ON, sizeof(IPC_AI_HUMAN_DETECTION_ON) - 1, 0);
+    }
+
+    if (facedetection == FACE_DETECTION_OFF) {
+        mq_send(ipc_mq, IPC_FACE_DETECTION_OFF, sizeof(IPC_FACE_DETECTION_OFF) - 1, 0);
+    } else if (facedetection == FACE_DETECTION_ON) {
+        mq_send(ipc_mq, IPC_FACE_DETECTION_ON, sizeof(IPC_FACE_DETECTION_ON) - 1, 0);
     }
 
     if (sounddetection == SOUND_DETECTION_OFF) {

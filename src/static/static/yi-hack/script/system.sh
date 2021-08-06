@@ -195,7 +195,7 @@ if [[ $(get_config SSHD) == "yes" ]] ; then
 #    mkdir -p /etc/dropbear
 #    cp -f $SONOFF_HACK_PREFIX/etc/dropbear/* /etc/dropbear/
     chmod 0600 $YI_HACK_PREFIX/etc/dropbear/*
-    dropbear -R -B
+    dropbear -R -B  -p 0.0.0.0:22
 fi
 
 if [[ $(get_config NTPD) == "yes" ]] ; then

@@ -1,0 +1,72 @@
+<div class="row">
+    <div class="twelve columns">
+        <div class="row">
+            <div class="twelve columns">
+                <h3 class="no-margin inline-block" id="header">Speak</h3>
+            </div>
+        </div>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <p>
+                Here you can play tts and wav files on the camera speaker.
+            </p>
+        </div>
+
+        <h4 class="no-margin">Text-to-Speech</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                        <tr class="row">
+                            <td width="60%">
+                                <input type="text" name="ttsinput" id="ttsinput" style="width: 100%;" />
+                            </td>
+                            <td width="20%">
+                                <div class="standard-select">
+                                    <select name="ttslang" id="ttslang">
+                                        <option value="en-US" selected>en-US</option>
+                                        <option value="en-GB">en-GB</option>
+                                        <option value="de-DE">de-DE</option>
+                                        <option value="es-ES">es-ES</option>
+                                        <option value="fr-FR">fr-FR</option>
+                                        <option value="it-IT">it-IT</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td width="20%">
+                                <input class="button-primary" type="button" id="button-speak" value="Send TTS"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <br/>
+
+        <h4 class="no-margin">Playback</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                        <tr class="row">
+                            <td width="60%">
+                                <input type="file" name="wavfile" id="wavfile" style="width: 100%;" />
+                                <span class="switch-description">
+                                    (Format: S16LE / 8 KHz, 16 bit, mono)
+                                </span>
+                            </td>
+                            <td width="20%">
+                            </td>
+                            <td width="20%">
+                                <input class="button-primary" type="button" id="button-speaker" value="Send WAV"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

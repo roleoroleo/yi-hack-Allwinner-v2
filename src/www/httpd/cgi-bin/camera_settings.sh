@@ -5,7 +5,7 @@ CONF_FILE="$YI_HACK_PREFIX/etc/camera.conf"
 
 CONF_LAST="CONF_LAST"
 
-for I in 1 2 3 4 5 6 7 8 9
+for I in 1 2 3 4 5 6 7 8 9 10
 do
     CONF="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f1)"
     VAL="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f2)"

@@ -61,7 +61,11 @@ checkFiles ()
 	fi
 	#
 	echo "${L_FILE_LIST}" | while read file; do
-		FILE_DATE=${file:15:4}-${file:20:2}-${file:23:2}T${file:26:2}:${file:30:2}
+		if [ "${#file}" == "14" ]; then
+			FILE_DATE=${file:15:4}-${file:20:2}-${file:23:2}T${file:26:2}:${file:32:2}
+		else
+			FILE_DATE=${file:15:4}-${file:20:2}-${file:23:2}T${file:26:2}:${file:30:2}
+		fi
 		FILE_YEAR=${FILE_DATE:0:4}
 		FILE_REMPART=${FILE_DATE:5:2}${FILE_DATE:8:2}${FILE_DATE:11:2}${FILE_DATE:14:2}
 		LAST_FILE_SENT=$(cat /tmp/last_file_sent)

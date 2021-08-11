@@ -228,6 +228,10 @@ if [[ $(get_config ONVIF_WM_SNAPSHOT) == "yes" ]] ; then
     WATERMARK="&watermark=yes"
 fi
 
+if [[ $(get_config SNAPSHOT) == "no" ]] ; then
+    touch /tmp/snapshot.disabled
+fi
+
 if [[ $(get_config RTSP) == "yes" ]] ; then
     RTSP_AUDIO_COMPRESSION=$(get_config RTSP_AUDIO)
     if [[ "$RTSP_AUDIO_COMPRESSION" == "none" ]] ; then
@@ -316,7 +320,9 @@ if [[ $(get_config ONVIF) == "yes" ]] ; then
     fi
 fi
 
-framefinder $MODEL_SUFFIX &
+if [ ! -f /tmp/snapshot.disabled ] ; then
+    framefinder $MODEL_SUFFIX &
+fi
 
 # Add crontab
 CRONTAB=$(get_config CRONTAB)

@@ -349,6 +349,12 @@ int main(int argc, char **argv)
 
     if (debug) fprintf(stderr, "Starting program\n");
 
+    // Check if snapshot is disabled
+    if (access("/tmp/snapshot.disabled", F_OK ) == 0 ) {
+        fprintf(stderr, "Snapshot is disabled\n");
+        return 0;
+    }
+
     if (res == RESOLUTION_LOW) {
         width = W_LOW;
         height = H_LOW;

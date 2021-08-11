@@ -2,9 +2,9 @@
 
 CONF_FILE="etc/system.conf"
 
-YI_HACK_PREFIX="/home/yi-hack"
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
 
-YI_HACK_VER=$(cat /home/yi-hack/version)
+YI_HACK_VER=$(cat /tmp/sd/yi-hack/version)
 
 get_config()
 {

@@ -59,6 +59,7 @@ APP.camera_settings = (function($) {
                 '&sensitivity=' + configs["SENSITIVITY"] +
                 '&ai_human_detection=' + configs["AI_HUMAN_DETECTION"] +
                 '&face_detection=' + configs["FACE_DETECTION"] +
+                '&motion_tracking=' + configs["MOTION_TRACKING"] +
                 '&sound_detection=' + configs["SOUND_DETECTION"] +
                 '&sound_sensitivity=' + configs["SOUND_SENSITIVITY"] +
                 '&led=' + configs["LED"] +

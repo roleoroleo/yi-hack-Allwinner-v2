@@ -56,7 +56,7 @@ void ipc_stop()
 
 void print_usage(char *progname)
 {
-    fprintf(stderr, "\nUsage: %s [t ON/OFF] [-s SENS] [-l LED] [-v WHEN] [-i IR] [-r ROTATE] [-a AIHUMANDETECTION] [-c FACEDETECTION] [-m MOVE] [-p NUM] [-f FILE] [-S] [-T] [-d]\n\n", progname);
+    fprintf(stderr, "\nUsage: %s [t ON/OFF] [-s SENS] [-l LED] [-v WHEN] [-i IR] [-r ROTATE] [-a AIHUMANDETECTION] [-c FACEDETECTION] [-o MOTIONTRACKING] [-m MOVE] [-p NUM] [-f FILE] [-S] [-T] [-d]\n\n", progname);
     fprintf(stderr, "\t-t ON/OFF, --switch ON/OFF\n");
     fprintf(stderr, "\t\tswitch ON or OFF the cam\n");
     fprintf(stderr, "\t-s SENS, --sensitivity SENS\n");
@@ -73,6 +73,8 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tset AI Human Detection: ON or OFF\n");
     fprintf(stderr, "\t-c FACEDETECTION, --facedetection FACEDETECTION\n");
     fprintf(stderr, "\t\tset Face Detection: ON or OFF\n");
+    fprintf(stderr, "\t-o MOTIONTRACKING, --motiontracking MOTIONTRACKING\n");
+    fprintf(stderr, "\t\tset Motion Tracking sensor: ON or OFF\n");
     fprintf(stderr, "\t-b SOUNDDETECTION, --sounddetection SOUNDDETECTION\n");
     fprintf(stderr, "\t\tset Sound Detection: ON or OFF\n");
 //    fprintf(stderr, "\t-b BABYCRYING, --babycrying BABYCRYING\n");
@@ -109,6 +111,7 @@ int main(int argc, char ** argv)
     int rotate = NONE;
     int aihumandetection = NONE;
     int facedetection = NONE;
+    int motiontracking = NONE;
     int sounddetection = NONE;
     int soundsensitivity = NONE;
 //    int babycrying = NONE;
@@ -138,6 +141,7 @@ int main(int argc, char ** argv)
             {"rotate",  required_argument, 0, 'r'},
             {"aihumandetection",  required_argument, 0, 'a'},
             {"facedetection",  required_argument, 0, 'c'},
+            {"motiontracking",  required_argument, 0, 'o'},
             {"sounddetection",  required_argument, 0, 'b'},
             {"soundsensitivity",  required_argument, 0, 'n'},
             {"move",  required_argument, 0, 'm'},
@@ -154,7 +158,7 @@ int main(int argc, char ** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:c:b:n:m:M:p:f:S:Txdh",
+        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:c:o:b:n:m:M:p:f:S:Txdh",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -225,6 +229,14 @@ int main(int argc, char ** argv)
                 facedetection = FACE_DETECTION_OFF;
             } else if (strcasecmp("on", optarg) == 0) {
                 facedetection = FACE_DETECTION_ON;
+            }
+            break;
+
+        case 'o':
+            if (strcasecmp("off", optarg) == 0) {
+                motiontracking = MOTION_TRACKING_OFF;
+            } else if (strcasecmp("on", optarg) == 0) {
+                motiontracking = MOTION_TRACKING_ON;
             }
             break;
 
@@ -409,6 +421,12 @@ int main(int argc, char ** argv)
         mq_send(ipc_mq, IPC_FACE_DETECTION_OFF, sizeof(IPC_FACE_DETECTION_OFF) - 1, 0);
     } else if (facedetection == FACE_DETECTION_ON) {
         mq_send(ipc_mq, IPC_FACE_DETECTION_ON, sizeof(IPC_FACE_DETECTION_ON) - 1, 0);
+    }
+
+    if (motiontracking == MOTION_TRACKING_OFF) {
+        mq_send(ipc_mq, IPC_MOTION_TRACKING_OFF, sizeof(IPC_MOTION_TRACKING_OFF) - 1, 0);
+    } else if (motiontracking == MOTION_TRACKING_ON) {
+        mq_send(ipc_mq, IPC_MOTION_TRACKING_ON, sizeof(IPC_MOTION_TRACKING_ON) - 1, 0);
     }
 
     if (sounddetection == SOUND_DETECTION_OFF) {

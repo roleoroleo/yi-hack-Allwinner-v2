@@ -5,7 +5,7 @@ CONF_FILE="$YI_HACK_PREFIX/etc/camera.conf"
 
 CONF_LAST="CONF_LAST"
 
-for I in 1 2 3 4 5 6 7 8 9 10
+for I in 1 2 3 4 5 6 7 8 9 10 11
 do
     CONF="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f1)"
     VAL="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f2)"
@@ -43,6 +43,12 @@ do
             ipc_cmd -c off
         else
             ipc_cmd -c on
+        fi
+    elif [ "$CONF" == "motion_tracking" ] ; then
+        if [ "$VAL" == "no" ] ; then
+            ipc_cmd -o off
+        else
+            ipc_cmd -o on
         fi
     elif [ "$CONF" == "sound_detection" ] ; then
         if [ "$VAL" == "no" ] ; then

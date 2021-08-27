@@ -110,6 +110,8 @@ Currently this project supports only the following cameras:
 | Yi Dome Camera U BFUS (3K) | 9.0.21* | h51ga | - |
 | Yi Dome U Pro 2K LFUS | 9.0.27* | h60ga | beta version |
 | Yi Outdoor 1080p QFUS | 9.0.45* | r40ga | beta version |
+| Kami mini home IFUS | 9.0.20* | y28ga | - |
+| MIBAO G1 1296p dome | 9.0.04* | qg311r | - |
 
 USE AT YOUR OWN RISK.
 

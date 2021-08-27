@@ -58,8 +58,14 @@
 #define BUF_OFFSET_H60GA 368
 #define BUF_SIZE_H60GA 1048944
 
+#define BUF_OFFSET_Y28GA 368
+#define BUF_SIZE_Y28GA 1048944
+
 #define BUF_OFFSET_Q321BR_LSX 300
 #define BUF_SIZE_Q321BR_LSX 524588
+
+#define BUF_OFFSET_QG311R 300
+#define BUF_SIZE_QG311R 524588
 
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
 #define I_FILE "/tmp/iframe.idx"
@@ -245,7 +251,7 @@ int add_watermark(char *buffer, int w_res, int h_res)
 void usage(char *prog_name)
 {
     fprintf(stderr, "Usage: %s [options]\n", prog_name);
-    fprintf(stderr, "\t-m, --model MODEL       Set model: \"y21ga\", \"y211ga\", \"h30ga\", \"r30gb\", \"r40ga\", \"h51ga\", \"h52ga\", \"h60ga\" of q321br_lsx (default \"y21ga\")\n");
+    fprintf(stderr, "\t-m, --model MODEL       Set model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga, y28ga, q321br_lsx or qg311r (default y21ga)\n");
     fprintf(stderr, "\t-r, --res RES           Set resolution: \"low\" or \"high\" (default \"high\")\n");
     fprintf(stderr, "\t-w, --watermark         Add watermark to image\n");
     fprintf(stderr, "\t-h, --help              Show this help\n");
@@ -321,9 +327,17 @@ int main(int argc, char **argv)
                     buf_offset = BUF_OFFSET_H60GA;
                     buf_size = BUF_SIZE_H60GA;
                     model_high_res = RESOLUTION_3K;
+                } else if (strcasecmp("y28ga", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_Y28GA;
+                    buf_size = BUF_SIZE_Y28GA;
+                    model_high_res = RESOLUTION_FHD;
                 } else if (strcasecmp("q321br_lsx", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Q321BR_LSX;
                     buf_size = BUF_SIZE_Q321BR_LSX;
+                    model_high_res = RESOLUTION_3K;
+                } else if (strcasecmp("qg311r", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_QG311R;
+                    buf_size = BUF_SIZE_QG311R;
                     model_high_res = RESOLUTION_3K;
                 }
                 break;

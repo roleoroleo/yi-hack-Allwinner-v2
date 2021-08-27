@@ -85,12 +85,26 @@
 #define LOWRES_BYTE_H60GA 8
 #define HIGHRES_BYTE_H60GA 4
 
+#define BUF_OFFSET_Y28GA 368
+#define BUF_SIZE_Y28GA 1048944
+#define FRAME_HEADER_SIZE_Y28GA 28
+#define DATA_OFFSET_Y28GA 4
+#define LOWRES_BYTE_Y28GA 8
+#define HIGHRES_BYTE_Y28GA 4
+
 #define BUF_OFFSET_Q321BR_LSX 300
 #define BUF_SIZE_Q321BR_LSX 524588
 #define FRAME_HEADER_SIZE_Q321BR_LSX 26
 #define DATA_OFFSET_Q321BR_LSX 4
 #define LOWRES_BYTE_Q321BR_LSX 8
 #define HIGHRES_BYTE_Q321BR_LSX 4
+
+#define BUF_OFFSET_QG311R 300
+#define BUF_SIZE_QG311R 524588
+#define FRAME_HEADER_SIZE_QG311R 26
+#define DATA_OFFSET_QG311R 4
+#define LOWRES_BYTE_QG311R 8
+#define HIGHRES_BYTE_QG311R 4
 
 #define USLEEP 100000
 
@@ -292,6 +306,13 @@ int main(int argc, char **argv) {
             data_offset = DATA_OFFSET_H60GA;
             lowres_byte = LOWRES_BYTE_H60GA;
             highres_byte = HIGHRES_BYTE_H60GA;
+        } else if (strcasecmp("y28ga", argv[1]) == 0) {
+            buf_offset = BUF_OFFSET_Y28GA;
+            buf_size = BUF_SIZE_Y28GA;
+            frame_header_size = FRAME_HEADER_SIZE_Y28GA;
+            data_offset = DATA_OFFSET_Y28GA;
+            lowres_byte = LOWRES_BYTE_Y28GA;
+            highres_byte = HIGHRES_BYTE_Y28GA;
         } else if (strcasecmp("q321br_lsx", argv[1]) == 0) {
             buf_offset = BUF_OFFSET_Q321BR_LSX;
             buf_size = BUF_SIZE_Q321BR_LSX;
@@ -299,6 +320,13 @@ int main(int argc, char **argv) {
             data_offset = DATA_OFFSET_Q321BR_LSX;
             lowres_byte = LOWRES_BYTE_Q321BR_LSX;
             highres_byte = HIGHRES_BYTE_Q321BR_LSX;
+        } else if (strcasecmp("qg311r", argv[1]) == 0) {
+            buf_offset = BUF_OFFSET_QG311R;
+            buf_size = BUF_SIZE_QG311R;
+            frame_header_size = FRAME_HEADER_SIZE_QG311R;
+            data_offset = DATA_OFFSET_QG311R;
+            lowres_byte = LOWRES_BYTE_QG311R;
+            highres_byte = HIGHRES_BYTE_QG311R;
         }
     }
 

@@ -29,8 +29,10 @@ CAMERAS["h30ga"]="h30ga"
 CAMERAS["r30gb"]="r30gb"
 CAMERAS["h52ga"]="h52ga"
 CAMERAS["h51ga"]="h51ga"
+CAMERAS["y28ga"]="y28ga"
 CAMERAS["r40ga"]="r40ga"
 CAMERAS["h60ga"]="h60ga"
+CAMERAS["qg311r"]="qg311r"
 
 ###############################################################################
 # Common functions

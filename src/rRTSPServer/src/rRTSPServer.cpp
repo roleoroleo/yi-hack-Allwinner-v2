@@ -682,7 +682,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-r RES] [-p PORT] [-d]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga or q321br_lsx (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga, y28ga, q321br_lsx or qg311r (default y21ga)\n");
     fprintf(stderr, "\t-r RES,   --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: low, high or both (default high)\n");
     fprintf(stderr, "\t-a AUDIO, --audio AUDIO\n");
@@ -762,8 +762,12 @@ int main(int argc, char** argv)
                 model = H52GA;
             } else if (strcasecmp("h60ga", optarg) == 0) {
                 model = H60GA;
+            } else if (strcasecmp("y28ga", optarg) == 0) {
+                model = Y28GA;
             } else if (strcasecmp("q321br_lsx", optarg) == 0) {
                 model = Q321BR_LSX;
+            } else if (strcasecmp("qg311r", optarg) == 0) {
+                model = QG311R;
             }
             break;
 
@@ -869,10 +873,15 @@ int main(int argc, char** argv)
             model = H52GA;
         } else if (strcasecmp("h60ga", str) == 0) {
             model = H60GA;
-        } else if (strcasecmp("q321br_lsx", optarg) == 0) {
+        } else if (strcasecmp("y28ga", str) == 0) {
+            model = Y28GA;
+        } else if (strcasecmp("q321br_lsx", str) == 0) {
             model = Q321BR_LSX;
+        } else if (strcasecmp("qg311r", str) == 0) {
+            model = QG311R;
         }
     }
+
 
     str = getenv("RRTSP_RES");
     if (str != NULL) {
@@ -932,6 +941,7 @@ int main(int argc, char** argv)
     if ((str != NULL) && (strlen(str) < sizeof(pwd))) {
         strcpy(pwd, str);
     }
+
 
     if (model == Y21GA) {
         buf_offset = BUF_OFFSET_Y21GA;
@@ -1005,6 +1015,15 @@ int main(int argc, char** argv)
         highres_byte = HIGHRES_BYTE_H60GA;
         model_high_res = RESOLUTION_3K;
         sps_type = SPS_TYPE_H60GA;
+    } else if (model == Y28GA) {
+        buf_offset = BUF_OFFSET_Y28GA;
+        buf_size = BUF_SIZE_Y28GA;
+        frame_header_size = FRAME_HEADER_SIZE_Y28GA;
+        data_offset = DATA_OFFSET_Y28GA;
+        lowres_byte = LOWRES_BYTE_Y28GA;
+        highres_byte = HIGHRES_BYTE_Y28GA;
+        model_high_res = RESOLUTION_FHD;
+        sps_type = SPS_TYPE_Y28GA;
     } else if (model == Q321BR_LSX) {
         buf_offset = BUF_OFFSET_Q321BR_LSX;
         buf_size = BUF_SIZE_Q321BR_LSX;
@@ -1014,6 +1033,15 @@ int main(int argc, char** argv)
         highres_byte = HIGHRES_BYTE_Q321BR_LSX;
         model_high_res = RESOLUTION_3K;
         sps_type = SPS_TYPE_Q321BR_LSX;
+    } else if (model == QG311R) {
+        buf_offset = BUF_OFFSET_QG311R;
+        buf_size = BUF_SIZE_QG311R;
+        frame_header_size = FRAME_HEADER_SIZE_QG311R;
+        data_offset = DATA_OFFSET_QG311R;
+        lowres_byte = LOWRES_BYTE_QG311R;
+        highres_byte = HIGHRES_BYTE_QG311R;
+        model_high_res = RESOLUTION_3K;
+        sps_type = SPS_TYPE_QG311R;
     }
 
     // If fifo doesn't exist, disable audio

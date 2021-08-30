@@ -73,19 +73,22 @@ APP.maintenance = (function($) {
 
     function rebootCamera() {
         $('#button-reboot').attr("disabled", true);
-        $.ajax({
-            type: "GET",
-            url: 'cgi-bin/reboot.sh',
-            dataType: "json",
-            error: function(response) {
-                console.log('error', response);
-                $('#button-reboot').attr("disabled", false);
-            },
-            success: function(data) {
-                setRebootStatus("Camera is rebooting.");
-                waitForBoot();
-            }
-        });
+        var x=confirm("Are you sure you want to reboot?");
+        if (x) {
+            $.ajax({
+                type: "GET",
+                url: 'cgi-bin/reboot.sh',
+                dataType: "json",
+                error: function(response) {
+                    console.log('error', response);
+                    $('#button-reboot').attr("disabled", false);
+                },
+                success: function(data) {
+                    setRebootStatus("Camera is rebooting.");
+                    waitForBoot();
+                }
+            });
+        }
     }
 
     function waitForBoot() {
@@ -108,18 +111,21 @@ APP.maintenance = (function($) {
 
     function resetCamera() {
         $('#button-reset').attr("disabled", true);
-        $.ajax({
-            type: "GET",
-            url: 'cgi-bin/reset.sh',
-            dataType: "json",
-            error: function(response) {
-                console.log('error', response);
-                $('#button-reset').attr("disabled", false);
-            },
-            success: function(data) {
-                setResetStatus("Reset completed, reboot your camera.");
-            }
-        });
+        var x=confirm("Are you sure you want to reset?");
+        if (x) {
+            $.ajax({
+                type: "GET",
+                url: 'cgi-bin/reset.sh',
+                dataType: "json",
+                error: function(response) {
+                    console.log('error', response);
+                    $('#button-reset').attr("disabled", false);
+                },
+                success: function(data) {
+                    setResetStatus("Reset completed, reboot your camera.");
+                }
+            });
+        }
     }
 
     function upgradeFirmware() {

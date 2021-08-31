@@ -1086,6 +1086,10 @@ int main(int argc, char** argv)
     output_buffer_high.output_frame[0].counter = 0;
     output_buffer_high.output_frame[0].size = 0;
 
+    // Begin by setting up our usage environment:
+    TaskScheduler* scheduler = BasicTaskScheduler::createNew();
+    env = BasicUsageEnvironment::createNew(*scheduler);
+
     // Start capture thread
     if (pthread_mutex_init(&(output_buffer_low.mutex), NULL) != 0) { 
         *env << "Failed to create mutex\n";
@@ -1103,10 +1107,6 @@ int main(int argc, char** argv)
     pthread_detach(capture_thread);
 
     sleep(2);
-
-    // Begin by setting up our usage environment:
-    TaskScheduler* scheduler = BasicTaskScheduler::createNew();
-    env = BasicUsageEnvironment::createNew(*scheduler);
 
     UserAuthenticationDatabase* authDB = NULL;
 

@@ -14,7 +14,7 @@ else
     HW_ID=$(dd bs=1 count=4 skip=656 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-4)
 fi
 PTZ_UD_INV="-M"
-if [ "$MODEL_SUFFIX" == "h60ga" ]; then
+if [ "$MODEL_SUFFIX" == "h60ga" ] || [ "$MODEL_SUFFIX" == "h51ga" ]; then
     PTZ_UD_INV="-m"
 fi
 

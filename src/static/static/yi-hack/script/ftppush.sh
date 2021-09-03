@@ -61,7 +61,7 @@ checkFiles ()
 	fi
 	#
 	echo "${L_FILE_LIST}" | while read file; do
-		if [ "${#file}" == "14" ]; then
+		if [ "${#file}" == "44" ]; then
 			FILE_DATE=${file:15:4}-${file:20:2}-${file:23:2}T${file:26:2}:${file:32:2}
 		else
 			FILE_DATE=${file:15:4}-${file:20:2}-${file:23:2}T${file:26:2}:${file:30:2}

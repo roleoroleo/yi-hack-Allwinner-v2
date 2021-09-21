@@ -65,6 +65,9 @@ unsigned char PPS4_START[]         = {0x00, 0x00, 0x00, 0x01, 0x68};
 unsigned char PPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x44};
 unsigned char VPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x40};
 
+unsigned char SPS4[]               = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D};
+unsigned char SPS4_2[]             = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64};
+
 unsigned char SPS4_640X360[]       = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
                                       0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
                                       0x01, 0x01, 0x02};
@@ -437,6 +440,14 @@ void *capture(void *ptr)
         nal_is_sps_or_vps5 = 0;
         if (cb_memcmp(SPS4_START, buf_idx_1, sizeof(SPS4_START)) == 0) {
             nal_is_sps_or_vps5 = 1;
+            // Autodetect sps_type
+            if (sps_type == 0) {
+                if (cb_memcmp(SPS4, buf_idx_1, sizeof(SPS4)) == 0) {
+                    sps_type = 1;
+                } else if (cb_memcmp(SPS4_2, buf_idx_1, sizeof(SPS4_2)) == 0) {
+                    sps_type = 2;
+                }
+            }
         } else if (cb_memcmp(SPS5_START, buf_idx_1, sizeof(SPS5_START)) == 0) {
             nal_is_sps_or_vps5 = 2;
         } else if (cb_memcmp(VPS5_START, buf_idx_1, sizeof(VPS5_START)) == 0) {

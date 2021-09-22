@@ -35,4 +35,8 @@ if [ -e /tmp/sd/Factory ]; then
     mv /tmp/sd/Factory /tmp/sd/Factory.done
 fi
 
+sync
+sync
+sync
+
 reboot

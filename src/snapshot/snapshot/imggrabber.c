@@ -67,6 +67,9 @@
 #define BUF_OFFSET_QG311R 300
 #define BUF_SIZE_QG311R 524588
 
+#define BUF_OFFSET_B091QP 300
+#define BUF_SIZE_B091QP 524588
+
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
 #define I_FILE "/tmp/iframe.idx"
 #define FF_INPUT_BUFFER_PADDING_SIZE 32
@@ -251,7 +254,7 @@ int add_watermark(char *buffer, int w_res, int h_res)
 void usage(char *prog_name)
 {
     fprintf(stderr, "Usage: %s [options]\n", prog_name);
-    fprintf(stderr, "\t-m, --model MODEL       Set model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga, y28ga, q321br_lsx or qg311r (default y21ga)\n");
+    fprintf(stderr, "\t-m, --model MODEL       Set model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga, y28ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
     fprintf(stderr, "\t-r, --res RES           Set resolution: \"low\" or \"high\" (default \"high\")\n");
     fprintf(stderr, "\t-w, --watermark         Add watermark to image\n");
     fprintf(stderr, "\t-h, --help              Show this help\n");
@@ -339,6 +342,10 @@ int main(int argc, char **argv)
                     buf_offset = BUF_OFFSET_QG311R;
                     buf_size = BUF_SIZE_QG311R;
                     model_high_res = RESOLUTION_3K;
+                } else if (strcasecmp("b091qp", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_B091QP;
+                    buf_size = BUF_SIZE_B091QP;
+                    model_high_res = RESOLUTION_FHD;
                 }
                 break;
 

@@ -693,7 +693,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-r RES] [-p PORT] [-d]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga, y28ga, q321br_lsx or qg311r (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga, y28ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
     fprintf(stderr, "\t-r RES,   --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: low, high or both (default high)\n");
     fprintf(stderr, "\t-a AUDIO, --audio AUDIO\n");
@@ -779,6 +779,8 @@ int main(int argc, char** argv)
                 model = Q321BR_LSX;
             } else if (strcasecmp("qg311r", optarg) == 0) {
                 model = QG311R;
+            } else if (strcasecmp("b091qp", optarg) == 0) {
+                model = B091QP;
             }
             break;
 
@@ -890,6 +892,8 @@ int main(int argc, char** argv)
             model = Q321BR_LSX;
         } else if (strcasecmp("qg311r", str) == 0) {
             model = QG311R;
+        } else if (strcasecmp("b091qp", str) == 0) {
+            model = B091QP;
         }
     }
 
@@ -1053,6 +1057,15 @@ int main(int argc, char** argv)
         highres_byte = HIGHRES_BYTE_QG311R;
         model_high_res = RESOLUTION_3K;
         sps_type = SPS_TYPE_QG311R;
+    } else if (model == B091QP) {
+        buf_offset = BUF_OFFSET_B091QP;
+        buf_size = BUF_SIZE_B091QP;
+        frame_header_size = FRAME_HEADER_SIZE_B091QP;
+        data_offset = DATA_OFFSET_B091QP;
+        lowres_byte = LOWRES_BYTE_B091QP;
+        highres_byte = HIGHRES_BYTE_B091QP;
+        model_high_res = RESOLUTION_FHD;
+        sps_type = SPS_TYPE_B091QP;
     }
 
     // If fifo doesn't exist, disable audio

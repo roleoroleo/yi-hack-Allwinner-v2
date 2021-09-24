@@ -117,6 +117,7 @@ Currently this project supports only the following cameras:
 | Yi Outdoor 1080p QFUS | 9.0.45* | r40ga | beta version |
 | Kami mini home IFUS | 9.0.20* | y28ga | - |
 | MIBAO G1 1296p dome | 9.0.04* | qg311r | - |
+| BLITZWOLF BW-YIC1 | 9.0.41* | b091qp | - |
 
 USE AT YOUR OWN RISK.
 

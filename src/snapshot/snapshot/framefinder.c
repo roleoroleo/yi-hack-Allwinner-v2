@@ -106,6 +106,13 @@
 #define LOWRES_BYTE_QG311R 8
 #define HIGHRES_BYTE_QG311R 4
 
+#define BUF_OFFSET_B091QP 300
+#define BUF_SIZE_B091QP 524588
+#define FRAME_HEADER_SIZE_B091QP 26
+#define DATA_OFFSET_B091QP 4
+#define LOWRES_BYTE_B091QP 8
+#define HIGHRES_BYTE_B091QP 4
+
 #define USLEEP 100000
 
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
@@ -327,6 +334,13 @@ int main(int argc, char **argv) {
             data_offset = DATA_OFFSET_QG311R;
             lowres_byte = LOWRES_BYTE_QG311R;
             highres_byte = HIGHRES_BYTE_QG311R;
+        } else if (strcasecmp("b091qp", argv[1]) == 0) {
+            buf_offset = BUF_OFFSET_B091QP;
+            buf_size = BUF_SIZE_B091QP;
+            frame_header_size = FRAME_HEADER_SIZE_B091QP;
+            data_offset = DATA_OFFSET_B091QP;
+            lowres_byte = LOWRES_BYTE_B091QP;
+            highres_byte = HIGHRES_BYTE_B091QP;
         }
     }
 

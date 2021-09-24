@@ -108,6 +108,13 @@
 #define LOWRES_BYTE_QG311R 8
 #define HIGHRES_BYTE_QG311R 4
 
+#define BUF_OFFSET_B091QP 300
+#define BUF_SIZE_B091QP 524588
+#define FRAME_HEADER_SIZE_B091QP 26
+#define DATA_OFFSET_B091QP 4
+#define LOWRES_BYTE_B091QP 8
+#define HIGHRES_BYTE_B091QP 4
+
 #define MILLIS_25 25000
 
 #define RESOLUTION_NONE 0
@@ -263,7 +270,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-r RES] [-d]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga, y28ga, q321br_lsx or qg311r (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga, y28ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
     fprintf(stderr, "\t-r RES, --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: LOW or HIGH (default HIGH)\n");
     fprintf(stderr, "\t-s, --sti\n");
@@ -399,6 +406,13 @@ int main(int argc, char **argv) {
                 data_offset = DATA_OFFSET_QG311R;
                 lowres_byte = LOWRES_BYTE_QG311R;
                 highres_byte = HIGHRES_BYTE_QG311R;
+            } else if (strcasecmp("b091qp", optarg) == 0) {
+                buf_offset = BUF_OFFSET_B091QP;
+                buf_size = BUF_SIZE_B091QP;
+                frame_header_size = FRAME_HEADER_SIZE_B091QP;
+                data_offset = DATA_OFFSET_B091QP;
+                lowres_byte = LOWRES_BYTE_B091QP;
+                highres_byte = HIGHRES_BYTE_B091QP;
             }
             break;
 

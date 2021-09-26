@@ -93,6 +93,10 @@ int parse_message(char *msg, ssize_t len)
     {
         strcpy(fwd_msg, "SOUND_DETECTION");
     }
+    else if((len >= sizeof(IPC_MOTION_JPG) - 1) && (memcmp(msg, IPC_MOTION_JPG, sizeof(IPC_MOTION_JPG) - 1)==0))
+    {
+        strcpy(fwd_msg, "MOTION_JPG");
+    }
 
     if (fwd_msg[0] == '\0') return 0;
 

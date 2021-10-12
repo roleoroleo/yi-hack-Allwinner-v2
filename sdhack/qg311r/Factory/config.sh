@@ -17,13 +17,6 @@ else
         cp -f /tmp/sd/newbackup/init.sh /backup/init.sh
         chmod 0755 /backup/init.sh
     fi
-
-    ### Replace /backup/tools/wifidhcp.sh with hostname option
-    echo "### Updating /backup/tools/wifidhcp.sh"
-    if [ -f /tmp/sd/newbackup/tools/wifidhcp.sh ]; then
-        cp -f /tmp/sd/newbackup/tools/wifidhcp.sh /backup/tools/wifidhcp.sh
-        chmod 0755 /backup/tools/wifidhcp.sh
-    fi
 fi
 
 ### Disable the hack for next reboot

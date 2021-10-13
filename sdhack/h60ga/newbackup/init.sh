@@ -48,15 +48,15 @@ mkdir /tmp/ko/
 mkdir /tmp/app/
 mkdir /tmp/tools/
 
-if [ -f /home/home_${SUFFIX}m ]; then
+if [ -f /home/home_${SUFFIX}m ];then
 	dd if=/home/home_${SUFFIX}m of=/tmp/newver bs=22 count=1
 	newver=$(cat /tmp/newver)
-	if [ -f /home/homever ]; then
+	if [ -f /home/homever ];then
 		curver=$(cat /home/homever)
 	else
 		curver=0
 	fi
-	if [ $newver != $curver ]; then
+	if [ $newver != $curver ];then
 		### cipher ###
 		sleep 1
 		mkdir /tmp/update
@@ -68,15 +68,15 @@ if [ -f /home/home_${SUFFIX}m ]; then
 		reboot -f
 	fi
 	rm -rf mv /home/home_${SUFFIX}m
-elif [ -f /tmp/sd/home_${SUFFIX}m ]; then
+elif [ -f /tmp/sd/home_${SUFFIX}m ];then
 	dd if=/tmp/sd/home_${SUFFIX}m of=/tmp/newver bs=22 count=1
 	newver=$(cat /tmp/newver)
-	if [ -f /home/homever ]; then
+	if [ -f /home/homever ];then
 		curver=$(cat /home/homever)
 	else
 		curver=0
 	fi
-	if [ $newver != $curver ]; then
+	if [ $newver != $curver ];then
 		### cipher ###
 		sleep 1
 		mkdir /tmp/update

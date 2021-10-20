@@ -63,7 +63,7 @@ hostname -F $YI_HACK_PREFIX/etc/hostname
 export TZ=$(get_config TIMEZONE)
 
 if [[ $(get_config SWAP_FILE) == "yes" ]] ; then
-    SD_PRESENT=$(mount | grep mmc | grep -c ^)
+    SD_PRESENT=$(mount | grep mmc | grep "/tmp/sd " | grep -c ^)
     if [[ $SD_PRESENT -eq 1 ]]; then
         if [[ -f /tmp/sd/swapfile ]]; then
             swapon /tmp/sd/swapfile

@@ -32,9 +32,6 @@ TOPIC_MOTION=$(get_config TOPIC_MOTION)
 MOTION_START_MSG=$(get_config MOTION_START_MSG)
 MOTION_STOP_MSG=$(get_config MOTION_STOP_MSG)
 
-TOPIC_AI_HUMAN_DETECTION=$(get_config TOPIC_AI_HUMAN_DETECTION)
-AI_HUMAN_DETECTION_MSG=$(get_config AI_HUMAN_DETECTION_MSG)
-
 TOPIC_BABY_CRYING=$(get_config TOPIC_BABY_CRYING)
 BABY_CRYING_MSG=$(get_config BABY_CRYING_MSG)
 
@@ -229,19 +226,6 @@ MQTT_RETAIN_MOTION=$(get_config MQTT_RETAIN_MOTION)
     RETAIN=""
 # fi
 CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":{"identifiers":["'$IDENTIFIERS'"],"manufacturer":"'$MANUFACTURER'","model":"'$MODEL'","name":"'$NAME'","sw_version":"'$SW_VERSION'"}, "qos": "'$MQTT_QOS'", '$RETAIN' "device_class":"motion","state_topic":"'$MQTT_PREFIX'/'$TOPIC_MOTION'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","payload_on":"'$MOTION_START_MSG'","payload_off":"'$MOTION_STOP_MSG'", "platform": "mqtt"}'
-$YI_HACK_PREFIX/bin/mosquitto_pub -i $HOSTNAME $HA_QOS $HA_RETAIN -h $HOST -t $TOPIC -m "$CONTENT"
-# Human Detection
-UNIQUE_NAME=$NAME" Human Detection"
-UNIQUE_ID=$IDENTIFIERS"-ai_human_detection"
-TOPIC=$HOMEASSISTANT_MQTT_PREFIX/binary_sensor/$IDENTIFIERS/ai_human_detection/config
-MQTT_RETAIN_AI_HUMAN_DETECTION=$(get_config MQTT_RETAIN_AI_HUMAN_DETECTION)
-#Don't know why... ..Home Assistant don't allow retain for Sensor and Binary Sensor
-# if [ "$MQTT_RETAIN_AI_HUMAN_DETECTION" == "1" ]; then
-#    RETAIN='"retain":true, '
-# else
-    RETAIN=""
-# fi
-CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":{"identifiers":["'$IDENTIFIERS'"],"manufacturer":"'$MANUFACTURER'","model":"'$MODEL'","name":"'$NAME'","sw_version":"'$SW_VERSION'"}, "qos": "'$MQTT_QOS'", '$RETAIN' "device_class":"motion","state_topic":"'$MQTT_PREFIX'/'$TOPIC_AI_HUMAN_DETECTION'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","payload_on":"'$AI_HUMAN_DETECTION_MSG'","off_delay":60, "platform": "mqtt"}'
 $YI_HACK_PREFIX/bin/mosquitto_pub -i $HOSTNAME $HA_QOS $HA_RETAIN -h $HOST -t $TOPIC -m "$CONTENT"
 # Sound Detection
 UNIQUE_NAME=$NAME" Sound Detection"

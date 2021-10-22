@@ -81,10 +81,6 @@ int parse_message(char *msg, ssize_t len)
     {
         strcpy(fwd_msg, "MOTION_STOP");
     }
-    else if((len >= sizeof(IPC_AI_HUMAN_DETECTION) - 1) && (memcmp(msg, IPC_AI_HUMAN_DETECTION, sizeof(IPC_AI_HUMAN_DETECTION) - 1)==0))
-    {
-        strcpy(fwd_msg, "AI_HUMAN_DETECTION");
-    }
     else if((len >= sizeof(IPC_BABY_CRYING) - 1) && (memcmp(msg, IPC_BABY_CRYING, sizeof(IPC_BABY_CRYING) - 1)==0))
     {
         strcpy(fwd_msg, "BABY_CRYING");
@@ -92,10 +88,6 @@ int parse_message(char *msg, ssize_t len)
     else if((len >= sizeof(IPC_SOUND_DETECTION) - 1) && (memcmp(msg, IPC_SOUND_DETECTION, sizeof(IPC_SOUND_DETECTION) - 1)==0))
     {
         strcpy(fwd_msg, "SOUND_DETECTION");
-    }
-    else if((len >= sizeof(IPC_MOTION_JPG) - 1) && (memcmp(msg, IPC_MOTION_JPG, sizeof(IPC_MOTION_JPG) - 1)==0))
-    {
-        strcpy(fwd_msg, "MOTION_JPG");
     }
 
     if (fwd_msg[0] == '\0') return 0;

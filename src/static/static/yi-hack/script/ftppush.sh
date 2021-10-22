@@ -73,8 +73,8 @@ checkFiles ()
 		LAST_FILE_SENT_REMPART=${LAST_FILE_SENT:5:2}${LAST_FILE_SENT:8:2}${LAST_FILE_SENT:11:2}${LAST_FILE_SENT:14:2}
 		if [ ${FILE_YEAR} -gt ${LAST_FILE_SENT_YEAR} ] || ( [ ${FILE_YEAR} -eq ${LAST_FILE_SENT_YEAR} ] && [ ${FILE_REMPART} -gt ${LAST_FILE_SENT_REMPART} ] ); then
 			if ( ! uploadToFtp -- "${file}" ); then
-				logAdd "[ERROR] checkFiles: uploadToFtp FAILED - [${file}]."
-				continue
+				logAdd "[ERROR] checkFiles: uploadToFtp FAILED - [${file}]. Retrying in ${SLEEP_CYCLE_SECONDS} s."
+				return 0
 			fi
 			logAdd "[INFO] checkFiles: uploadToFtp SUCCEEDED - [${file}]."
 			LAST_FILE_SENT=${FILE_DATE}

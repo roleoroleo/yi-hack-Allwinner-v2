@@ -115,9 +115,11 @@ Currently this project supports only the following cameras:
 | Yi Dome Camera U BFUS (3K) | 9.0.21* | h51ga | - |
 | Yi Dome U Pro 2K LFUS | 9.0.27* | h60ga | beta version |
 | Yi Outdoor 1080p QFUS | 9.0.45* | r40ga | beta version |
+| Yi Home Y4 IFCN | 9.0.09* | y29ga | - |
 | Kami mini home IFUS | 9.0.20* | y28ga | - |
 | MIBAO G1 1296p dome | 9.0.04* | qg311r | - |
 | BLITZWOLF BW-YIC1 | 9.0.41* | b091qp | - |
+| ESCAM PT202 | 9.0.41* | b091qp | - |
 
 USE AT YOUR OWN RISK.
 
@@ -132,6 +134,7 @@ If you want to know if your cam is supported, please check the serial number (fi
 If both numbers appear in the same row in the table above, your cam is supported.
 If not, check the other projects related to Yi cams:
 - https://github.com/TheCrypt0/yi-hack-v4 and previous
+- https://github.com/alienatedsec/yi-hack-v5
 - https://github.com/roleoroleo/yi-hack-MStar
 - https://github.com/roleoroleo/yi-hack-Allwinner
 
@@ -141,8 +144,9 @@ Are you using Home Assistant?
 
 Do you want to integrate your cam?
 
-Try this custom integration:
+Try these custom integrations:
 https://github.com/roleoroleo/yi-hack_ha_integration
+https://github.com/AlexxIT/WebRTC
 
 
 ## Build your own firmware

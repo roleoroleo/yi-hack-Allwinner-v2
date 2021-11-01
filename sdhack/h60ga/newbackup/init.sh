@@ -80,7 +80,7 @@ elif [ -f /tmp/sd/home_${SUFFIX}m ];then
 		### cipher ###
 		sleep 1
 		mkdir /tmp/update
-        cp -rf /tmp/sd/home_${SUFFIX}m /tmp/update/
+		cp -rf /tmp/sd/home_${SUFFIX}m /tmp/update/
 		cp -rf /backup/tools/extpkg.sh /tmp/update/extpkg.sh
 		/tmp/update/extpkg.sh /tmp/sd/home_${SUFFIX}m
 		rm -rf /tmp/update

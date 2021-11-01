@@ -3,7 +3,7 @@ echo "--------------------------home app init.sh--------------------------"
 SUFFIX=b091qp
 enable_4g=
 
-ATH="/usr/bin:/usr/sbin:/bin:/sbin:/home/base/tools:/home/app/localbin:/home/base:/tmp/sd/yi-hack/bin:/tmp/sd/yi-hack/sbin:/tmp/sd/yi-hack/usr/bin:/tmp/sd/yi-hack/usr/sbin"
+PATH="/usr/bin:/usr/sbin:/bin:/sbin:/home/base/tools:/home/app/localbin:/home/base:/tmp/sd/yi-hack/bin:/tmp/sd/yi-hack/sbin:/tmp/sd/yi-hack/usr/bin:/tmp/sd/yi-hack/usr/sbin"
 LD_LIBRARY_PATH="/lib:/usr/lib:/home/lib:/home/qigan/lib:/home/app/locallib:/tmp/sd:/tmp/sd/gdb:/tmp/sd/yi-hack/lib"
 export PATH
 export LD_LIBRARY_PATH
@@ -138,6 +138,14 @@ if [ "${SUFFIX}" = "b091qp" ];then
 		elif [ "${WIFI_TYPE}" = "6" ];then
 			if [ ! -f /backup/ko/8192fu.ko ];then
 			cp  /tmp/sd/wifi_drive/8192fu.ko /backup/ko/
+			fi
+		elif [ "${WIFI_TYPE}" = "7" ];then
+			if [ ! -f /backup/ko/rdawfmac.ko ];then
+			cp  /tmp/sd/wifi_drive/rdawfmac.ko /backup/ko/
+			fi
+
+			if [ ! -d /backup/ko/rda5995-usb ];then
+			cp  /tmp/sd/wifi_drive/rda5995-usb/  /backup/ko/ -rf
 			fi
 		else
 		echo "no config hw"
@@ -349,9 +357,11 @@ if [ -f /backup/url ];then
 		elif [ -f /backup/ko/8189fs.ko ];then
 			insmod /backup/ko/8189fs.ko
 		elif [ -f /backup/ko/8192fu.ko ];then
-			insmod /backup/ko/8192fu.ko	
+			insmod /backup/ko/8192fu.ko
 		elif [ -f /backup/ko/atbm603x_wifi_usb.ko ];then
 			insmod /backup/ko/atbm603x_wifi_usb.ko
+		elif [ -f /backup/ko/rdawfmac.ko ];then
+			insmod /backup/ko/rdawfmac.ko
 		elif [ -f /backup/ko/ssv6x5x.ko ];then
 			if [ "${SUFFIX}" = "d071qp" ];then
 				if [ -f /home/base/firmware/ssv6x5x/ssv6152-wifi.cfg ];then

@@ -61,6 +61,9 @@
 #define BUF_OFFSET_Y28GA 368
 #define BUF_SIZE_Y28GA 1048944
 
+#define BUF_OFFSET_Y29GA 368
+#define BUF_SIZE_Y29GA 524656
+
 #define BUF_OFFSET_Q321BR_LSX 300
 #define BUF_SIZE_Q321BR_LSX 524588
 
@@ -254,7 +257,7 @@ int add_watermark(char *buffer, int w_res, int h_res)
 void usage(char *prog_name)
 {
     fprintf(stderr, "Usage: %s [options]\n", prog_name);
-    fprintf(stderr, "\t-m, --model MODEL       Set model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga, y28ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t-m, --model MODEL       Set model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
     fprintf(stderr, "\t-r, --res RES           Set resolution: \"low\" or \"high\" (default \"high\")\n");
     fprintf(stderr, "\t-w, --watermark         Add watermark to image\n");
     fprintf(stderr, "\t-h, --help              Show this help\n");
@@ -334,6 +337,10 @@ int main(int argc, char **argv)
                     buf_offset = BUF_OFFSET_Y28GA;
                     buf_size = BUF_SIZE_Y28GA;
                     model_high_res = RESOLUTION_FHD;
+                } else if (strcasecmp("y29ga", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_Y29GA;
+                    buf_size = BUF_SIZE_Y29GA;
+                    model_high_res = RESOLUTION_3K;
                 } else if (strcasecmp("q321br_lsx", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Q321BR_LSX;
                     buf_size = BUF_SIZE_Q321BR_LSX;

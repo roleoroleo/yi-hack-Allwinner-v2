@@ -693,7 +693,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-r RES] [-p PORT] [-d]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga, y28ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
     fprintf(stderr, "\t-r RES,   --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: low, high or both (default high)\n");
     fprintf(stderr, "\t-a AUDIO, --audio AUDIO\n");
@@ -775,6 +775,8 @@ int main(int argc, char** argv)
                 model = H60GA;
             } else if (strcasecmp("y28ga", optarg) == 0) {
                 model = Y28GA;
+            } else if (strcasecmp("y29ga", optarg) == 0) {
+                model = Y29GA;
             } else if (strcasecmp("q321br_lsx", optarg) == 0) {
                 model = Q321BR_LSX;
             } else if (strcasecmp("qg311r", optarg) == 0) {
@@ -888,6 +890,8 @@ int main(int argc, char** argv)
             model = H60GA;
         } else if (strcasecmp("y28ga", str) == 0) {
             model = Y28GA;
+        } else if (strcasecmp("y29ga", str) == 0) {
+            model = Y29GA;
         } else if (strcasecmp("q321br_lsx", str) == 0) {
             model = Q321BR_LSX;
         } else if (strcasecmp("qg311r", str) == 0) {
@@ -1039,6 +1043,15 @@ int main(int argc, char** argv)
         highres_byte = HIGHRES_BYTE_Y28GA;
         model_high_res = RESOLUTION_FHD;
         sps_type = SPS_TYPE_Y28GA;
+    } else if (model == Y29GA) {
+        buf_offset = BUF_OFFSET_Y29GA;
+        buf_size = BUF_SIZE_Y29GA;
+        frame_header_size = FRAME_HEADER_SIZE_Y29GA;
+        data_offset = DATA_OFFSET_Y29GA;
+        lowres_byte = LOWRES_BYTE_Y29GA;
+        highres_byte = HIGHRES_BYTE_Y29GA;
+        model_high_res = RESOLUTION_3K;
+        sps_type = SPS_TYPE_Y29GA;
     } else if (model == Q321BR_LSX) {
         buf_offset = BUF_OFFSET_Q321BR_LSX;
         buf_size = BUF_SIZE_Q321BR_LSX;

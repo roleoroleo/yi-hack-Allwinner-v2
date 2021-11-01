@@ -92,6 +92,13 @@
 #define LOWRES_BYTE_Y28GA 8
 #define HIGHRES_BYTE_Y28GA 4
 
+#define BUF_OFFSET_Y29GA 368
+#define BUF_SIZE_Y29GA 524656
+#define FRAME_HEADER_SIZE_Y29GA 28
+#define DATA_OFFSET_Y29GA 4
+#define LOWRES_BYTE_Y29GA 8
+#define HIGHRES_BYTE_Y29GA 4
+
 #define BUF_OFFSET_Q321BR_LSX 300
 #define BUF_SIZE_Q321BR_LSX 524588
 #define FRAME_HEADER_SIZE_Q321BR_LSX 26
@@ -320,6 +327,13 @@ int main(int argc, char **argv) {
             data_offset = DATA_OFFSET_Y28GA;
             lowres_byte = LOWRES_BYTE_Y28GA;
             highres_byte = HIGHRES_BYTE_Y28GA;
+        } else if (strcasecmp("y29ga", argv[1]) == 0) {
+            buf_offset = BUF_OFFSET_Y29GA;
+            buf_size = BUF_SIZE_Y29GA;
+            frame_header_size = FRAME_HEADER_SIZE_Y29GA;
+            data_offset = DATA_OFFSET_Y29GA;
+            lowres_byte = LOWRES_BYTE_Y29GA;
+            highres_byte = HIGHRES_BYTE_Y29GA;
         } else if (strcasecmp("q321br_lsx", argv[1]) == 0) {
             buf_offset = BUF_OFFSET_Q321BR_LSX;
             buf_size = BUF_SIZE_Q321BR_LSX;

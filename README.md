@@ -33,6 +33,9 @@ It's not easy to brick the cam but it can happen.
 So please, make your backup copy: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Dump-your-backup-firmware-(SD-card)
 
 ### Install Procedure
+If you want to use the original Yi app, please install it and complete the pairing process before to install the hack.
+Otherwise, follow this wiki: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Install-the-hack-without-the-Yi-app
+
 1. Format an SD Card as FAT32. It's recommended to format the card in the camera using the camera's native format function. If the card is already formatted, remove all the files.
 2. Download the latest release from the Releases page.
 3. Extract the contents of the archive to the root of your SD card. Your card should appear with this structure:

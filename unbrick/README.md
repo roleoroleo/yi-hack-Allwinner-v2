@@ -1,15 +1,17 @@
-This procedure allows you to unbrick your cam using a backup file (that you have previously done).
+## Content
+
+This procedure allows you to unbrick your cam using a backup file (which you did previously).
 
 ## How to use
 
 1. Clone this repo on a linux machine.
 2. Enter to the unbrick folder
-   cd unbrick
+   `cd unbrick`
 3. Run the build command with the desired option
    If you want to create an original unbrick partition:
-   ./build.sh factory
-   If you want to create a hacked original partition:
-   ./build.sh hacked
+   `./build.sh factory`
+   If you want to create a hacked partition:
+   `./build.sh hacked`
    The last option allows you to run the hack after the unbrick.
 
 To run this script correctly you have to comply some dependencies depending on your OS.

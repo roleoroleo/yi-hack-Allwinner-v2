@@ -33,6 +33,7 @@ CAMERAS["y28ga"]="y28ga"
 CAMERAS["y29ga"]="y29ga"
 CAMERAS["r40ga"]="r40ga"
 CAMERAS["h60ga"]="h60ga"
+CAMERAS["q321br_lsx"]="q321br_lsx"
 CAMERAS["qg311r"]="qg311r"
 CAMERAS["b091qp"]="b091qp"
 

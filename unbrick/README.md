@@ -10,9 +10,13 @@ This procedure allows you to unbrick your cam using a backup file (which you did
 3. Copy your backup partition (mtdblock4.bin) in the folder corresponding to your model.
 4. Run the build command with the desired option
    If you want to create an original unbrick partition:
+   
    `./build.sh factory`
+   
    If you want to create a hacked partition:
+   
    `./build.sh hacked`
+   
    The last option allows you to run the hack after the unbrick (but you need to install the hack separately).
 5. You will find the file backup_XXX.gz in the folder corresponding to your model.
 6. Unzip it in the root folder of your cam.

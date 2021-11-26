@@ -1,0 +1,3 @@
+#!/bin/sh
+
+./mkfs.jffs2 -l --pad=$1 -e 4KiB -r $2 -o $3

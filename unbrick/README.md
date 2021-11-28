@@ -5,10 +5,11 @@ This procedure allows you to unbrick your cam using a backup file (which you did
 ## How to use
 
 1. Clone this repo on a linux machine.
-2. Enter to the unbrick folder
+2. Copy your backup partition (mtdblock4.bin) in the folder corresponding to your model.
+3. Enter to the unbrick folder
    `cd unbrick`
-3. Copy your backup partition (mtdblock4.bin) in the folder corresponding to your model.
-4. Run the build command with the desired option
+4. Run the build command with the desired option.
+
    If you want to create an original unbrick partition:
    
    `./build.sh factory`

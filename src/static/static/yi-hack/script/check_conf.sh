@@ -68,6 +68,7 @@ MQTT_PREFIX_CONFIG=
 TOPIC_BIRTH_WILL=status
 TOPIC_MOTION=motion_detection
 TOPIC_MOTION_IMAGE=motion_detection_image
+MOTION_IMAGE_DELAY=0.5
 TOPIC_MOTION_FILES=motion_files
 TOPIC_SOUND_DETECTION=sound_detection
 BIRTH_MSG=online

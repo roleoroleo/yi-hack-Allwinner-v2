@@ -11,6 +11,13 @@ removedoublequotes(){
   echo "$(sed 's/^"//g;s/"$//g')"
 }
 
+validatenumber(){
+  case $1 in
+    ''|*[!0-9.,]* ) return 1;;
+    * ) return 0;;
+  esac
+}
+
 get_conf_type()
 {
     CONF="$(echo $QUERY_STRING | cut -d'=' -f1)"
@@ -55,6 +62,14 @@ for ROW in $ROWS; do
         else
             hostname $VALUE
             echo "$VALUE" > $YI_HACK_PREFIX/etc/hostname
+        fi
+    elif [ "$KEY" == "MOTION_IMAGE_DELAY" ] ; then
+        if $(validatenumber $VALUE); then
+            VALUE=$(echo $VALUE | sed 's/,/./g')
+            VAR=$(awk 'BEGIN{ print "'$VALUE'"<="'5.0'" }')
+            if [ "$VAR" == "1" ]; then
+                sed -i "s/^\(${KEY}\s*=\s*\).*$/\1${VALUE}/" $CONF_FILE
+            fi
         fi
     else
         VALUE=$(echo "$VALUE" | sedencode)

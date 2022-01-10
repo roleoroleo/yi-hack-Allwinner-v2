@@ -723,6 +723,7 @@ int main(int argc, char** argv)
     int convertToxLaw = WA_PCMU;
     char const* inputAudioFileName = "/tmp/audio_fifo";
     struct stat stat_buffer;
+    FILE *fFS;
 
     // Setting default
     model = Y21GA;
@@ -732,6 +733,8 @@ int main(int argc, char** argv)
     port = 554;
     sps_timing_info = 1;
     debug = 0;
+
+    sps_type = 0; // Autodetect sps type
 
     while (1) {
         static struct option long_options[] =
@@ -962,123 +965,108 @@ int main(int argc, char** argv)
     }
 
 
+    fFS = fopen(BUFFER_FILE, "r");
+    if ( fFS == NULL ) {
+        fprintf(stderr, "could not get size of %s\n", BUFFER_FILE);
+        exit(EXIT_FAILURE);
+    }
+    fseek(fFS, 0, SEEK_END);
+    buf_size = ftell(fFS);
+    fclose(fFS);
+    if (debug & 1) fprintf(stderr, "%lld: the size of the buffer is %d\n",
+            current_timestamp(), buf_size);
+
     if (model == Y21GA) {
         buf_offset = BUF_OFFSET_Y21GA;
-        buf_size = BUF_SIZE_Y21GA;
         frame_header_size = FRAME_HEADER_SIZE_Y21GA;
         data_offset = DATA_OFFSET_Y21GA;
         lowres_byte = LOWRES_BYTE_Y21GA;
         highres_byte = HIGHRES_BYTE_Y21GA;
         model_high_res = RESOLUTION_FHD;
-        sps_type = SPS_TYPE_Y21GA;
     } else if (model == Y211GA) {
         buf_offset = BUF_OFFSET_Y211GA;
-        buf_size = BUF_SIZE_Y211GA;
         frame_header_size = FRAME_HEADER_SIZE_Y211GA;
         data_offset = DATA_OFFSET_Y211GA;
         lowres_byte = LOWRES_BYTE_Y211GA;
         highres_byte = HIGHRES_BYTE_Y211GA;
         model_high_res = RESOLUTION_FHD;
-        sps_type = SPS_TYPE_Y211GA;
     } else if (model == H30GA) {
         buf_offset = BUF_OFFSET_H30GA;
-        buf_size = BUF_SIZE_H30GA;
         frame_header_size = FRAME_HEADER_SIZE_H30GA;
         data_offset = DATA_OFFSET_H30GA;
         lowres_byte = LOWRES_BYTE_H30GA;
         highres_byte = HIGHRES_BYTE_H30GA;
         model_high_res = RESOLUTION_FHD;
-        sps_type = SPS_TYPE_H30GA;
     } else if (model == R30GB) {
         buf_offset = BUF_OFFSET_R30GB;
-        buf_size = BUF_SIZE_R30GB;
         frame_header_size = FRAME_HEADER_SIZE_R30GB;
         data_offset = DATA_OFFSET_R30GB;
         lowres_byte = LOWRES_BYTE_R30GB;
         highres_byte = HIGHRES_BYTE_R30GB;
         model_high_res = RESOLUTION_FHD;
-        sps_type = SPS_TYPE_R30GB;
     } else if (model == R40GA) {
         buf_offset = BUF_OFFSET_R40GA;
-        buf_size = BUF_SIZE_R40GA;
         frame_header_size = FRAME_HEADER_SIZE_R40GA;
         data_offset = DATA_OFFSET_R40GA;
         lowres_byte = LOWRES_BYTE_R40GA;
         highres_byte = HIGHRES_BYTE_R40GA;
         model_high_res = RESOLUTION_FHD;
-        sps_type = SPS_TYPE_R40GA;
     } else if (model == H51GA) {
         buf_offset = BUF_OFFSET_H51GA;
-        buf_size = BUF_SIZE_H51GA;
         frame_header_size = FRAME_HEADER_SIZE_H51GA;
         data_offset = DATA_OFFSET_H51GA;
         lowres_byte = LOWRES_BYTE_H51GA;
         highres_byte = HIGHRES_BYTE_H51GA;
         model_high_res = RESOLUTION_3K;
-        sps_type = SPS_TYPE_H51GA;
     } else if (model == H52GA) {
         buf_offset = BUF_OFFSET_H52GA;
-        buf_size = BUF_SIZE_H52GA;
         frame_header_size = FRAME_HEADER_SIZE_H52GA;
         data_offset = DATA_OFFSET_H52GA;
         lowres_byte = LOWRES_BYTE_H52GA;
         highres_byte = HIGHRES_BYTE_H52GA;
         model_high_res = RESOLUTION_FHD;
-        sps_type = SPS_TYPE_H52GA;
     } else if (model == H60GA) {
         buf_offset = BUF_OFFSET_H60GA;
-        buf_size = BUF_SIZE_H60GA;
         frame_header_size = FRAME_HEADER_SIZE_H60GA;
         data_offset = DATA_OFFSET_H60GA;
         lowres_byte = LOWRES_BYTE_H60GA;
         highres_byte = HIGHRES_BYTE_H60GA;
         model_high_res = RESOLUTION_3K;
-        sps_type = SPS_TYPE_H60GA;
     } else if (model == Y28GA) {
         buf_offset = BUF_OFFSET_Y28GA;
-        buf_size = BUF_SIZE_Y28GA;
         frame_header_size = FRAME_HEADER_SIZE_Y28GA;
         data_offset = DATA_OFFSET_Y28GA;
         lowres_byte = LOWRES_BYTE_Y28GA;
         highres_byte = HIGHRES_BYTE_Y28GA;
         model_high_res = RESOLUTION_FHD;
-        sps_type = SPS_TYPE_Y28GA;
     } else if (model == Y29GA) {
         buf_offset = BUF_OFFSET_Y29GA;
-        buf_size = BUF_SIZE_Y29GA;
         frame_header_size = FRAME_HEADER_SIZE_Y29GA;
         data_offset = DATA_OFFSET_Y29GA;
         lowres_byte = LOWRES_BYTE_Y29GA;
         highres_byte = HIGHRES_BYTE_Y29GA;
         model_high_res = RESOLUTION_3K;
-        sps_type = SPS_TYPE_Y29GA;
     } else if (model == Q321BR_LSX) {
         buf_offset = BUF_OFFSET_Q321BR_LSX;
-        buf_size = BUF_SIZE_Q321BR_LSX;
         frame_header_size = FRAME_HEADER_SIZE_Q321BR_LSX;
         data_offset = DATA_OFFSET_Q321BR_LSX;
         lowres_byte = LOWRES_BYTE_Q321BR_LSX;
         highres_byte = HIGHRES_BYTE_Q321BR_LSX;
         model_high_res = RESOLUTION_3K;
-        sps_type = SPS_TYPE_Q321BR_LSX;
     } else if (model == QG311R) {
         buf_offset = BUF_OFFSET_QG311R;
-        buf_size = BUF_SIZE_QG311R;
         frame_header_size = FRAME_HEADER_SIZE_QG311R;
         data_offset = DATA_OFFSET_QG311R;
         lowres_byte = LOWRES_BYTE_QG311R;
         highres_byte = HIGHRES_BYTE_QG311R;
         model_high_res = RESOLUTION_3K;
-        sps_type = SPS_TYPE_QG311R;
     } else if (model == B091QP) {
         buf_offset = BUF_OFFSET_B091QP;
-        buf_size = BUF_SIZE_B091QP;
         frame_header_size = FRAME_HEADER_SIZE_B091QP;
         data_offset = DATA_OFFSET_B091QP;
         lowres_byte = LOWRES_BYTE_B091QP;
         highres_byte = HIGHRES_BYTE_B091QP;
         model_high_res = RESOLUTION_FHD;
-        sps_type = SPS_TYPE_B091QP;
     }
 
     // If fifo doesn't exist, disable audio

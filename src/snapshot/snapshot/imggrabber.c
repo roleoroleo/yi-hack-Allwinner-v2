@@ -35,43 +35,18 @@
 #include "add_water.h"
 
 #define BUF_OFFSET_Y21GA 368
-#define BUF_SIZE_Y21GA 1786224
-
 #define BUF_OFFSET_Y211GA 368
-#define BUF_SIZE_Y211GA 1786224
-
 #define BUF_OFFSET_H30GA 368
-#define BUF_SIZE_H30GA 1786224
-
 #define BUF_OFFSET_R30GB 300
-#define BUF_SIZE_R30GB 1786156
-
 #define BUF_OFFSET_R40GA 300
-#define BUF_SIZE_R40GA 1786156
-
 #define BUF_OFFSET_H51GA 368
-#define BUF_SIZE_H51GA 524656
-
 #define BUF_OFFSET_H52GA 368
-#define BUF_SIZE_H52GA 1048944
-
 #define BUF_OFFSET_H60GA 368
-#define BUF_SIZE_H60GA 1048944
-
 #define BUF_OFFSET_Y28GA 368
-#define BUF_SIZE_Y28GA 1048944
-
 #define BUF_OFFSET_Y29GA 368
-#define BUF_SIZE_Y29GA 524656
-
 #define BUF_OFFSET_Q321BR_LSX 300
-#define BUF_SIZE_Q321BR_LSX 524588
-
 #define BUF_OFFSET_QG311R 300
-#define BUF_SIZE_QG311R 524588
-
 #define BUF_OFFSET_B091QP 300
-#define BUF_SIZE_B091QP 524588
 
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
 #define I_FILE "/tmp/iframe.idx"
@@ -265,7 +240,7 @@ void usage(char *prog_name)
 
 int main(int argc, char **argv)
 {
-    FILE *fIdx, *fBuf;
+    FILE *fFS, *fIdx, *fBuf;
     uint32_t offset, length;
     frame hl_frame[2];
     int hl_frame_index;
@@ -277,7 +252,6 @@ int main(int argc, char **argv)
     int c;
 
     buf_offset = BUF_OFFSET_Y21GA;
-    buf_size = BUF_SIZE_Y21GA;
     res = RESOLUTION_HIGH;
     model_high_res = RESOLUTION_FHD;
     width = W_FHD;
@@ -303,55 +277,42 @@ int main(int argc, char **argv)
             case 'm':
                 if (strcasecmp("y21ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Y21GA;
-                    buf_size = BUF_SIZE_Y21GA;
                     model_high_res = RESOLUTION_FHD;
                 } else if (strcasecmp("y211ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Y211GA;
-                    buf_size = BUF_SIZE_Y211GA;
                     model_high_res = RESOLUTION_FHD;
                 } else if (strcasecmp("h30ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_H30GA;
-                    buf_size = BUF_SIZE_H30GA;
                     model_high_res = RESOLUTION_FHD;
                 } else if (strcasecmp("r30gb", optarg) == 0) {
                     buf_offset = BUF_OFFSET_R30GB;
-                    buf_size = BUF_SIZE_R30GB;
                     model_high_res = RESOLUTION_FHD;
                 } else if (strcasecmp("r40ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_R40GA;
-                    buf_size = BUF_SIZE_R40GA;
                     model_high_res = RESOLUTION_FHD;
                 } else if (strcasecmp("h51ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_H51GA;
-                    buf_size = BUF_SIZE_H51GA;
                     model_high_res = RESOLUTION_3K;
                 } else if (strcasecmp("h52ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_H52GA;
-                    buf_size = BUF_SIZE_H52GA;
                     model_high_res = RESOLUTION_FHD;
                 } else if (strcasecmp("h60ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_H60GA;
-                    buf_size = BUF_SIZE_H60GA;
                     model_high_res = RESOLUTION_3K;
                 } else if (strcasecmp("y28ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Y28GA;
-                    buf_size = BUF_SIZE_Y28GA;
                     model_high_res = RESOLUTION_FHD;
                 } else if (strcasecmp("y29ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Y29GA;
-                    buf_size = BUF_SIZE_Y29GA;
                     model_high_res = RESOLUTION_3K;
                 } else if (strcasecmp("q321br_lsx", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Q321BR_LSX;
-                    buf_size = BUF_SIZE_Q321BR_LSX;
                     model_high_res = RESOLUTION_3K;
                 } else if (strcasecmp("qg311r", optarg) == 0) {
                     buf_offset = BUF_OFFSET_QG311R;
-                    buf_size = BUF_SIZE_QG311R;
                     model_high_res = RESOLUTION_3K;
                 } else if (strcasecmp("b091qp", optarg) == 0) {
                     buf_offset = BUF_OFFSET_B091QP;
-                    buf_size = BUF_SIZE_B091QP;
                     model_high_res = RESOLUTION_FHD;
                 }
                 break;
@@ -398,27 +359,37 @@ int main(int argc, char **argv)
         hl_frame_index = 0;
     }
 
+    fFS = fopen(BUFFER_FILE, "r");
+    if ( fFS == NULL ) {
+        fprintf(stderr, "could not get size of %s\n", BUFFER_FILE);
+        exit(-1);
+    }
+    fseek(fFS, 0, SEEK_END);
+    buf_size = ftell(fFS);
+    fclose(fFS);
+    if (debug) fprintf(stderr, "The size of the buffer is %d\n", buf_size);
+
     fIdx = fopen(I_FILE, "r");
     if ( fIdx == NULL ) {
         fprintf(stderr, "Could not open file %s\n", I_FILE);
-        exit(-1);
+        exit(-2);
     }
     if (fread(hl_frame, 1, 2 * sizeof(frame), fIdx) != 2 * sizeof(frame)) {
         fprintf(stderr, "Error reading file %s\n", I_FILE);
-        exit(-2);
+        exit(-3);
     }
 
     fBuf = fopen(BUFFER_FILE, "r") ;
     if (fBuf == NULL) {
         fprintf(stderr, "Could not open file %s\n", BUFFER_FILE);
-        exit(-3);
+        exit(-4);
     }
 
     // Map file to memory
     addr = (unsigned char*) mmap(NULL, buf_size, PROT_READ, MAP_SHARED, fileno(fBuf), 0);
     if (addr == MAP_FAILED) {
         fprintf(stderr, "Error mapping file %s\n", BUFFER_FILE);
-        exit(-4);
+        exit(-5);
     }
     if (debug) fprintf(stderr, "Mapping file %s, size %d, to %08x\n", BUFFER_FILE, buf_size, addr);
 
@@ -429,13 +400,13 @@ int main(int argc, char **argv)
     bufferh26x = (unsigned char *) malloc(hl_frame[hl_frame_index].vps_len + hl_frame[hl_frame_index].sps_len + hl_frame[hl_frame_index].pps_len + hl_frame[hl_frame_index].idr_len + FF_INPUT_BUFFER_PADDING_SIZE);
     if (bufferh26x == NULL) {
         fprintf(stderr, "Unable to allocate memory\n");
-        exit(-5);
+        exit(-6);
     }
 
     bufferyuv = (unsigned char *) malloc(width * height * 3 / 2);
     if (bufferyuv == NULL) {
         fprintf(stderr, "Unable to allocate memory\n");
-        exit(-6);
+        exit(-7);
     }
 
     if (hl_frame[hl_frame_index].vps_len != 0) {
@@ -449,13 +420,13 @@ int main(int argc, char **argv)
         if (debug) fprintf(stderr, "Decoding h264 frame\n");
         if(frame_decode(bufferyuv, bufferh26x, hl_frame[hl_frame_index].sps_len + hl_frame[hl_frame_index].pps_len + hl_frame[hl_frame_index].idr_len, 4) < 0) {
             fprintf(stderr, "Error decoding h264 frame\n");
-            exit(-7);
+            exit(-8);
         }
     } else {
         if (debug) fprintf(stderr, "Decoding h265 frame\n");
         if(frame_decode(bufferyuv, bufferh26x, hl_frame[hl_frame_index].vps_len + hl_frame[hl_frame_index].sps_len + hl_frame[hl_frame_index].pps_len + hl_frame[hl_frame_index].idr_len, 5) < 0) {
             fprintf(stderr, "Error decoding h265 frame\n");
-            exit(-7);
+            exit(-8);
         }
     }
     free(bufferh26x);
@@ -464,14 +435,14 @@ int main(int argc, char **argv)
         if (debug) fprintf(stderr, "Adding watermark\n");
         if (add_watermark(bufferyuv, width, height) < 0) {
             fprintf(stderr, "Error adding watermark\n");
-            exit(-8);
+            exit(-9);
         }
     }
 
     if (debug) fprintf(stderr, "Encoding jpeg image\n");
     if(YUVtoJPG("stdout", bufferyuv, width, height, width, height) < 0) {
         fprintf(stderr, "Error encoding jpeg file\n");
-        exit(-9);
+        exit(-10);
     }
 
     free(bufferyuv);

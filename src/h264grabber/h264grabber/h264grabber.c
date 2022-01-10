@@ -32,91 +32,78 @@
 #include <getopt.h>
 
 #define BUF_OFFSET_Y21GA 368
-#define BUF_SIZE_Y21GA 1786224
 #define FRAME_HEADER_SIZE_Y21GA 28
 #define DATA_OFFSET_Y21GA 4
 #define LOWRES_BYTE_Y21GA 8
 #define HIGHRES_BYTE_Y21GA 4
 
 #define BUF_OFFSET_Y211GA 368
-#define BUF_SIZE_Y211GA 1786224
 #define FRAME_HEADER_SIZE_Y211GA 28
 #define DATA_OFFSET_Y211GA 4
 #define LOWRES_BYTE_Y211GA 8
 #define HIGHRES_BYTE_Y211GA 4
 
 #define BUF_OFFSET_H30GA 368
-#define BUF_SIZE_H30GA 1786224
 #define FRAME_HEADER_SIZE_H30GA 28
 #define DATA_OFFSET_H30GA 4
 #define LOWRES_BYTE_H30GA 8
 #define HIGHRES_BYTE_H30GA 4
 
 #define BUF_OFFSET_R30GB 300
-#define BUF_SIZE_R30GB 1786156
 #define FRAME_HEADER_SIZE_R30GB 22
 #define DATA_OFFSET_R30GB 0
 #define LOWRES_BYTE_R30GB 8
 #define HIGHRES_BYTE_R30GB 4
 
 #define BUF_OFFSET_R40GA 300
-#define BUF_SIZE_R40GA 1786156
 #define FRAME_HEADER_SIZE_R40GA 26
 #define DATA_OFFSET_R40GA 4
 #define LOWRES_BYTE_R40GA 8
 #define HIGHRES_BYTE_R40GA 4
 
 #define BUF_OFFSET_H51GA 368
-#define BUF_SIZE_H51GA 524656
 #define FRAME_HEADER_SIZE_H51GA 28
 #define DATA_OFFSET_H51GA 4
 #define LOWRES_BYTE_H51GA 8
 #define HIGHRES_BYTE_H51GA 4
 
 #define BUF_OFFSET_H52GA 368
-#define BUF_SIZE_H52GA 1048944
 #define FRAME_HEADER_SIZE_H52GA 28
 #define DATA_OFFSET_H52GA 4
 #define LOWRES_BYTE_H52GA 8
 #define HIGHRES_BYTE_H52GA 4
 
 #define BUF_OFFSET_H60GA 368
-#define BUF_SIZE_H60GA 1048944
 #define FRAME_HEADER_SIZE_H60GA 28
 #define DATA_OFFSET_H60GA 4
 #define LOWRES_BYTE_H60GA 8
 #define HIGHRES_BYTE_H60GA 4
 
 #define BUF_OFFSET_Y28GA 368
-#define BUF_SIZE_Y28GA 1048944
 #define FRAME_HEADER_SIZE_Y28GA 28
 #define DATA_OFFSET_Y28GA 4
 #define LOWRES_BYTE_Y28GA 8
 #define HIGHRES_BYTE_Y28GA 4
 
 #define BUF_OFFSET_Y29GA 368
-#define BUF_SIZE_Y29GA 524656
 #define FRAME_HEADER_SIZE_Y29GA 28
 #define DATA_OFFSET_Y29GA 4
 #define LOWRES_BYTE_Y29GA 8
 #define HIGHRES_BYTE_Y29GA 4
 
 #define BUF_OFFSET_Q321BR_LSX 300
-#define BUF_SIZE_Q321BR_LSX 524588
 #define FRAME_HEADER_SIZE_Q321BR_LSX 26
 #define DATA_OFFSET_Q321BR_LSX 4
 #define LOWRES_BYTE_Q321BR_LSX 8
 #define HIGHRES_BYTE_Q321BR_LSX 4
 
 #define BUF_OFFSET_QG311R 300
-#define BUF_SIZE_QG311R 524588
 #define FRAME_HEADER_SIZE_QG311R 26
 #define DATA_OFFSET_QG311R 4
 #define LOWRES_BYTE_QG311R 8
 #define HIGHRES_BYTE_QG311R 4
 
 #define BUF_OFFSET_B091QP 300
-#define BUF_SIZE_B091QP 524588
 #define FRAME_HEADER_SIZE_B091QP 26
 #define DATA_OFFSET_B091QP 4
 #define LOWRES_BYTE_B091QP 8
@@ -291,7 +278,7 @@ int main(int argc, char **argv) {
     unsigned char *buf_idx_w, *buf_idx_tmp;
     unsigned char *buf_idx_start = NULL;
     int buf_idx_diff;
-    FILE *fFid;
+    FILE *fFS, *fFid;
 
     int frame_res, frame_len, frame_counter = -1;
     int frame_counter_last_valid = -1;
@@ -308,7 +295,6 @@ int main(int argc, char **argv) {
     debug = 0;
 
     buf_offset = BUF_OFFSET_Y21GA;
-    buf_size = BUF_SIZE_Y21GA;
     frame_header_size = FRAME_HEADER_SIZE_Y21GA;
     data_offset = DATA_OFFSET_Y21GA;
     lowres_byte = LOWRES_BYTE_Y21GA;
@@ -338,91 +324,78 @@ int main(int argc, char **argv) {
         case 'm':
             if (strcasecmp("y21ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_Y21GA;
-                buf_size = BUF_SIZE_Y21GA;
                 frame_header_size = FRAME_HEADER_SIZE_Y21GA;
                 data_offset = DATA_OFFSET_Y21GA;
                 lowres_byte = LOWRES_BYTE_Y21GA;
                 highres_byte = HIGHRES_BYTE_Y21GA;
             } else if (strcasecmp("y211ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_Y211GA;
-                buf_size = BUF_SIZE_Y211GA;
                 frame_header_size = FRAME_HEADER_SIZE_Y211GA;
                 data_offset = DATA_OFFSET_Y211GA;
                 lowres_byte = LOWRES_BYTE_Y211GA;
                 highres_byte = HIGHRES_BYTE_Y211GA;
             } else if (strcasecmp("h30ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_H30GA;
-                buf_size = BUF_SIZE_H30GA;
                 frame_header_size = FRAME_HEADER_SIZE_H30GA;
                 data_offset = DATA_OFFSET_H30GA;
                 lowres_byte = LOWRES_BYTE_H30GA;
                 highres_byte = HIGHRES_BYTE_H30GA;
             } else if (strcasecmp("r30gb", optarg) == 0) {
                 buf_offset = BUF_OFFSET_R30GB;
-                buf_size = BUF_SIZE_R30GB;
                 frame_header_size = FRAME_HEADER_SIZE_R30GB;
                 data_offset = DATA_OFFSET_R30GB;
                 lowres_byte = LOWRES_BYTE_R30GB;
                 highres_byte = HIGHRES_BYTE_R30GB;
             } else if (strcasecmp("r40ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_R40GA;
-                buf_size = BUF_SIZE_R40GA;
                 frame_header_size = FRAME_HEADER_SIZE_R40GA;
                 data_offset = DATA_OFFSET_R40GA;
                 lowres_byte = LOWRES_BYTE_R40GA;
                 highres_byte = HIGHRES_BYTE_R40GA;
             } else if (strcasecmp("h51ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_H51GA;
-                buf_size = BUF_SIZE_H51GA;
                 frame_header_size = FRAME_HEADER_SIZE_H51GA;
                 data_offset = DATA_OFFSET_H51GA;
                 lowres_byte = LOWRES_BYTE_H51GA;
                 highres_byte = HIGHRES_BYTE_H51GA;
             } else if (strcasecmp("h52ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_H52GA;
-                buf_size = BUF_SIZE_H52GA;
                 frame_header_size = FRAME_HEADER_SIZE_H52GA;
                 data_offset = DATA_OFFSET_H52GA;
                 lowres_byte = LOWRES_BYTE_H52GA;
                 highres_byte = HIGHRES_BYTE_H52GA;
             } else if (strcasecmp("h60ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_H60GA;
-                buf_size = BUF_SIZE_H60GA;
                 frame_header_size = FRAME_HEADER_SIZE_H60GA;
                 data_offset = DATA_OFFSET_H60GA;
                 lowres_byte = LOWRES_BYTE_H60GA;
                 highres_byte = HIGHRES_BYTE_H60GA;
             } else if (strcasecmp("y28ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_Y28GA;
-                buf_size = BUF_SIZE_Y28GA;
                 frame_header_size = FRAME_HEADER_SIZE_Y28GA;
                 data_offset = DATA_OFFSET_Y28GA;
                 lowres_byte = LOWRES_BYTE_Y28GA;
                 highres_byte = HIGHRES_BYTE_Y28GA;
             } else if (strcasecmp("y29ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_Y29GA;
-                buf_size = BUF_SIZE_Y29GA;
                 frame_header_size = FRAME_HEADER_SIZE_Y29GA;
                 data_offset = DATA_OFFSET_Y29GA;
                 lowres_byte = LOWRES_BYTE_Y29GA;
                 highres_byte = HIGHRES_BYTE_Y29GA;
             } else if (strcasecmp("q321br_lsx", optarg) == 0) {
                 buf_offset = BUF_OFFSET_Q321BR_LSX;
-                buf_size = BUF_SIZE_Q321BR_LSX;
                 frame_header_size = FRAME_HEADER_SIZE_Q321BR_LSX;
                 data_offset = DATA_OFFSET_Q321BR_LSX;
                 lowres_byte = LOWRES_BYTE_Q321BR_LSX;
                 highres_byte = HIGHRES_BYTE_Q321BR_LSX;
             } else if (strcasecmp("qg311r", optarg) == 0) {
                 buf_offset = BUF_OFFSET_QG311R;
-                buf_size = BUF_SIZE_QG311R;
                 frame_header_size = FRAME_HEADER_SIZE_QG311R;
                 data_offset = DATA_OFFSET_QG311R;
                 lowres_byte = LOWRES_BYTE_QG311R;
                 highres_byte = HIGHRES_BYTE_QG311R;
             } else if (strcasecmp("b091qp", optarg) == 0) {
                 buf_offset = BUF_OFFSET_B091QP;
-                buf_size = BUF_SIZE_B091QP;
                 frame_header_size = FRAME_HEADER_SIZE_B091QP;
                 data_offset = DATA_OFFSET_B091QP;
                 lowres_byte = LOWRES_BYTE_B091QP;
@@ -462,13 +435,23 @@ int main(int argc, char **argv) {
         }
     }
 
+    fFS = fopen(BUFFER_FILE, "r");
+    if ( fFS == NULL ) {
+        fprintf(stderr, "could not get size of %s\n", BUFFER_FILE);
+        return -1;
+    }
+    fseek(fFS, 0, SEEK_END);
+    buf_size = ftell(fFS);
+    fclose(fFS);
+    if (debug) fprintf(stderr, "the size of the buffer is %d\n", buf_size);
+
     frame_header = (unsigned char *) malloc(frame_header_size * sizeof(unsigned char));
 
     // Opening an existing file
     fFid = fopen(BUFFER_FILE, "r") ;
     if ( fFid == NULL ) {
         fprintf(stderr, "error - could not open file %s\n", BUFFER_FILE) ;
-        return -1;
+        return -2;
     }
 
     // Map file to memory
@@ -476,7 +459,7 @@ int main(int argc, char **argv) {
     if (addr == MAP_FAILED) {
         fprintf(stderr, "error - mapping file %s\n", BUFFER_FILE);
         fclose(fFid);
-        return -2;
+        return -3;
     }
     if (debug) fprintf(stderr, "mapping file %s, size %d, to %08x\n", BUFFER_FILE, buf_size, (unsigned int) addr);
 

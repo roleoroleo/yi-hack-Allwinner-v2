@@ -3,11 +3,41 @@
 export PATH=/usr/bin:/usr/sbin:/bin:/sbin:/home/base/tools:/home/app/localbin:/home/base:/tmp/sd/yi-hack/bin:/tmp/sd/yi-hack/sbin:/tmp/sd/yi-hack/usr/bin:/tmp/sd/yi-hack/usr/sbin
 export LD_LIBRARY_PATH=/lib:/usr/lib:/home/lib:/home/qigan/lib:/home/app/locallib:/tmp/sd:/tmp/sd/gdb:/tmp/sd/yi-hack/lib
 
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+
+. $YI_HACK_PREFIX/www/cgi-bin/validate.sh
+
+if ! $(validateQueryString $QUERY_STRING); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\",\\n" "error" "true"
+    printf "\"%s\":\"%s\"\\n" "description" "Wrong parameter"
+    printf "}"
+    exit
+fi
+
+VOL="1"
+
+PARAM="$(echo $QUERY_STRING | cut -d'&' -f1 | cut -d'=' -f1)"
+VALUE="$(echo $QUERY_STRING | cut -d'&' -f1 | cut -d'=' -f2)"
+
+if [ "$PARAM" == "vol" ] ; then
+    VOL="$VALUE"
+fi
+
+if ! $(validateNumber $VOL); then
+    printf "{\n"
+    printf "\"%s\":\"%s\",\\n" "error" "true"
+    printf "\"%s\":\"%s\"\\n" "description" "Invalid volume"
+    printf "}"
+    exit
+fi
+
 printf "Content-type: application/json\r\n\r\n"
 
 if [ ! -e /tmp/audio_in_fifo ]; then
     printf "{\n"
-    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "\"%s\":\"%s\",\\n" "error" "true"
     printf "\"%s\":\"%s\"\\n" "description" "Audio input is not available"
     printf "}"
     exit
@@ -37,10 +67,10 @@ if [ $? -eq 0 ]; then
         mv $TMP_FILE.tmp $TMP_FILE
     fi
 
-    (speaker on > /dev/null; cat $TMP_FILE > /tmp/audio_in_fifo; sleep 1; speaker off > /dev/null; rm $TMP_FILE) &
+    (speaker on > /dev/null; cat $TMP_FILE | pcmvol -g $VOL > /tmp/audio_in_fifo; sleep 1; speaker off > /dev/null; rm $TMP_FILE) &
 
     printf "{\n"
-    printf "\"%s\":\"%s\"\\n" "error" "false"
+    printf "\"%s\":\"%s\",\\n" "error" "false"
     printf "\"%s\":\"%s\"\\n" "description" ""
     printf "}"
 else
@@ -71,18 +101,18 @@ else
         fi
 
         speaker on > /dev/null
-        cat $TMP_FILE > /tmp/audio_in_fifo
+        cat $TMP_FILE | pcmvol -g $VOL > /tmp/audio_in_fifo
         sleep 1
         speaker off > /dev/null
         rm $TMP_FILE
 
         printf "{\n"
-        printf "\"%s\":\"%s\"\\n" "error" "false"
+        printf "\"%s\":\"%s\",\\n" "error" "false"
         printf "\"%s\":\"%s\"\\n" "description" ""
         printf "}"
     else
         printf "{\n"
-        printf "\"%s\":\"%s\"\\n" "error" "true"
+        printf "\"%s\":\"%s\",\\n" "error" "true"
         printf "\"%s\":\"%s\"\\n" "description" "File is too big"
         printf "}"
     fi

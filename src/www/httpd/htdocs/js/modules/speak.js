@@ -18,8 +18,9 @@ APP.speak = (function($) {
     function sendText() {
         ttsterm = $("input[name='ttsinput']").prop('value');
         ttslang = $("select[name='ttslang']").prop('value');
+        ttsvol = $("select[name='ttsvol']").prop('value');
         $.ajax({
-            url: "cgi-bin/speak.sh?lang="+ttslang,
+            url: "cgi-bin/speak.sh?lang="+ttslang+"&vol="+ttsvol,
             type: 'POST',
             contentType: false,
             data: ttsterm,
@@ -32,8 +33,9 @@ APP.speak = (function($) {
         var fileData = $('#wavfile').prop('files')[0];
         var formData = new FormData();
         formData.append('file', fileData);
+        wavvol = $("select[name='wavvol']").prop('value');
         $.ajax({
-            url: "cgi-bin/speaker.sh",
+            url: "cgi-bin/speaker.sh?vol="+wavvol,
             type: 'POST',
             contentType: false,
             data: formData,

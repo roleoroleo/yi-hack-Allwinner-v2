@@ -36,6 +36,7 @@ ulimit -s 1024
 
 # Remove core files, if any
 rm -f $YI_HACK_PREFIX/bin/core
+rm -f $YI_HACK_PREFIX/www/core
 rm -f $YI_HACK_PREFIX/www/cgi-bin/core
 
 touch /tmp/httpd.conf
@@ -258,11 +259,14 @@ fi
 
 if [ "$MODEL_SUFFIX" == "h60ga" ] || [ "$MODEL_SUFFIX" == "r35gb" ]; then
     SERIAL_NUMBER=$(dd bs=1 count=20 skip=784 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)
-    HW_ID=$(dd bs=1 count=4 skip=784 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-4)
+    if [ "${SERIAL_NUMBER:0:2}" == "00" ] || [ "${SERIAL_NUMBER:0:2}" == "FF" ]; then
+        SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)
+    fi
 else
     SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)
-    HW_ID=$(dd bs=1 count=4 skip=656 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-4)
 fi
+HW_ID=${SERIAL_NUMBER:0:4}
+
 PTZ_UD_INV="-M"
 if [ "$MODEL_SUFFIX" == "h60ga" ] || [ "$MODEL_SUFFIX" == "h51ga" ]; then
     PTZ_UD_INV="-m"

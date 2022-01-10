@@ -7,12 +7,12 @@ HOSTNAME=$(hostname)
 FW_VERSION=$(cat /tmp/sd/yi-hack/version)
 HOME_VERSION=$(cat /home/app/.appver)
 MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
-if [ "$MODEL_SUFFIX" == "r30gb" ] || [ "$MODEL_SUFFIX" == "r40ga" ] || [ "$MODEL_SUFFIX" == "h51ga" ] || [ "$MODEL_SUFFIX" == "h52ga" ] || [ "$MODEL_SUFFIX" == "h60ga" ] || [ "$MODEL_SUFFIX" == "q321br_lsx" ] || [ "$MODEL_SUFFIX" == "qg311r" ] || [ "$MODEL_SUFFIX" == "b091qp" ]; then
+if [ "$MODEL_SUFFIX" == "r30gb" ] || [ "$MODEL_SUFFIX" == "r35gb" ] || [ "$MODEL_SUFFIX" == "r40ga" ] || [ "$MODEL_SUFFIX" == "h51ga" ] || [ "$MODEL_SUFFIX" == "h52ga" ] || [ "$MODEL_SUFFIX" == "h60ga" ] || [ "$MODEL_SUFFIX" == "q321br_lsx" ] || [ "$MODEL_SUFFIX" == "qg311r" ] || [ "$MODEL_SUFFIX" == "b091qp" ]; then
     PTZ="yes"
 else
     PTZ="no"
 fi
-if [ "$MODEL_SUFFIX" == "h60ga" ]; then
+if [ "$MODEL_SUFFIX" == "h60ga" ] || [ "$MODEL_SUFFIX" == "r35gb" ]; then
     SERIAL_NUMBER=$(dd bs=1 count=20 skip=784 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)
 else
     SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)

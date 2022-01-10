@@ -6,7 +6,7 @@ YI_HACK_PREFIX="/tmp/sd/yi-hack"
 
 YI_HACK_VER=$(cat /tmp/sd/yi-hack/version)
 MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
-if [ "$MODEL_SUFFIX" == "h60ga" ]; then
+if [ "$MODEL_SUFFIX" == "h60ga" ] || [ "$MODEL_SUFFIX" == "r35gb" ]; then
     SERIAL_NUMBER=$(dd bs=1 count=20 skip=784 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)
     HW_ID=$(dd bs=1 count=4 skip=784 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-4)
 else
@@ -138,7 +138,7 @@ start_onvif()
         echo "" >> $ONVIF_SRVD_CONF
     fi
 
-    if [[ $MODEL_SUFFIX == "r30gb" ]] || [[ $MODEL_SUFFIX == "r40gb" ]] || [[ $MODEL_SUFFIX == "h51ga" ]] || [[ $MODEL_SUFFIX == "h52ga" ]] || [[ $MODEL_SUFFIX == "h60ga" ]] || [[ $MODEL_SUFFIX == "q321br_lsx" ]] || [[ $MODEL_SUFFIX == "qg311r" ]] || [[ $MODEL_SUFFIX == "b091qp" ]] ; then
+    if [[ $MODEL_SUFFIX == "r30gb" ]] || [[ $MODEL_SUFFIX == "r35gb" ]] || [[ $MODEL_SUFFIX == "r40gb" ]] || [[ $MODEL_SUFFIX == "h51ga" ]] || [[ $MODEL_SUFFIX == "h52ga" ]] || [[ $MODEL_SUFFIX == "h60ga" ]] || [[ $MODEL_SUFFIX == "q321br_lsx" ]] || [[ $MODEL_SUFFIX == "qg311r" ]] || [[ $MODEL_SUFFIX == "b091qp" ]] ; then
         echo "#PTZ" >> $ONVIF_SRVD_CONF
         echo "ptz=1" >> $ONVIF_SRVD_CONF
         echo "move_left=/tmp/sd/yi-hack/bin/ipc_cmd -M left" >> $ONVIF_SRVD_CONF

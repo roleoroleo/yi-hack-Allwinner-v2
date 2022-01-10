@@ -21,7 +21,7 @@ HOSTNAME=$(hostname)
 FW_VERSION=$(cat $YI_HACK_PREFIX/version)
 HOME_VERSION=$(cat /home/app/.appver)
 MODEL_SUFFIX=$(cat $YI_HACK_PREFIX/model_suffix)
-if [ "$MODEL_SUFFIX" == "h60ga" ]; then
+if [ "$MODEL_SUFFIX" == "h60ga" ] || [ "$MODEL_SUFFIX" == "r35gb" ]; then
     SERIAL_NUMBER=$(dd bs=1 count=20 skip=784 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)
 else
     SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)

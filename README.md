@@ -121,6 +121,8 @@ Currently this project supports only the following cameras:
 | Yi Dome U Pro 2K LFUS | 9.0.27* | h60ga | beta version |
 | Yi Outdoor 1080p QFUS | 9.0.45* | r40ga | beta version |
 | Yi Home Y4 IFCN | 9.0.09* | y29ga | - |
+| Yi Dome Guard QFUS | 9.0.46* | r35gb | - |
+| Yi Dome Guard YRS | 9.0.46* | r35gb | - |
 | Kami mini home IFUS | 9.0.20* | y28ga | - |
 | MIBAO G1 1296p dome | 9.0.04* | qg311r | - |
 | BLITZWOLF BW-YIC1 | 9.0.41* | b091qp | - |

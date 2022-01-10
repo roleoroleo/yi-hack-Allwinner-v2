@@ -66,7 +66,7 @@ unsigned char PPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x44};
 unsigned char VPS5_START[]         = {0x00, 0x00, 0x00, 0x01, 0x40};
 
 unsigned char SPS4[]               = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D};
-unsigned char SPS4_2[]             = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64};
+unsigned char SPS4_2[]             = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64}; // The same for SPS4_3
 
 unsigned char SPS4_640X360[]       = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
                                       0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
@@ -127,7 +127,7 @@ unsigned char SPS4_2_1920X1080_TI[] = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00,
                                       0xAC, 0x2C, 0xA8, 0x07, 0x80, 0x22, 0x5E, 0x59,
                                       0xB8, 0x08, 0x08, 0x0A, 0x00, 0x00, 0x03, 0x03,
                                       0xE8, 0x00, 0x00, 0x9C, 0x41, 0x08};
-unsigned char SPS4_2_2304X1296[]   = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x20,
+unsigned char SPS4_2_2304X1296[]    = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x20,
                                       0xAC, 0x2C, 0xA8, 0x02, 0x40, 0x0A, 0x32, 0x6E,
                                       0x02, 0x02, 0x02, 0x04};
 // As above but without nalu header and with timing info at 20 fps
@@ -135,6 +135,22 @@ unsigned char SPS4_2_2304X1296_TI[] = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00,
                                        0xAC, 0x2C, 0xA8, 0x02, 0x40, 0x0A, 0x32, 0x6E,
                                        0x02, 0x02, 0x02, 0x80, 0x00, 0x00, 0xFA, 0x00,
                                        0x00, 0x27, 0x10, 0x42};
+unsigned char SPS4_3_640X360[]      = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x14,
+                                       0xAC, 0x2C, 0xA8, 0x0A, 0x02, 0xF7, 0x96, 0x6A,
+                                       0x02, 0x02, 0x02, 0x04};
+// As above but without nalu header and with timing info at 20 fps
+unsigned char SPS4_3_640X360_TI[]   = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x14,
+                                       0xAC, 0x2C, 0xA8, 0x0A, 0x02, 0xF7, 0x96, 0x6A,
+                                       0x02, 0x02, 0x02, 0x80, 0x00, 0x00, 0xFA, 0x00,
+                                       0x00, 0x27, 0x10, 0x42};
+unsigned char SPS4_3_1920X1080[]    = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x20,
+                                       0xAC, 0x2C, 0xA8, 0x07, 0x80, 0x22, 0x5E, 0x59,
+                                       0xA8, 0x08, 0x08, 0x08, 0x10};
+// As above but without nalu header and with timing info at 20 fps
+unsigned char SPS4_3_1920X1080_TI[] = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x20,
+                                       0xAC, 0x2C, 0xA8, 0x07, 0x80, 0x22, 0x5E, 0x59,
+                                       0xA8, 0x08, 0x08, 0x0A, 0x00, 0x00, 0x03, 0x03,
+                                       0xE8, 0x00, 0x00, 0x9C, 0x41, 0x08};
 
 //unsigned char *addr;                      /* Pointer to shared memory region (header) */
 int debug;                                  /* Set to 1 to debug this .c */
@@ -370,15 +386,19 @@ void *capture(void *ptr)
                             if (frame_res == RESOLUTION_LOW) {
                                 if (sps_type == 1) {
                                     frame_len = sizeof(SPS4_640X360_TI);
-                                } else {
+                                } else if (sps_type == 2) {
                                     frame_len = sizeof(SPS4_2_640X360_TI);
+                                } else {
+                                    frame_len = sizeof(SPS4_3_640X360_TI);
                                 }
                             } else if (frame_res == RESOLUTION_HIGH) {
                                 if (model_high_res == RESOLUTION_FHD) {
                                     if (sps_type == 1) {
                                         frame_len = sizeof(SPS4_1920X1080_TI);
-                                    } else {
+                                    } else if (sps_type == 2) {
                                         frame_len = sizeof(SPS4_2_1920X1080_TI);
+                                    } else {
+                                        frame_len = sizeof(SPS4_3_1920X1080_TI);
                                     }
                                 } else {
                                     if (sps_type == 1) {
@@ -404,15 +424,19 @@ void *capture(void *ptr)
                             if (frame_res == RESOLUTION_LOW) {
                                 if (sps_type == 1) {
                                     s2cb_memcpy(cb_current, SPS4_640X360_TI, sizeof(SPS4_640X360_TI));
-                                } else {
+                                } else if (sps_type == 2) {
                                     s2cb_memcpy(cb_current, SPS4_2_640X360_TI, sizeof(SPS4_2_640X360_TI));
+                                } else {
+                                    s2cb_memcpy(cb_current, SPS4_3_640X360_TI, sizeof(SPS4_3_640X360_TI));
                                 }
                             } else if (frame_res == RESOLUTION_HIGH) {
                                 if (model_high_res == RESOLUTION_FHD) {
                                     if (sps_type == 1) {
                                         s2cb_memcpy(cb_current, SPS4_1920X1080_TI, sizeof(SPS4_1920X1080_TI));
-                                    } else {
+                                    } else if (sps_type == 2) {
                                         s2cb_memcpy(cb_current, SPS4_2_1920X1080_TI, sizeof(SPS4_2_1920X1080_TI));
+                                    } else {
+                                        s2cb_memcpy(cb_current, SPS4_3_1920X1080_TI, sizeof(SPS4_3_1920X1080_TI));
                                     }
                                 } else {
                                     if (sps_type == 1) {
@@ -445,8 +469,15 @@ void *capture(void *ptr)
                 if (cb_memcmp(SPS4, buf_idx_1, sizeof(SPS4)) == 0) {
                     sps_type = 1;
                 } else if (cb_memcmp(SPS4_2, buf_idx_1, sizeof(SPS4_2)) == 0) {
-                    sps_type = 2;
+                    if ((cb_memcmp(SPS4_3_640X360, buf_idx_1, sizeof(SPS4_3_640X360)) == 0) ||
+                            (cb_memcmp(SPS4_3_1920X1080, buf_idx_1, sizeof(SPS4_3_1920X1080)) == 0)) {
+                        sps_type = 3;
+                    } else {
+                        sps_type = 2;
+                    }
                 }
+                if (debug & 1) fprintf(stderr, "%lld: the type of sps is %d\n",
+                        current_timestamp(), sps_type);
             }
         } else if (cb_memcmp(SPS5_START, buf_idx_1, sizeof(SPS5_START)) == 0) {
             nal_is_sps_or_vps5 = 2;
@@ -693,7 +724,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-r RES] [-p PORT] [-d]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, r35gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
     fprintf(stderr, "\t-r RES,   --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: low, high or both (default high)\n");
     fprintf(stderr, "\t-a AUDIO, --audio AUDIO\n");
@@ -768,6 +799,8 @@ int main(int argc, char** argv)
                 model = H30GA;
             } else if (strcasecmp("r30gb", optarg) == 0) {
                 model = R30GB;
+            } else if (strcasecmp("r35gb", optarg) == 0) {
+                model = R35GB;
             } else if (strcasecmp("r40ga", optarg) == 0) {
                 model = R40GA;
             } else if (strcasecmp("h51ga", optarg) == 0) {
@@ -883,6 +916,8 @@ int main(int argc, char** argv)
             model = H30GA;
         } else if (strcasecmp("r30gb", str) == 0) {
             model = R30GB;
+        } else if (strcasecmp("r35gb", str) == 0) {
+            model = R35GB;
         } else if (strcasecmp("r40ga", str) == 0) {
             model = R40GA;
         } else if (strcasecmp("h51ga", str) == 0) {
@@ -1003,6 +1038,13 @@ int main(int argc, char** argv)
         data_offset = DATA_OFFSET_R30GB;
         lowres_byte = LOWRES_BYTE_R30GB;
         highres_byte = HIGHRES_BYTE_R30GB;
+        model_high_res = RESOLUTION_FHD;
+    } else if (model == R35GB) {
+        buf_offset = BUF_OFFSET_R35GB;
+        frame_header_size = FRAME_HEADER_SIZE_R35GB;
+        data_offset = DATA_OFFSET_R35GB;
+        lowres_byte = LOWRES_BYTE_R35GB;
+        highres_byte = HIGHRES_BYTE_R35GB;
         model_high_res = RESOLUTION_FHD;
     } else if (model == R40GA) {
         buf_offset = BUF_OFFSET_R40GA;

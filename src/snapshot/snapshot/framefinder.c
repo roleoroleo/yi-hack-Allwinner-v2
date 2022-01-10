@@ -53,6 +53,12 @@
 #define LOWRES_BYTE_R30GB 8
 #define HIGHRES_BYTE_R30GB 4
 
+#define BUF_OFFSET_R35GB 300
+#define FRAME_HEADER_SIZE_R35GB 26
+#define DATA_OFFSET_R35GB 4
+#define LOWRES_BYTE_R35GB 8
+#define HIGHRES_BYTE_R35GB 4
+
 #define BUF_OFFSET_R40GA 300
 #define FRAME_HEADER_SIZE_R40GA 26
 #define DATA_OFFSET_R40GA 4
@@ -274,6 +280,12 @@ int main(int argc, char **argv) {
             data_offset = DATA_OFFSET_R30GB;
             lowres_byte = LOWRES_BYTE_R30GB;
             highres_byte = HIGHRES_BYTE_R30GB;
+        } else if (strcasecmp("r35gb", argv[1]) == 0) {
+            buf_offset = BUF_OFFSET_R35GB;
+            frame_header_size = FRAME_HEADER_SIZE_R35GB;
+            data_offset = DATA_OFFSET_R35GB;
+            lowres_byte = LOWRES_BYTE_R35GB;
+            highres_byte = HIGHRES_BYTE_R35GB;
         } else if (strcasecmp("r40ga", argv[1]) == 0) {
             buf_offset = BUF_OFFSET_R40GA;
             frame_header_size = FRAME_HEADER_SIZE_R40GA;

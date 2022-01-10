@@ -55,6 +55,12 @@
 #define LOWRES_BYTE_R30GB 8
 #define HIGHRES_BYTE_R30GB 4
 
+#define BUF_OFFSET_R35GB 300
+#define FRAME_HEADER_SIZE_R35GB 26
+#define DATA_OFFSET_R35GB 4
+#define LOWRES_BYTE_R35GB 8
+#define HIGHRES_BYTE_R35GB 4
+
 #define BUF_OFFSET_R40GA 300
 #define FRAME_HEADER_SIZE_R40GA 26
 #define DATA_OFFSET_R40GA 4
@@ -181,6 +187,20 @@ unsigned char SPS4_2_2304X1296_TI[] = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00,
                                         0xAC, 0x2C, 0xA8, 0x02, 0x40, 0x0A, 0x32, 0x6E,
                                         0x02, 0x02, 0x02, 0x80, 0x00, 0x00, 0xFA, 0x00,
                                         0x00, 0x27, 0x10, 0x42};
+unsigned char SPS4_3_640X360[]      = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x14,
+                                       0xAC, 0x2C, 0xA8, 0x0A, 0x02, 0xF7, 0x96, 0x6A,
+                                       0x02, 0x02, 0x02, 0x04};
+unsigned char SPS4_3_640X360_TI[]   = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x14,
+                                       0xAC, 0x2C, 0xA8, 0x0A, 0x02, 0xF7, 0x96, 0x6A,
+                                       0x02, 0x02, 0x02, 0x80, 0x00, 0x00, 0xFA, 0x00,
+                                       0x00, 0x27, 0x10, 0x42};
+unsigned char SPS4_3_1920X1080[]    = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x20,
+                                       0xAC, 0x2C, 0xA8, 0x07, 0x80, 0x22, 0x5E, 0x59,
+                                       0xA8, 0x08, 0x08, 0x08, 0x10};
+unsigned char SPS4_3_1920X1080_TI[] = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x20,
+                                       0xAC, 0x2C, 0xA8, 0x07, 0x80, 0x22, 0x5E, 0x59,
+                                       0xA8, 0x08, 0x08, 0x0A, 0x00, 0x00, 0x03, 0x03,
+                                       0xE8, 0x00, 0x00, 0x9C, 0x41, 0x08};
 unsigned char VPS5_1920X1080[]     = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
                                         0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
                                         0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
@@ -264,7 +284,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-r RES] [-d]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, y211ga, h30ga, r30gb, r35gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
     fprintf(stderr, "\t-r RES, --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: LOW or HIGH (default HIGH)\n");
     fprintf(stderr, "\t-s, --sti\n");
@@ -345,6 +365,12 @@ int main(int argc, char **argv) {
                 frame_header_size = FRAME_HEADER_SIZE_R30GB;
                 data_offset = DATA_OFFSET_R30GB;
                 lowres_byte = LOWRES_BYTE_R30GB;
+                highres_byte = HIGHRES_BYTE_R30GB;
+            } else if (strcasecmp("r35gb", optarg) == 0) {
+                buf_offset = BUF_OFFSET_R35GB;
+                frame_header_size = FRAME_HEADER_SIZE_R35GB;
+                data_offset = DATA_OFFSET_R35GB;
+                lowres_byte = LOWRES_BYTE_R35GB;
                 highres_byte = HIGHRES_BYTE_R30GB;
             } else if (strcasecmp("r40ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_R40GA;
@@ -510,6 +536,10 @@ int main(int argc, char **argv) {
                     fwrite(SPS4_2_1920X1080_TI, 1, sizeof(SPS4_2_1920X1080_TI), stdout);
                 } else if (cb_memcmp(SPS4_2_2304X1296, buf_idx_start, sizeof(SPS4_2_2304X1296)) == 0) {
                     fwrite(SPS4_2_2304X1296_TI, 1, sizeof(SPS4_2_2304X1296_TI), stdout);
+                } else if (cb_memcmp(SPS4_3_640X360, buf_idx_start, sizeof(SPS4_3_640X360)) == 0) {
+                    fwrite(SPS4_3_640X360_TI, 1, sizeof(SPS4_3_640X360_TI), stdout);
+                } else if (cb_memcmp(SPS4_3_1920X1080, buf_idx_start, sizeof(SPS4_3_1920X1080)) == 0) {
+                    fwrite(SPS4_3_1920X1080_TI, 1, sizeof(SPS4_3_1920X1080_TI), stdout);
                 } else if (cb_memcmp(VPS5_1920X1080, buf_idx_start, sizeof(VPS5_1920X1080)) == 0) {
                     fwrite(VPS5_1920X1080_TI, 1, sizeof(VPS5_1920X1080_TI), stdout);
                 }

@@ -1,7 +1,10 @@
 #!/bin/sh
 
-validateDir()
+validateRecDir()
 {
+    if [ "${#1}" != "14" ]; then
+        DIR = "none"
+    fi
     if [ "Y${1:4:1}" != "YY" ] ; then
         DIR = "none"
     fi
@@ -16,9 +19,17 @@ validateDir()
     fi
 }
 
-case $QUERY_STRING in
-    *[\'!\"@\#\$%^*\(\)_+.,:\;]* ) exit;;
-esac
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+
+. $YI_HACK_PREFIX/www/cgi-bin/validate.sh
+
+if ! $(validateQueryString $QUERY_STRING); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
 
 DIR="none"
 
@@ -32,7 +43,7 @@ fi
 if [ "$DIR" == "all" ]; then
     DIR="*"
 else
-    validateDir $DIR
+    validateRecDir $DIR
 fi
 
 if [ "$DIR" != "none" ] ; then
@@ -40,6 +51,6 @@ if [ "$DIR" != "none" ] ; then
 fi
 
 printf "Content-type: application/json\r\n\r\n"
-
 printf "{\n"
+printf "\"%s\":\"%s\"\\n" "error" "false"
 printf "}"

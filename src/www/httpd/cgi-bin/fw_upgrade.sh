@@ -1,10 +1,19 @@
 #!/bin/sh
 
-YI_HACK_PREFIX="/tmp/sd/yi-hack"
-
 export PATH=/usr/bin:/usr/sbin:/bin:/sbin:/home/base/tools:/home/app/localbin:/home/base:/tmp/sd/yi-hack/bin:/tmp/sd/yi-hack/sbin:/tmp/sd/yi-hack/usr/bin:/tmp/sd/yi-hack/usr/sbin
 export LD_LIBRARY_PATH=/lib:/usr/lib:/home/lib:/home/qigan/lib:/home/app/locallib:/tmp/sd:/tmp/sd/gdb:/tmp/sd/yi-hack/lib
 
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+
+. $YI_HACK_PREFIX/www/cgi-bin/validate.sh
+
+if ! $(validateQueryString $QUERY_STRING); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
 
 NAME="$(echo $QUERY_STRING | cut -d'=' -f1)"
 VAL="$(echo $QUERY_STRING | cut -d'=' -f2)"
@@ -20,6 +29,7 @@ if [ "$VAL" == "info" ] ; then
     LATEST_FW=`/tmp/sd/yi-hack/usr/bin/wget -O -  https://api.github.com/repos/roleoroleo/yi-hack-Allwinner-v2/releases/latest 2>&1 | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
 
     printf "{\n"
+    printf "\"%s\":\"%s\",\n" "error" "false"
     printf "\"%s\":\"%s\",\n" "fw_version"      "$FW_VERSION"
     printf "\"%s\":\"%s\"\n" "latest_fw"       "$LATEST_FW"
     printf "}"

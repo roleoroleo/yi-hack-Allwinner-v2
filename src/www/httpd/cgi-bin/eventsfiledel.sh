@@ -1,18 +1,22 @@
 #!/bin/sh
 
-validateFile()
+validateRecFile()
 {
+    if [ "${#1}" != "27" ] && [ "${#1}" != "29" ]; then
+        FILE = "none"
+    fi
+
     if [ "Y${1:4:1}" != "YY" ] ; then
-        DIR = "none"
+        FILE = "none"
     fi
     if [ "M${1:7:1}" != "MM" ] ; then
-        DIR = "none"
+        FILE = "none"
     fi
     if [ "D${1:10:1}" != "DD" ] ; then
-        DIR = "none"
+        FILE = "none"
     fi
     if [ "H${1:13:1}" != "HH" ] ; then
-        DIR = "none"
+        FILE = "none"
     fi
 
     if [ "M${1:17:1}" != "MM" ] ; then
@@ -23,9 +27,17 @@ validateFile()
     fi
 }
 
-case $QUERY_STRING in
-    *[\'!\"@\#\$%^*\(\)_+,:\;]* ) exit;;
-esac
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+
+. $YI_HACK_PREFIX/www/cgi-bin/validate.sh
+
+if ! $(validateQueryString $QUERY_STRING); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
 
 FILE="none"
 
@@ -36,13 +48,20 @@ if [ "$CONF" == "file" ] ; then
     FILE="$VAL"
 fi
 
-validateFile $FILE
+validateRecFile $FILE
 
-if [ "$FILE" != "none" ] ; then
-    rm -f /tmp/sd/record/$FILE
+if [ "$FILE" == "none" ] ; then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
 fi
+
+rm -f /tmp/sd/record/$FILE
 
 printf "Content-type: application/json\r\n\r\n"
 
 printf "{\n"
+printf "\"%s\":\"%s\"\\n" "error" "false"
 printf "}"

@@ -11,13 +11,6 @@ removedoublequotes(){
   echo "$(sed 's/^"//g;s/"$//g')"
 }
 
-validatenumber(){
-  case $1 in
-    ''|*[!0-9.,]* ) return 1;;
-    * ) return 0;;
-  esac
-}
-
 get_conf_type()
 {
     CONF="$(echo $QUERY_STRING | cut -d'=' -f1)"
@@ -27,6 +20,16 @@ get_conf_type()
         echo $VAL
     fi
 }
+
+. $YI_HACK_PREFIX/www/cgi-bin/validate.sh
+
+if ! $(validateQueryString $QUERY_STRING); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
 
 CONF_TYPE="$(get_conf_type)"
 CONF_FILE=""
@@ -38,6 +41,14 @@ else
 fi
 
 read -r POST_DATA
+# Validate json
+VALID=$(echo "$POST_DATA" | jq -e . >/dev/null 2>&1; echo $?)
+if [ "$VALID" != "0" ]; then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+fi
 # Change temporarily \n with \t (2 bytes)
 POST_DATA="${POST_DATA/\\n/\\t}"
 IFS=$(echo -en "\n\b")
@@ -64,7 +75,7 @@ for ROW in $ROWS; do
             echo "$VALUE" > $YI_HACK_PREFIX/etc/hostname
         fi
     elif [ "$KEY" == "MOTION_IMAGE_DELAY" ] ; then
-        if $(validatenumber $VALUE); then
+        if $(validateNumber $VALUE); then
             VALUE=$(echo $VALUE | sed 's/,/./g')
             VAR=$(awk 'BEGIN{ print "'$VALUE'"<="'5.0'" }')
             if [ "$VAR" == "1" ]; then

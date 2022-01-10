@@ -1,9 +1,7 @@
 #!/bin/sh
 
 CONF_FILE="etc/system.conf"
-
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
-
 YI_HACK_VER=$(cat /tmp/sd/yi-hack/version)
 
 get_config()
@@ -65,6 +63,16 @@ ps_program()
     fi
 }
 
+. $YI_HACK_PREFIX/www/cgi-bin/validate.sh
+
+if ! $(validateQueryString $QUERY_STRING); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
+
 VALUE="none"
 PARAM1="none"
 PARAM2="none"
@@ -101,9 +109,9 @@ elif [ "$VALUE" == "status" ] ; then
 fi
 
 printf "Content-type: application/json\r\n\r\n"
-
 printf "{\n"
 if [ ! -z "$RES" ]; then
-    printf "\"status\": \"$RES\"\n"
+    printf "\"status\": \"$RES\",\n"
 fi
+printf "\"%s\":\"%s\"\\n" "error" "true"
 printf "}"

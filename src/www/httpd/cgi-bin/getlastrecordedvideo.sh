@@ -16,6 +16,18 @@
 # http://IP:PORT/cgi-bin/getlastrecordedvideo.sh?type=1            -- Send the relative route of the last available video.
 # http://IP:PORT/cgi-bin/getlastrecordedvideo.sh?oldness=2&type=2  -- Send the URL of the second to last available video.
 
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+
+. $YI_HACK_PREFIX/www/cgi-bin/validate.sh
+
+if ! $(validateQueryString $QUERY_STRING); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
+
 CONF_LAST="CONF_LAST"
 OLDNESS=0
 TYPE=1

@@ -3,12 +3,37 @@
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 CONF_FILE="$YI_HACK_PREFIX/etc/camera.conf"
 
+. $YI_HACK_PREFIX/www/cgi-bin/validate.sh
+
+if ! $(validateQueryString $QUERY_STRING); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
+
 CONF_LAST="CONF_LAST"
 
 for I in 1 2 3 4 5 6 7 8 9 10 11
 do
     CONF="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f1)"
     VAL="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f2)"
+
+    if ! $(validateString $CONF); then
+        printf "Content-type: application/json\r\n\r\n"
+        printf "{\n"
+        printf "\"%s\":\"%s\"\\n" "error" "true"
+        printf "}"
+        exit
+    fi
+    if ! $(validateString $VAL); then
+        printf "Content-type: application/json\r\n\r\n"
+        printf "{\n"
+        printf "\"%s\":\"%s\"\\n" "error" "true"
+        printf "}"
+        exit
+    fi
 
     if [ $CONF == $CONF_LAST ]; then
         continue
@@ -31,7 +56,9 @@ do
             ipc_cmd -v detect
         fi
     elif [ "$CONF" == "sensitivity" ] ; then
-        ipc_cmd -s $VAL
+        if [ "$VAL" == "low" ] || [ "$VAL" == "medium" ] || [ "$VAL" == "high" ]; then
+            ipc_cmd -s $VAL
+        fi
     elif [ "$CONF" == "ai_human_detection" ] ; then
         if [ "$VAL" == "no" ] ; then
             ipc_cmd -a off
@@ -85,4 +112,5 @@ done
 printf "Content-type: application/json\r\n\r\n"
 
 printf "{\n"
+printf "\"%s\":\"%s\"\\n" "error" "false"
 printf "}"

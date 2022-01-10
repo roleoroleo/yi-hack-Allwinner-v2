@@ -1,11 +1,22 @@
 #!/bin/sh
 
-YI_HACK_PREFIX="/tmp/sd/yi-hack"
-ACTION="none"
-
 removedoublequotes(){
   echo "$(sed 's/^"//g;s/"$//g')"
 }
+
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+
+. $YI_HACK_PREFIX/www/cgi-bin/validate.sh
+
+if ! $(validateQueryString $QUERY_STRING); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
+
+ACTION="none"
 
 PARAM="$(echo $QUERY_STRING | cut -d'=' -f1)"
 VAL="$(echo $QUERY_STRING | cut -d'=' -f2)"
@@ -37,6 +48,14 @@ elif [ $ACTION == "save" ]; then
     read -r POST_DATA
     rm -f /tmp/configure_wifi.cfg
 
+    # Validate json
+    VALID=$(echo "$POST_DATA" | jq -e . >/dev/null 2>&1; echo $?)
+    if [ "$VALID" != "0" ]; then
+        printf "Content-type: application/json\r\n\r\n"
+        printf "{\n"
+        printf "\"%s\":\"%s\"\\n" "error" "true"
+        printf "}"
+    fi
     KEYS=$(echo "$POST_DATA" | jq keys_unsorted[])
     for KEY in $KEYS; do
         KEY=$(echo $KEY | removedoublequotes)

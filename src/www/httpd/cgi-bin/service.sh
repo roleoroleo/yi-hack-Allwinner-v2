@@ -73,10 +73,10 @@ init_config()
 
 start_rtsp()
 {
-    if [ "$1" != "none" ]; then
+    if [ "$1" == "low" ] || [ "$1" == "high" ] || [ "$1" == "both" ]; then
         RTSP_RES=$1
     fi
-    if [ "$2" != "none" ]; then
+    if [ "$2" == "no" ] || [ "$2" == "yes" ] || [ "$2" == "alaw" ] || [ "$2" == "ulaw" ] || [ "$2" == "pcm" ] || [ "$2" == "aac" ] ; then
         RTSP_AUDIO_COMPRESSION=$2
     fi
 
@@ -97,7 +97,7 @@ start_onvif()
     fi
     if [[ "$1" == "none" ]]; then
         ONVIF_PROFILE=$(get_config ONVIF_PROFILE)
-    else
+    elif [[ "$1" == "low" ]] || [[ "$1" == "high" ]] || [[ "$1" == "both" ]]; then
         ONVIF_PROFILE=$1
     fi
     if [[ $ONVIF_PROFILE == "high" ]]; then
@@ -214,6 +214,16 @@ ps_program()
         echo "stopped"
     fi
 }
+
+. $YI_HACK_PREFIX/www/cgi-bin/validate.sh
+
+if ! $(validateQueryString $QUERY_STRING); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
 
 NAME="none"
 ACTION="none"

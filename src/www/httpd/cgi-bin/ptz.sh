@@ -1,5 +1,17 @@
 #!/bin/sh
 
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+
+. $YI_HACK_PREFIX/www/cgi-bin/validate.sh
+
+if ! $(validateQueryString $QUERY_STRING); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
+
 MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
 
 DIR="none"
@@ -25,6 +37,21 @@ do
     fi
 done
 
+if ! $(validateString $DIR); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
+if ! $(validateNumber $TIME); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
+
 if [ "$DIR" != "none" ] ; then
     ipc_cmd $DIR
     sleep $TIME
@@ -34,4 +61,5 @@ fi
 printf "Content-type: application/json\r\n\r\n"
 
 printf "{\n"
+printf "\"%s\":\"%s\"\\n" "error" "false"
 printf "}"

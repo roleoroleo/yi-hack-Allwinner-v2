@@ -1,14 +1,16 @@
 #!/bin/sh
 
-validateNumber()
-{
-    RES=$(echo ${1} | sed -E 's/^[0-9]*$//g')
-    if [ -z $RES ]; then
-        TIME=$1
-    else
-        TIME="invalid"
-    fi
-}
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+
+. $YI_HACK_PREFIX/www/cgi-bin/validate.sh
+
+if ! $(validateQueryString $QUERY_STRING); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
 
 TIME=60
 
@@ -22,13 +24,11 @@ do
     fi
 done
 
-validateNumber $TIME
-
-if [ "$TIME" == "invalid" ] ; then
+if ! $(validateNumber $TIME); then
     printf "Content-type: application/json\r\n\r\n"
     printf "{\n"
-    printf "\"error\":\"Invalid time\"\n"
-    printf "}\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
     exit
 fi
 
@@ -36,4 +36,5 @@ ipc_cmd -S $TIME &
 
 printf "Content-type: application/json\r\n\r\n"
 printf "{\n"
+printf "\"%s\":\"%s\"\\n" "error" "false"
 printf "}\n"

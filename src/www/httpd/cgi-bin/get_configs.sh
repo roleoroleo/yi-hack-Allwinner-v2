@@ -1,7 +1,5 @@
 #!/bin/sh
 
-YI_HACK_PREFIX="/tmp/sd/yi-hack"
-
 get_conf_type()
 {
     CONF="$(echo $QUERY_STRING | cut -d'=' -f1)"
@@ -11,6 +9,18 @@ get_conf_type()
         echo $VAL
     fi
 }
+
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+
+. $YI_HACK_PREFIX/www/cgi-bin/validate.sh
+
+if ! $(validateQueryString $QUERY_STRING); then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
 
 printf "Content-type: application/json\r\n\r\n"
 

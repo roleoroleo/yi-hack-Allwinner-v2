@@ -20,7 +20,29 @@ get_config()
 
 restart_rtsp()
 {
-    RRTSP_MODEL=$MODEL_SUFFIX RRTSP_RES=$(get_config RTSP_STREAM) RRTSP_AUDIO=$RTSP_AUDIO_COMPRESSION RRTSP_PORT=$RTSP_PORT RRTSP_USER=$USERNAME RRTSP_PWD=$PASSWORD rRTSPServer &
+    if [[ $(get_config RTSP) == "yes" ]] ; then
+        if [[ "$RTSP_STREAM" == "low" ]]; then
+            if [ "$RTSP_ALT" == "yes" ]; then
+                h264grabber -m $MODEL_SUFFIX -r low -f &
+                sleep 1
+            fi
+            $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &
+        fi
+        if [[ "$RTSP_STREAM" == "high" ]]; then
+            if [ "$RTSP_ALT" == "yes" ]; then
+                h264grabber -m $MODEL_SUFFIX -r high -f &
+                sleep 1
+            fi
+            $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &
+        fi
+        if [[ "$RTSP_STREAM" == "both" ]]; then
+            if [ "$RTSP_ALT" == "yes" ]; then
+                h264grabber -m $MODEL_SUFFIX -r both -f &
+                sleep 1
+            fi
+            $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &
+        fi
+    fi
 }
 
 check_rtsp()
@@ -53,6 +75,22 @@ check_rtsp()
     fi
 }
 
+check_rtsp_alt()
+{
+#  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking RTSP process..." >> $LOG_FILE
+    CPU1=`top -b -n 2 -d 1 | grep h264grabber | grep -v grep | tail -n 1 | awk '{print $8}'`
+    CPU2=`top -b -n 2 -d 1 | grep rtsp_server_yi | grep -v grep | tail -n 1 | awk '{print $8}'`
+
+    if [ "$CPU1" == "" ] || [ "$CPU2" == "" ]; then
+        echo "$(date +'%Y-%m-%d %H:%M:%S') - No running processes, restarting..." >> $LOG_FILE
+        killall -q rtsp_server_yi
+        killall -q h264grabber
+        sleep 1
+        restart_rtsp
+        COUNTER=0
+    fi
+}
+
 check_rmm()
 {
 #  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking rmm process..." >> $LOG_FILE
@@ -77,16 +115,44 @@ case $(get_config RTSP_PORT) in
     *) RTSP_PORT=$(get_config RTSP_PORT) ;;
 esac
 
+RTSP_DAEMON="rRTSPServer"
 RTSP_AUDIO_COMPRESSION=$(get_config RTSP_AUDIO)
+
+if [[ $(get_config RTSP_ALT) == "yes" ]] ; then
+    RTSP_DAEMON="rtsp_server_yi"
+    if [[ "$RTSP_AUDIO_COMPRESSION" == "aac" ]] ; then
+        RTSP_AUDIO_COMPRESSION="alaw"
+    fi
+fi
+
 if [[ "$RTSP_AUDIO_COMPRESSION" == "none" ]] ; then
     RTSP_AUDIO_COMPRESSION="no"
 fi
+if [ ! -z $RTSP_AUDIO_COMPRESSION ]; then
+    RTSP_AUDIO_COMPRESSION="-a "$RTSP_AUDIO_COMPRESSION
+fi
+if [ ! -z $RTSP_PORT ]; then
+    RTSP_PORT="-p "$RTSP_PORT
+fi
+if [ ! -z $USERNAME ]; then
+    RTSP_USER="-u "$USERNAME
+fi
+if [ ! -z $PASSWORD ]; then
+    RTSP_PASSWORD="-w "$PASSWORD
+fi
+
+RTSP_STREAM=$(get_config RTSP_STREAM)
+RTSP_ALT=$(get_config RTSP_ALT)
 
 echo "$(date +'%Y-%m-%d %H:%M:%S') - Starting RTSP watchdog..." >> $LOG_FILE
 
 while true
 do
-    check_rtsp
+    if [[ "$RTSP_ALT" == "no" ]] ; then
+        check_rtsp
+    else
+        check_rtsp_alt
+    fi
     check_rmm
     if [ $COUNTER -eq 0 ]; then
         sleep $INTERVAL

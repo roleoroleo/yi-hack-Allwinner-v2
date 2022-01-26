@@ -22,3 +22,6 @@
 [submodule "src/wsdd/wsdd"]
 	path = src/wsdd/wsdd
 	url = https://github.com/KoynovStas/wsdd
+[submodule "src/rtsp_server_yi/RtspServer"]
+	path = src/rtsp_server_yi/RtspServer
+	url = https://github.com/roleoroleo/RtspServer

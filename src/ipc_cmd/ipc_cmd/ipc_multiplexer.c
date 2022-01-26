@@ -81,7 +81,7 @@ int parse_message(char *msg, ssize_t len)
     {
         strcpy(fwd_msg, "MOTION_STOP");
     }
-    if((len >= sizeof(IPC_AI_HUMAN_DETECTION_START) - 1) && (memcmp(msg, IPC_AI_HUMAN_DETECTION_START, sizeof(IPC_AI_HUMAN_DETECTION_START) - 1)==0))
+    else if((len >= sizeof(IPC_AI_HUMAN_DETECTION_START) - 1) && (memcmp(msg, IPC_AI_HUMAN_DETECTION_START, sizeof(IPC_AI_HUMAN_DETECTION_START) - 1)==0))
     {
         strcpy(fwd_msg, "AI_HUMAN_DETECTION_START");
     }

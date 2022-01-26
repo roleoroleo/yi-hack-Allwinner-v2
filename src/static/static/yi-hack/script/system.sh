@@ -38,6 +38,7 @@ ulimit -s 1024
 rm -f $YI_HACK_PREFIX/bin/core
 rm -f $YI_HACK_PREFIX/www/core
 rm -f $YI_HACK_PREFIX/www/cgi-bin/core
+rm -f $YI_HACK_PREFIX/core
 
 touch /tmp/httpd.conf
 
@@ -164,6 +165,11 @@ else
         cp -R /etc/* /tmp/etc
         mount --bind /tmp/etc /etc
         echo "127.0.0.1    api.eu.xiaoyi.com" >> /etc/hosts
+        echo "127.0.0.1    api.us.xiaoyi.com" >> /etc/hosts
+        echo "127.0.0.1    api.xiaoyi.com.tw" >> /etc/hosts
+        echo "127.0.0.1    log.eu.xiaoyi.com" >> /etc/hosts
+        echo "127.0.0.1    log.us.xiaoyi.com" >> /etc/hosts
+        echo "127.0.0.1    log.xiaoyi.com.tw" >> /etc/hosts
     )
 fi
 

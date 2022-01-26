@@ -999,7 +999,6 @@ int main(int argc, char** argv)
         strcpy(pwd, str);
     }
 
-
     fFS = fopen(BUFFER_FILE, "r");
     if ( fFS == NULL ) {
         fprintf(stderr, "could not get size of %s\n", BUFFER_FILE);

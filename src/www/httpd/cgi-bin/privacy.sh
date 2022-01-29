@@ -3,6 +3,7 @@
 CONF_FILE="etc/system.conf"
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 YI_HACK_VER=$(cat /tmp/sd/yi-hack/version)
+MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
 
 get_config()
 {
@@ -27,30 +28,73 @@ init_config()
     fi
 
     if [[ $(get_config RTSP) == "yes" ]] ; then
+        RTSP_DAEMON="rRTSPServer"
         RTSP_AUDIO_COMPRESSION=$(get_config RTSP_AUDIO)
-        if [[ "$RTSP_AUDIO_COMPRESSION" == "none" ]]; then
+
+        if [[ $(get_config RTSP_ALT) == "yes" ]] ; then
+            RTSP_DAEMON="rtsp_server_yi"
+            if [[ "$RTSP_AUDIO_COMPRESSION" == "aac" ]] ; then
+                RTSP_AUDIO_COMPRESSION="alaw"
+            fi
+        fi
+
+        if [[ "$RTSP_AUDIO_COMPRESSION" == "none" ]] ; then
             RTSP_AUDIO_COMPRESSION="no"
         fi
+        if [ ! -z $RTSP_AUDIO_COMPRESSION ]; then
+            RTSP_AUDIO_COMPRESSION="-a "$RTSP_AUDIO_COMPRESSION
+        fi
+        if [ ! -z $RTSP_PORT ]; then
+            RTSP_PORT="-p "$RTSP_PORT
+        fi
+        if [ ! -z $USERNAME ]; then
+            RTSP_USER="-u "$USERNAME
+        fi
+        if [ ! -z $PASSWORD ]; then
+            RTSP_PASSWORD="-w "$PASSWORD
+        fi
+
+        RTSP_RES=$(get_config RTSP_STREAM)
+        RTSP_ALT=$(get_config RTSP_ALT)
     fi
 }
 
 start_rtsp()
 {
-    if [ "$1" != "none" ]; then
+    if [ "$1" == "low" ] || [ "$1" == "high" ] || [ "$1" == "both" ]; then
         RTSP_RES=$1
     fi
-    if [ "$2" != "none" ]; then
-        RTSP_AUDIO_COMPRESSION=$2
+    if [ "$2" == "no" ] || [ "$2" == "yes" ] || [ "$2" == "alaw" ] || [ "$2" == "ulaw" ] || [ "$2" == "pcm" ] || [ "$2" == "aac" ] ; then
+        RTSP_AUDIO_COMPRESSION="-a "$2
     fi
 
-    RRTSP_MODEL=$MODEL_SUFFIX RRTSP_RES=$RTSP_RES RRTSP_PORT=$RTSP_PORT RRTSP_USER=$USERNAME RRTSP_PWD=$PASSWORD RRTSP_AUDIO=$RTSP_AUDIO_COMPRESSION rRTSPServer >/dev/null &
+    if [[ $RTSP_RES == "low" ]]; then
+        if [ "$RTSP_ALT" == "yes" ]; then
+            h264grabber -m $MODEL_SUFFIX -r low -f &
+            sleep 1
+        fi
+        $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &
+    elif [[ $RTSP_RES == "high" ]]; then
+        if [ "$RTSP_ALT" == "yes" ]; then
+            h264grabber -m $MODEL_SUFFIX -r high -f &
+            sleep 1
+        fi
+        $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &
+    elif [[ $RTSP_RES == "both" ]]; then
+        if [ "$RTSP_ALT" == "yes" ]; then
+            h264grabber -m $MODEL_SUFFIX -r both -f &
+            sleep 1
+        fi
+        $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &
+    fi
     $YI_HACK_PREFIX/script/wd_rtsp.sh >/dev/null &
 }
 
 stop_rtsp()
 {
     killall wd_rtsp.sh
-    killall rRTSPServer
+    killall $RTSP_DAEMON
+    killall h264grabber
 }
 
 ps_program()
@@ -113,5 +157,5 @@ printf "{\n"
 if [ ! -z "$RES" ]; then
     printf "\"status\": \"$RES\",\n"
 fi
-printf "\"%s\":\"%s\"\\n" "error" "true"
+printf "\"%s\":\"%s\"\\n" "error" "false"
 printf "}"

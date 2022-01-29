@@ -626,9 +626,9 @@ int main(int argc, char **argv) {
 //        if (debug) fprintf(stderr, "found buf_idx_2: %08x\n", (unsigned int) buf_idx_2);
 
         if ((write_enable) && (sps_sync)) {
-            if (frame_res == RESOLUTION_LOW) {
+            if ((frame_res == RESOLUTION_LOW) && (resolution != RESOLUTION_HIGH)) {
                 fOut = fOutLow;
-            } else if (frame_res == RESOLUTION_HIGH) {
+            } else if ((frame_res == RESOLUTION_HIGH) && (resolution != RESOLUTION_LOW)) {
                 fOut = fOutHigh;
             } else {
                 fOut = NULL;
@@ -688,7 +688,7 @@ int main(int argc, char **argv) {
             } else {
                 frame_res = RESOLUTION_NONE;
             }
-            if (frame_res == RESOLUTION_LOW) {
+            if ((frame_res == RESOLUTION_LOW) && (resolution != RESOLUTION_HIGH)) {
                 memcpy((unsigned char *) &frame_len, frame_header, 4);
                 frame_len -= 6;                                                              // -6 only for SPS
                 // Check if buf_idx_2 is greater than buf_idx_1 + frame_len
@@ -712,18 +712,21 @@ int main(int argc, char **argv) {
                             write_enable = 0;
                         }
                     } else {
+                        if (debug) fprintf(stderr, "%lld: SPS   detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
+                                    current_timestamp(), frame_len, frame_counter_low,
+                                    frame_counter_last_valid_low, frame_res);
                         frame_counter_invalid_low = 0;
                         frame_counter_last_valid_low = frame_counter_low;
                     }
                 } else {
+                    if (debug) fprintf(stderr, "%lld: warning - detected SPS with wrong size - buf_idx_diff: %d - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
+                                current_timestamp(), buf_idx_diff, frame_len, frame_counter_high,
+                                frame_counter_last_valid_low, frame_res);
                     write_enable = 0;
                 }
-                if (debug) fprintf(stderr, "%lld: SPS   detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
-                            current_timestamp(), frame_len, frame_counter_low,
-                            frame_counter_last_valid_low, frame_res);
 
                 buf_idx_start = buf_idx_1;
-            } else if (frame_res == RESOLUTION_HIGH) {
+            } else if ((frame_res == RESOLUTION_HIGH) && (resolution != RESOLUTION_LOW)) {
                 memcpy((unsigned char *) &frame_len, frame_header, 4);
                 frame_len -= 6;                                                              // -6 only for SPS
                 // Check if buf_idx_2 is greater than buf_idx_1 + frame_len
@@ -747,15 +750,18 @@ int main(int argc, char **argv) {
                             write_enable = 0;
                         }
                     } else {
+                        if (debug) fprintf(stderr, "%lld: SPS   detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
+                                    current_timestamp(), frame_len, frame_counter_high,
+                                    frame_counter_last_valid_high, frame_res);
                         frame_counter_invalid_high = 0;
                         frame_counter_last_valid_high = frame_counter_high;
                     }
                 } else {
+                    if (debug) fprintf(stderr, "%lld: warning - detected SPS with wrong size - buf_idx_diff: %d - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
+                                current_timestamp(), buf_idx_diff, frame_len, frame_counter_high,
+                                frame_counter_last_valid_high, frame_res);
                     write_enable = 0;
                 }
-                if (debug) fprintf(stderr, "%lld: SPS   detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
-                            current_timestamp(), frame_len, frame_counter_high,
-                            frame_counter_last_valid_high, frame_res);
 
                 buf_idx_start = buf_idx_1;
             } else {
@@ -781,7 +787,7 @@ int main(int argc, char **argv) {
             } else {
                 frame_res = RESOLUTION_NONE;
             }
-            if (frame_res == RESOLUTION_LOW) {
+            if ((frame_res == RESOLUTION_LOW) && (resolution != RESOLUTION_HIGH)) {
                 memcpy((unsigned char *) &frame_len, frame_header, 4);
                 // Check if buf_idx_2 is greater than buf_idx_1 + frame_len
                 buf_idx_diff = buf_idx_2 - buf_idx_1;
@@ -804,18 +810,21 @@ int main(int argc, char **argv) {
                             write_enable = 0;
                         }
                     } else {
+                        if (debug) fprintf(stderr, "%lld: frame detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
+                                    current_timestamp(), frame_len, frame_counter_low,
+                                    frame_counter_last_valid_low, frame_res);
                         frame_counter_invalid_low = 0;
                         frame_counter_last_valid_low = frame_counter_low;
                     }
                 } else {
+                    if (debug) fprintf(stderr, "%lld: warning - detected frame with wrong size - buf_idx_diff: %d - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
+                                current_timestamp(), buf_idx_diff, frame_len, frame_counter_high,
+                                frame_counter_last_valid_low, frame_res);
                     write_enable = 0;
                 }
-                if (debug) fprintf(stderr, "%lld: frame detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
-                            current_timestamp(), frame_len, frame_counter_low,
-                            frame_counter_last_valid_low, frame_res);
 
                 buf_idx_start = buf_idx_1;
-            } else if (frame_res == RESOLUTION_HIGH) {
+            } else if ((frame_res == RESOLUTION_HIGH) && (resolution != RESOLUTION_LOW)) {
                 memcpy((unsigned char *) &frame_len, frame_header, 4);
                 // Check if buf_idx_2 is greater than buf_idx_1 + frame_len
                 buf_idx_diff = buf_idx_2 - buf_idx_1;
@@ -838,15 +847,18 @@ int main(int argc, char **argv) {
                             write_enable = 0;
                         }
                     } else {
+                        if (debug) fprintf(stderr, "%lld: frame detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
+                                    current_timestamp(), frame_len, frame_counter_high,
+                                    frame_counter_last_valid_high, frame_res);
                         frame_counter_invalid_high = 0;
                         frame_counter_last_valid_high = frame_counter_high;
                     }
                 } else {
+                    if (debug) fprintf(stderr, "%lld: warning - detected frame with wrong size - buf_idx_diff: %d - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
+                                current_timestamp(), buf_idx_diff, frame_len, frame_counter_high,
+                                frame_counter_last_valid_high, frame_res);
                     write_enable = 0;
                 }
-                if (debug) fprintf(stderr, "%lld: frame detected - frame_len: %d - frame_counter: %d - frame_counter_last_valid: %d - resolution: %d\n",
-                            current_timestamp(), frame_len, frame_counter_high,
-                            frame_counter_last_valid_high, frame_res);
 
                 buf_idx_start = buf_idx_1;
             } else {

@@ -17,20 +17,36 @@ if ! $(validateQueryString $QUERY_STRING); then
 fi
 
 VOL="1"
+VOLDB="0"
+IS_DB="0"
 
 PARAM="$(echo $QUERY_STRING | cut -d'&' -f1 | cut -d'=' -f1)"
 VALUE="$(echo $QUERY_STRING | cut -d'&' -f1 | cut -d'=' -f2)"
 
 if [ "$PARAM" == "vol" ] ; then
     VOL="$VALUE"
+
+    if ! $(validateNumber $VOL); then
+        printf "{\n"
+        printf "\"%s\":\"%s\",\\n" "error" "true"
+        printf "\"%s\":\"%s\"\\n" "description" "Invalid volume"
+        printf "}"
+        exit
+    fi
+    IS_DB=0
 fi
 
-if ! $(validateNumber $VOL); then
-    printf "{\n"
-    printf "\"%s\":\"%s\",\\n" "error" "true"
-    printf "\"%s\":\"%s\"\\n" "description" "Invalid volume"
-    printf "}"
-    exit
+if [ "$PARAM" == "voldb" ] ; then
+    VOLDB="$VALUE"
+
+    if ! $(validateNumber $VOLDB); then
+        printf "{\n"
+        printf "\"%s\":\"%s\",\\n" "error" "true"
+        printf "\"%s\":\"%s\"\\n" "description" "Invalid volume (dB)"
+        printf "}"
+        exit
+    fi
+    IS_DB=1
 fi
 
 printf "Content-type: application/json\r\n\r\n"
@@ -67,7 +83,12 @@ if [ $? -eq 0 ]; then
         mv $TMP_FILE.tmp $TMP_FILE
     fi
 
-    (speaker on > /dev/null; cat $TMP_FILE | pcmvol -g $VOL > /tmp/audio_in_fifo; sleep 1; speaker off > /dev/null; rm $TMP_FILE) &
+    if
+    if [ "$IS_DB" == "1" ]; then
+        (speaker on > /dev/null; cat $TMP_FILE | pcmvol -G $VOL > /tmp/audio_in_fifo; sleep 1; speaker off > /dev/null; rm $TMP_FILE) &
+    else
+        (speaker on > /dev/null; cat $TMP_FILE | pcmvol -g $VOL > /tmp/audio_in_fifo; sleep 1; speaker off > /dev/null; rm $TMP_FILE) &
+    fi
 
     printf "{\n"
     printf "\"%s\":\"%s\",\\n" "error" "false"
@@ -101,7 +122,12 @@ else
         fi
 
         speaker on > /dev/null
-        cat $TMP_FILE | pcmvol -g $VOL > /tmp/audio_in_fifo
+
+        if [ "$IS_DB" == "1" ]; then
+            cat $TMP_FILE | pcmvol -G $VOL > /tmp/audio_in_fifo
+        else
+            cat $TMP_FILE | pcmvol -g $VOL > /tmp/audio_in_fifo
+        fi
         sleep 1
         speaker off > /dev/null
         rm $TMP_FILE

@@ -20,7 +20,7 @@ APP.speak = (function($) {
         ttslang = $("select[name='ttslang']").prop('value');
         ttsvol = $("select[name='ttsvol']").prop('value');
         $.ajax({
-            url: "cgi-bin/speak.sh?lang="+ttslang+"&vol="+ttsvol,
+            url: "cgi-bin/speak.sh?lang="+ttslang+"&voldb="+ttsvol,
             type: 'POST',
             contentType: false,
             data: ttsterm,
@@ -35,7 +35,7 @@ APP.speak = (function($) {
         formData.append('file', fileData);
         wavvol = $("select[name='wavvol']").prop('value');
         $.ajax({
-            url: "cgi-bin/speaker.sh?vol="+wavvol,
+            url: "cgi-bin/speaker.sh?voldb="+wavvol,
             type: 'POST',
             contentType: false,
             data: formData,

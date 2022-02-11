@@ -83,7 +83,6 @@ if [ $? -eq 0 ]; then
         mv $TMP_FILE.tmp $TMP_FILE
     fi
 
-    if
     if [ "$IS_DB" == "1" ]; then
         (speaker on > /dev/null; cat $TMP_FILE | pcmvol -G $VOLDB > /tmp/audio_in_fifo; sleep 1; speaker off > /dev/null; rm $TMP_FILE) &
     else

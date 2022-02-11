@@ -85,7 +85,7 @@ if [ $? -eq 0 ]; then
 
     if
     if [ "$IS_DB" == "1" ]; then
-        (speaker on > /dev/null; cat $TMP_FILE | pcmvol -G $VOL > /tmp/audio_in_fifo; sleep 1; speaker off > /dev/null; rm $TMP_FILE) &
+        (speaker on > /dev/null; cat $TMP_FILE | pcmvol -G $VOLDB > /tmp/audio_in_fifo; sleep 1; speaker off > /dev/null; rm $TMP_FILE) &
     else
         (speaker on > /dev/null; cat $TMP_FILE | pcmvol -g $VOL > /tmp/audio_in_fifo; sleep 1; speaker off > /dev/null; rm $TMP_FILE) &
     fi
@@ -124,7 +124,7 @@ else
         speaker on > /dev/null
 
         if [ "$IS_DB" == "1" ]; then
-            cat $TMP_FILE | pcmvol -G $VOL > /tmp/audio_in_fifo
+            cat $TMP_FILE | pcmvol -G $VOLDB > /tmp/audio_in_fifo
         else
             cat $TMP_FILE | pcmvol -g $VOL > /tmp/audio_in_fifo
         fi

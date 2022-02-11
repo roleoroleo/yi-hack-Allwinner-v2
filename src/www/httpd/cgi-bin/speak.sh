@@ -68,7 +68,7 @@ if [ -f /tmp/sd/yi-hack/bin/nanotts ] && [ -e /tmp/audio_in_fifo ]; then
         speaker on > /dev/null
         echo "$POST_DATA" | /tmp/sd/yi-hack/bin/nanotts -l /tmp/sd/yi-hack/usr/share/pico/lang -v $LANG -c > $TMP_FILE
         if [ "$IS_DB" == "1" ]; then
-            cat $TMP_FILE | pcmvol -G $VOL > /tmp/audio_in_fifo
+            cat $TMP_FILE | pcmvol -G $VOLDB > /tmp/audio_in_fifo
         else
             cat $TMP_FILE | pcmvol -g $VOL > /tmp/audio_in_fifo
         fi

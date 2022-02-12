@@ -140,8 +140,10 @@ if [ "$VALUE" == "on" ] ; then
 elif [ "$VALUE" == "off" ] ; then
     rm -f /tmp/snapshot.disabled
     start_rtsp $PARAM1 $PARAM2
-    cd /home/app
-    ./mp4record >/dev/null &
+    if [[ $(get_config DISABLE_CLOUD) == "no" ]] || [[ $(get_config REC_WITHOUT_CLOUD) == "yes" ]] ; then
+        cd /home/app
+        ./mp4record >/dev/null &
+    fi
     rm -f /tmp/privacy
     RES="off"
 elif [ "$VALUE" == "status" ] ; then

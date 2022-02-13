@@ -51,6 +51,9 @@ Otherwise, follow this wiki: https://github.com/roleoroleo/yi-hack-Allwinner-v2/
 7. Check the hack opening the web interface http://IP-CAM:8080
 8. Don't remove the microSD card (yes this hack requires a dedicated microSD card).
 
+### Optional Utilities 
+Several [optional untilies](https://github.com/roleoroleo/yi-hack-utils) are avaiable, some supporting experimental features like text-to-speech.
+
 
 ## Contributing and Bug Reports
 See [CONTRIBUTING](CONTRIBUTING.md)
@@ -148,13 +151,28 @@ If not, check the other projects related to Yi cams:
 
 
 ## Home Assistant integration
-Are you using Home Assistant?
+Are you using Home Assistant? Do you want to integrate your cam? Try these custom integrations:
+- https://github.com/roleoroleo/yi-hack_ha_integration
+- https://github.com/AlexxIT/WebRTC
 
-Do you want to integrate your cam?
+You can also use the [web services](https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Web-services-description) in Home Assistant -- here's one way to do that. (This example requires the nanotts optional utility to be installed on the camera.) Set up a rest_command in your configuration.yaml to call one of the [web services](https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Web-services-description). 
+```
+rest_command:
+  camera_announce:
+    url: http://[camera address]:8080/cgi-bin/speak.sh?lang={{language}}&voldb={{volume}}
+    method: POST
+    payload: "{{message}}"
+```
+Create an automation and use yaml in the action to send data to the web service. 
+```
+service: rest_command.camera_announce
+data:
+  language: en-US
+  message: "All your base are belong to us."
+  volume: '-8'
+``` 
 
-Try these custom integrations:
-https://github.com/roleoroleo/yi-hack_ha_integration
-https://github.com/AlexxIT/WebRTC
+
 
 
 ## Build your own firmware

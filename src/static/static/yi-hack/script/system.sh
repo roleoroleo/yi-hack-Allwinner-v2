@@ -62,7 +62,6 @@ fi
 $YI_HACK_PREFIX/script/check_conf.sh
 
 hostname -F $YI_HACK_PREFIX/etc/hostname
-export TZ=$(get_config TIMEZONE)
 
 if [[ $(get_config SWAP_FILE) == "yes" ]] ; then
     SD_PRESENT=$(mount | grep mmc | grep "/tmp/sd " | grep -c ^)
@@ -172,6 +171,8 @@ else
         echo "127.0.0.1    log.xiaoyi.com.tw" >> /etc/hosts
     )
 fi
+
+export TZ=$(get_config TIMEZONE)
 
 if [[ $(get_config HTTPD) == "yes" ]] ; then
     mkdir -p /tmp/sd/record
@@ -392,6 +393,8 @@ fi
 if [[ $(get_config FTP_UPLOAD) == "yes" ]] ; then
     /tmp/sd/yi-hack/script/ftppush.sh start &
 fi
+
+unset TZ
 
 if [ -f "/tmp/sd/yi-hack/startup.sh" ]; then
     /tmp/sd/yi-hack/startup.sh

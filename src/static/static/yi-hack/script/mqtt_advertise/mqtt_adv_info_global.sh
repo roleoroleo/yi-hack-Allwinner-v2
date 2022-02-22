@@ -21,14 +21,8 @@ HOSTNAME=$(hostname)
 FW_VERSION=$(cat $YI_HACK_PREFIX/version)
 HOME_VERSION=$(cat /home/app/.appver)
 MODEL_SUFFIX=$(cat $YI_HACK_PREFIX/model_suffix)
-if [ "$MODEL_SUFFIX" == "h60ga" ] || [ "$MODEL_SUFFIX" == "r35gb" ]; then
-    SERIAL_NUMBER=$(dd bs=1 count=20 skip=784 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)
-    if [ "${SERIAL_NUMBER:0:2}" == "00" ] || [ "${SERIAL_NUMBER:0:2}" == "FF" ]; then
-        SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)
-    fi
-else
-    SERIAL_NUMBER=$(dd bs=1 count=20 skip=656 if=/tmp/mmap.info 2>/dev/null | tr '\0' '0' | cut -c1-20)
-fi
+MFG_PART=$(grep  -oE  ".{0,0}mfg@.{0,9}" /sys/firmware/devicetree/base/chosen/bootargs | cut -c 5-14)
+SERIAL_NUMBER=$(dd bs=1 count=20 skip=36 if=/dev/$MFG_PART 2>/dev/null | tr '\0' '0' | cut -c1-20)
 LOCAL_IP=$(ifconfig eth0 | awk '/inet addr/{print substr($2,6)}')
 NETMASK=$(ifconfig eth0 | awk '/inet addr/{print substr($4,6)}')
 MAC_ADDR=$(ifconfig eth0 | awk '/HWaddr/{print substr($5,1)}')

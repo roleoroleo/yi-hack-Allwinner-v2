@@ -89,12 +89,12 @@ if [ -f /tmp/sd/yi-hack/bin/nanotts ] && [ -e /tmp/audio_in_fifo ]; then
 else
     if [ ! -f /tmp/sd/yi-hack/bin/nanotts ]; then
         printf "{\n"
-        printf "\"%s\":\"%s\"\\n" "error" "true"
+        printf "\"%s\":\"%s\",\\n" "error" "true"
         printf "\"%s\":\"%s\"\\n" "description" "TTS engine not found"
         printf "}"
     elif [ ! -e /tmp/audio_in_fifo ]; then
         printf "{\n"
-        printf "\"%s\":\"%s\"\\n" "error" "true"
+        printf "\"%s\":\"%s\",\\n" "error" "true"
         printf "\"%s\":\"%s\"\\n" "description" "Audio input disabled"
         printf "}"
     fi

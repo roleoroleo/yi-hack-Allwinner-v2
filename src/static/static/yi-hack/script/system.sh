@@ -363,10 +363,6 @@ if [[ $(get_config ONVIF) == "yes" ]] ; then
     fi
 fi
 
-if [ ! -f /tmp/snapshot.disabled ] ; then
-    framefinder $MODEL_SUFFIX &
-fi
-
 # Add crontab
 CRONTAB=$(get_config CRONTAB)
 FREE_SPACE=$(get_config FREE_SPACE)

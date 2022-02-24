@@ -1,6 +1,4 @@
-OBJECTS_F = framefinder.o
-OBJECTS_B = imggrabber.o convert2jpg.o add_water.o water_mark.o
-OBJECTS = $(OBJECTS_F) $(OBJECTS_B)
+OBJECTS = imggrabber.o convert2jpg.o add_water.o water_mark.o
 FFMPEG = ffmpeg-4.0.4
 FFMPEG_DIR = ./$(FFMPEG)
 INC_FF = -I$(FFMPEG_DIR)
@@ -10,10 +8,7 @@ JPEGLIB_DIR = ./$(JPEGLIB)
 INC_J = -I$(JPEGLIB_DIR)
 LIB_J = $(JPEGLIB_DIR)/.libs/libjpeg.a
 
-all: framefinder imggrabber
-
-framefinder.o: framefinder.c $(HEADERS)
-	$(CC) -c $< -fPIC -O2 -o $@
+all: imggrabber
 
 imggrabber.o: imggrabber.c $(HEADERS)
 	@$(build_ffmpeg)
@@ -29,18 +24,14 @@ add_water.o: add_water.c $(HEADERS)
 water_mark.o: water_mark.c $(HEADERS)
 	$(CC) -c $< $(INC_J) -fPIC -O2 -o $@
 
-framefinder: $(OBJECTS_F)
-	$(CC) $(OBJECTS_F) -fPIC -O2 -o $@
-	$(STRIP) $@
-
-imggrabber: $(OBJECTS_B)
-	$(CC) $(OBJECTS_B) $(LIB_J) $(LIB_FF) -fPIC -O2 -o $@
+imggrabber: $(OBJECTS)
+	$(CC) $(OBJECTS) $(LIB_J) $(LIB_FF) -fPIC -O2 -o $@
 	$(STRIP) $@
 
 .PHONY: clean
 
 clean:
-	rm -f framefinder imggrabber
+	rm -f imggrabber
 	rm -f $(OBJECTS)
 	rm -rf $(FFMPEG)
 

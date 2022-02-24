@@ -42,7 +42,6 @@ Otherwise, follow this wiki: https://github.com/roleoroleo/yi-hack-Allwinner-v2/
 3. Extract the contents of the archive to the root of your SD card. Your card should appear with this structure:
 ```
 |-- Factory/
-|-- newbackup/
 |-- yi-hack/
 |-- lower_half_init.sh
 ```

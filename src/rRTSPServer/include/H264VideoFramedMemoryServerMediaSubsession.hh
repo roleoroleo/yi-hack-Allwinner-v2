@@ -22,13 +22,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #ifndef _H264_VIDEO_FRAMED_MEMORY_SERVER_MEDIA_SUBSESSION_HH
 #define _H264_VIDEO_FRAMED_MEMORY_SERVER_MEDIA_SUBSESSION_HH
 
-#ifndef _FRAMED_MEMORY_SERVER_MEDIA_SUBSESSION_HH
-#include "FramedMemoryServerMediaSubsession.hh"
-#endif
+#include "OnDemandServerMediaSubsession.hh"
 
 #include "rRTSPServer.h"
 
-class H264VideoFramedMemoryServerMediaSubsession: public FramedMemoryServerMediaSubsession {
+class H264VideoFramedMemoryServerMediaSubsession: public OnDemandServerMediaSubsession {
 public:
     static H264VideoFramedMemoryServerMediaSubsession*
     createNew(UsageEnvironment& env, cb_output_buffer *cbBuffer,
@@ -57,6 +55,7 @@ protected: // redefined virtual functions
                                     FramedSource* inputSource);
 
 private:
+    cb_output_buffer *fBuffer;
     char* fAuxSDPLine;
     char fDoneFlag; // used when setting up "fAuxSDPLine"
     RTPSink* fDummyRTPSink; // ditto

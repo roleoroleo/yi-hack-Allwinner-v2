@@ -19,15 +19,6 @@ export AR=${CROSSPREFIX}ar
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
-cd fdk-aac || exit 1
-make clean
-make || exit 1
-make install
-mkdir ../live/lib/
-cp -f ./_install/lib/libfdk-aac.a ../live/lib/
-cp -rf ./_install/include/* ../live/include/
-cd ..
-
 cd live || exit 1
 make clean
 make || exit 1

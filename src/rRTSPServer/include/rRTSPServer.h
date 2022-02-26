@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 roleo.
+ * Copyright (c) 2022 roleo.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,9 @@
 #include <getopt.h>
 
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
+#define BUFFER_SHM "fshare_frame_buf"
+#define READ_LOCK_FILE "fshare_read_lock"
+#define WRITE_LOCK_FILE "fshare_write_lock"
 
 #define Y21GA 0
 #define Y211GA 1
@@ -54,87 +57,45 @@
 
 #define BUF_OFFSET_Y21GA 368
 #define FRAME_HEADER_SIZE_Y21GA 28
-#define DATA_OFFSET_Y21GA 4
-#define LOWRES_BYTE_Y21GA 8
-#define HIGHRES_BYTE_Y21GA 4
 
 #define BUF_OFFSET_Y211GA 368
 #define FRAME_HEADER_SIZE_Y211GA 28
-#define DATA_OFFSET_Y211GA 4
-#define LOWRES_BYTE_Y211GA 8
-#define HIGHRES_BYTE_Y211GA 4
 
 #define BUF_OFFSET_H30GA 368
 #define FRAME_HEADER_SIZE_H30GA 28
-#define DATA_OFFSET_H30GA 4
-#define LOWRES_BYTE_H30GA 8
-#define HIGHRES_BYTE_H30GA 4
 
 #define BUF_OFFSET_R30GB 300
 #define FRAME_HEADER_SIZE_R30GB 22
-#define DATA_OFFSET_R30GB 0
-#define LOWRES_BYTE_R30GB 8
-#define HIGHRES_BYTE_R30GB 4
 
 #define BUF_OFFSET_R35GB 300
 #define FRAME_HEADER_SIZE_R35GB 26
-#define DATA_OFFSET_R35GB 4
-#define LOWRES_BYTE_R35GB 8
-#define HIGHRES_BYTE_R35GB 4
 
 #define BUF_OFFSET_R40GA 300
 #define FRAME_HEADER_SIZE_R40GA 26
-#define DATA_OFFSET_R40GA 4
-#define LOWRES_BYTE_R40GA 8
-#define HIGHRES_BYTE_R40GA 4
 
 #define BUF_OFFSET_H51GA 368
 #define FRAME_HEADER_SIZE_H51GA 28
-#define DATA_OFFSET_H51GA 4
-#define LOWRES_BYTE_H51GA 8
-#define HIGHRES_BYTE_H51GA 4
 
 #define BUF_OFFSET_H52GA 368
 #define FRAME_HEADER_SIZE_H52GA 28
-#define DATA_OFFSET_H52GA 4
-#define LOWRES_BYTE_H52GA 8
-#define HIGHRES_BYTE_H52GA 4
 
 #define BUF_OFFSET_H60GA 368
 #define FRAME_HEADER_SIZE_H60GA 28
-#define DATA_OFFSET_H60GA 4
-#define LOWRES_BYTE_H60GA 8
-#define HIGHRES_BYTE_H60GA 4
 
 #define BUF_OFFSET_Y28GA 368
 #define FRAME_HEADER_SIZE_Y28GA 28
-#define DATA_OFFSET_Y28GA 4
-#define LOWRES_BYTE_Y28GA 8
-#define HIGHRES_BYTE_Y28GA 4
 
 #define BUF_OFFSET_Y29GA 368
 #define FRAME_HEADER_SIZE_Y29GA 28
-#define DATA_OFFSET_Y29GA 4
-#define LOWRES_BYTE_Y29GA 8
-#define HIGHRES_BYTE_Y29GA 4
 
 #define BUF_OFFSET_Q321BR_LSX 300
 #define FRAME_HEADER_SIZE_Q321BR_LSX 26
-#define DATA_OFFSET_Q321BR_LSX 4
-#define LOWRES_BYTE_Q321BR_LSX 8
-#define HIGHRES_BYTE_Q321BR_LSX 4
 
 #define BUF_OFFSET_QG311R 300
 #define FRAME_HEADER_SIZE_QG311R 26
-#define DATA_OFFSET_QG311R 4
-#define LOWRES_BYTE_QG311R 8
-#define HIGHRES_BYTE_QG311R 4
 
 #define BUF_OFFSET_B091QP 300
 #define FRAME_HEADER_SIZE_B091QP 26
-#define DATA_OFFSET_B091QP 4
-#define LOWRES_BYTE_B091QP 8
-#define HIGHRES_BYTE_B091QP 4
 
 #define MILLIS_10 10000
 #define MILLIS_25 25000
@@ -144,12 +105,21 @@
 #define RESOLUTION_HIGH 1080
 #define RESOLUTION_BOTH 1440
 
+#define TYPE_NONE 0
+#define TYPE_LOW  360
+#define TYPE_HIGH 1080
+#define TYPE_AAC 65521
+
 #define RESOLUTION_FHD  1080
 #define RESOLUTION_3K   1296
 
 #define OUTPUT_BUFFER_SIZE_LOW  49152
-//#define OUTPUT_BUFFER_SIZE_HIGH 196608
 #define OUTPUT_BUFFER_SIZE_HIGH 262144
+#define OUTPUT_BUFFER_SIZE_AUDIO 32768
+
+#define CODEC_NONE -1
+#define CODEC_H264 0
+#define CODEC_H265 1
 
 typedef struct
 {
@@ -172,13 +142,62 @@ typedef struct
 {
     unsigned char *buffer;                  // pointer to the base of the output buffer
     unsigned int size;                      // size of the output buffer
-    int resolution;                         // resolution of the stream in this buffer
+    int type;                               // type of the stream in this buffer
     unsigned char *write_index;             // write absolute index
     cb_output_frame output_frame[42];       // array of frames that buffer contains 42 = SPS + PPS + iframe + GOP
     int output_frame_size;                  // number of frames that buffer contains
-    unsigned int frame_read_index;          // index to the next frame to read
-    unsigned int frame_write_index;         // index to the next frame to write
+    unsigned int frame_read_index;          // index of the next frame to read
+    unsigned int frame_write_index;         // index of the next frame to write
     pthread_mutex_t mutex;                  // mutex of the structure
 } cb_output_buffer;
+
+struct __attribute__((__packed__)) frame_header {
+    uint32_t len;
+    uint32_t counter;
+    uint32_t time;
+    uint16_t type;
+    uint16_t stream_counter;
+};
+
+struct __attribute__((__packed__)) frame_header_22 {
+    uint32_t len;
+    uint32_t counter;
+    uint32_t u1;
+    uint32_t time;
+    uint16_t type;
+    uint16_t stream_counter;
+    uint16_t u4;
+};
+
+struct __attribute__((__packed__)) frame_header_26 {
+    uint32_t len;
+    uint32_t counter;
+    uint32_t u1;
+    uint32_t u2;
+    uint32_t time;
+    uint16_t type;
+    uint16_t stream_counter;
+    uint16_t u4;
+};
+
+struct __attribute__((__packed__)) frame_header_28 {
+    uint32_t len;
+    uint32_t counter;
+    uint32_t u1;
+    uint32_t u2;
+    uint32_t time;
+    uint16_t type;
+    uint16_t stream_counter;
+    uint32_t u4;
+};
+
+struct stream_type_s {
+    int codec_low;
+    int codec_high;
+    int sps_type_low;
+    int sps_type_high;
+    int vps_type_low;
+    int vps_type_high;
+};
 
 #endif

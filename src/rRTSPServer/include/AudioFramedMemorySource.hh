@@ -18,50 +18,48 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // A class for streaming data from a circular buffer.
 // C++ header
 
-#ifndef _FRAMED_MEMORY_SOURCE_HH
-#define _FRAMED_MEMORY_SOURCE_HH
+#ifndef _AUDIO_FRAMED_MEMORY_SOURCE_HH
+#define _AUDIO_FRAMED_MEMORY_SOURCE_HH
 
-#ifndef _FRAMED_SOURCE_HH
+#ifndef _AUDIO_FRAMED_SOURCE_HH
 #include "FramedSource.hh"
 #endif
 
 #include <rRTSPServer.h>
 
-class FramedMemorySource: public FramedSource {
+class AudioFramedMemorySource: public FramedSource {
 public:
-    static FramedMemorySource* createNew(UsageEnvironment& env,
+    static AudioFramedMemorySource* createNew(UsageEnvironment& env,
                                                 cb_output_buffer *cbBuffer,
-                                                unsigned preferredFrameSize = 0,
-                                                unsigned playTimePerFrame = 0);
-      // "preferredFrameSize" == 0 means 'no preference'
-      // "playTimePerFrame" is in microseconds
+                                                unsigned samplingFrequency,
+                                                unsigned numChannels);
 
-    void seekToByteAbsolute(u_int64_t byteNumber, u_int64_t numBytesToStream = 0);
-      // if "numBytesToStream" is >0, then we limit the stream to that number of bytes, before treating it as EOF
-    void seekToByteRelative(int64_t offset, u_int64_t numBytesToStream = 0);
+    unsigned samplingFrequency() const { return fSamplingFrequency; }
+    unsigned numChannels() const { return fNumChannels; }
+    char const* configStr() const { return fConfigStr; }
 
 protected:
-    FramedMemorySource(UsageEnvironment& env,
+    AudioFramedMemorySource(UsageEnvironment& env,
                                 cb_output_buffer *cbBuffer,
-                                unsigned preferredFrameSize,
-                                unsigned playTimePerFrame);
+                                unsigned samplingFrequency,
+                                unsigned numChannels);
         // called only by createNew()
 
-    virtual ~FramedMemorySource();
+    virtual ~AudioFramedMemorySource();
 
 private:
-    int cb_memcmp(unsigned char *str1, unsigned char*str2, size_t n);
+    int cb_check_sync_word(unsigned char *str);
     // redefined virtual functions:
     virtual void doGetNextFrame();
 
 private:
     cb_output_buffer *fBuffer;
     u_int64_t fCurIndex;
-    unsigned fPreferredFrameSize;
-    unsigned fPlayTimePerFrame;
-    unsigned fLastPlayTime;
-    Boolean fLimitNumBytesToStream;
-    u_int64_t fNumBytesToStream; // used iff "fLimitNumBytesToStream" is True
+    int fProfile;
+    int fSamplingFrequency;
+    int fNumChannels;
+    unsigned fuSecsPerFrame;
+    char fConfigStr[5];
 };
 
 #endif

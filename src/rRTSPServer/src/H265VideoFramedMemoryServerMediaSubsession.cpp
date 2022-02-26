@@ -21,7 +21,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include "H265VideoFramedMemoryServerMediaSubsession.hh"
 #include "H265VideoRTPSink.hh"
-#include "FramedMemorySource.hh"
+#include "VideoFramedMemorySource.hh"
 #include "H265VideoStreamDiscreteFramer.hh"
 
 H265VideoFramedMemoryServerMediaSubsession*
@@ -34,8 +34,8 @@ H265VideoFramedMemoryServerMediaSubsession::createNew(UsageEnvironment& env,
 H265VideoFramedMemoryServerMediaSubsession::H265VideoFramedMemoryServerMediaSubsession(UsageEnvironment& env,
                                                                         cb_output_buffer *cbBuffer,
                                                                         Boolean reuseFirstSource)
-    : FramedMemoryServerMediaSubsession(env, cbBuffer, reuseFirstSource),
-      fAuxSDPLine(NULL), fDoneFlag(0), fDummyRTPSink(NULL) {
+    : OnDemandServerMediaSubsession(env, reuseFirstSource),
+      fBuffer(cbBuffer), fAuxSDPLine(NULL), fDoneFlag(0), fDummyRTPSink(NULL) {
 }
 
 H265VideoFramedMemoryServerMediaSubsession::~H265VideoFramedMemoryServerMediaSubsession() {
@@ -106,7 +106,7 @@ FramedSource* H265VideoFramedMemoryServerMediaSubsession::createNewStreamSource(
     estBitrate = 500; // kbps, estimate
 
     // Create the video source:
-    FramedMemorySource* memorySource = FramedMemorySource::createNew(envir(), fBuffer);
+    VideoFramedMemorySource* memorySource = VideoFramedMemorySource::createNew(envir(), fBuffer);
     if (memorySource == NULL) return NULL;
 
     // Create a framer for the Video Elementary Stream:

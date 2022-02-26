@@ -126,7 +126,7 @@ FramedSource* WAVAudioFifoServerMediaSubsession
 //    fConvertToxLaw = WA_PCMU;
     fNumChannels = originalSource->numChannels();
     unsigned bitsPerSecond = fSamplingFrequency*fBitsPerSample*fNumChannels;
-#ifdef DEBUG    
+#ifdef DEBUG
     printf("Original source FMT: %d bps: %d freq: %d\n", fAudioFormat, fBitsPerSample, fSamplingFrequency);
 #endif
     fFileDuration = ~0;//(float)((8.0*originalSource->numPCMBytes())/(fSamplingFrequency*fNumChannels*fBitsPerSample));

@@ -18,7 +18,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // A class for streaming data from a circular buffer.
 // Implementation
 
-#include "FramedMemorySource.hh"
+#include "VideoFramedMemorySource.hh"
 #include "GroupsockHelper.hh"
 #include "presentationTime.hh"
 
@@ -31,19 +31,19 @@ unsigned char NALU_HEADER[] = { 0x00, 0x00, 0x00, 0x01 };
 
 extern int debug;
 
-////////// FramedMemorySource //////////
+////////// VideoFramedMemorySource //////////
 
-FramedMemorySource*
-FramedMemorySource::createNew(UsageEnvironment& env,
+VideoFramedMemorySource*
+VideoFramedMemorySource::createNew(UsageEnvironment& env,
                                         cb_output_buffer *cbBuffer,
                                         unsigned preferredFrameSize,
                                         unsigned playTimePerFrame) {
     if (cbBuffer == NULL) return NULL;
 
-    return new FramedMemorySource(env, cbBuffer, preferredFrameSize, playTimePerFrame);
+    return new VideoFramedMemorySource(env, cbBuffer, preferredFrameSize, playTimePerFrame);
 }
 
-FramedMemorySource::FramedMemorySource(UsageEnvironment& env,
+VideoFramedMemorySource::VideoFramedMemorySource(UsageEnvironment& env,
                                                         cb_output_buffer *cbBuffer,
                                                         unsigned preferredFrameSize,
                                                         unsigned playTimePerFrame)
@@ -52,16 +52,16 @@ FramedMemorySource::FramedMemorySource(UsageEnvironment& env,
       fLimitNumBytesToStream(False), fNumBytesToStream(0) {
 }
 
-FramedMemorySource::~FramedMemorySource() {}
+VideoFramedMemorySource::~VideoFramedMemorySource() {}
 
-void FramedMemorySource::seekToByteAbsolute(u_int64_t byteNumber, u_int64_t numBytesToStream) {
+void VideoFramedMemorySource::seekToByteAbsolute(u_int64_t byteNumber, u_int64_t numBytesToStream) {
 }
 
-void FramedMemorySource::seekToByteRelative(int64_t offset, u_int64_t numBytesToStream) {
+void VideoFramedMemorySource::seekToByteRelative(int64_t offset, u_int64_t numBytesToStream) {
 }
 
 // The second argument is the circular buffer
-int FramedMemorySource::cb_memcmp(unsigned char *str1, unsigned char *str2, size_t n)
+int VideoFramedMemorySource::cb_memcmp(unsigned char *str1, unsigned char *str2, size_t n)
 {
     int ret;
 
@@ -76,7 +76,7 @@ int FramedMemorySource::cb_memcmp(unsigned char *str1, unsigned char *str2, size
     return ret;
 }
 
-void FramedMemorySource::doGetNextFrame() {
+void VideoFramedMemorySource::doGetNextFrame() {
     if (fLimitNumBytesToStream && fNumBytesToStream == 0) {
         handleClosure();
         return;
@@ -135,13 +135,8 @@ void FramedMemorySource::doGetNextFrame() {
         if (ptr + fFrameSize > fBuffer->buffer + fBuffer->size) {
             memmove(fTo, ptr, fBuffer->buffer + fBuffer->size - ptr);
             memmove(fTo + (fBuffer->buffer + fBuffer->size - ptr), fBuffer->buffer, fFrameSize - (fBuffer->buffer + fBuffer->size - ptr));
-//            if (debug & 4) fwrite("\0\0\0\1", 1, 4, stderr);
-//            if (debug & 4) fwrite(ptr, 1, fBuffer->buffer + fBuffer->size - ptr, stderr);
-//            if (debug & 4) fwrite(fBuffer->buffer, 1, fFrameSize - (fBuffer->buffer + fBuffer->size - ptr), stderr);
         } else {
             memmove(fTo, ptr, fFrameSize);
-//            if (debug & 4) fwrite("\0\0\0\1", 1, 4, stderr);
-//            if (debug & 4) fwrite(ptr, 1, fFrameSize, stderr);
         }
         fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
 

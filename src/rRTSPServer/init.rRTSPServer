@@ -1,8 +1,6 @@
 #!/bin/bash
 
 ARCHIVE=live.2022.01.06.tar.gz
-FDKAAC_VER=2.0.1
-ARCHIVE_FDKAAC=v${FDKAAC_VER}.tar.gz
 
 export CROSSPATH=/opt/yi/toolchain-sunxi-musl/toolchain/bin
 export PATH=${PATH}:${CROSSPATH}
@@ -25,27 +23,6 @@ cd $SCRIPT_DIR
 
 rm -rf ./_install
 rm -rf ./live
-rm -rf ./fdk-aac
-
-# fdk-aac
-if [ ! -f ${ARCHIVE_FDKAAC} ]; then
-    wget https://github.com/mstorsjo/fdk-aac/archive/${ARCHIVE_FDKAAC}
-fi
-tar zxvf ${ARCHIVE_FDKAAC}
-mv fdk-aac-${FDKAAC_VER} fdk-aac
-cd fdk-aac
-
-./autogen.sh || exit 1
-
-./configure CC=arm-openwrt-linux-gcc \
-    --prefix=$SCRIPT_DIR/fdk-aac/_install \
-    USER_CFLAGS="-mcpu=cortex-a7 -mfpu=neon-vfpv4 -I/opt/yi/toolchain-sunxi-musl/toolchain/include -L/opt/yi/toolchain-sunxi-musl/toolchain/lib" \
-    AR=arm-openwrt-linux-ar \
-    RANLIB=arm-openwrt-linux-ranlib \
-    --host=arm \
-    || exit 1
-
-cd ..
 
 # live555
 if [ ! -f $ARCHIVE ]; then

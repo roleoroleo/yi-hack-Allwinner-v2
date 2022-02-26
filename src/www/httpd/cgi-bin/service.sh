@@ -65,9 +65,6 @@ init_config()
 
         if [[ $(get_config RTSP_ALT) == "yes" ]] ; then
             RTSP_DAEMON="rtsp_server_yi"
-            if [[ "$RTSP_AUDIO_COMPRESSION" == "aac" ]] ; then
-                RTSP_AUDIO_COMPRESSION="alaw"
-            fi
         fi
 
         if [[ "$RTSP_AUDIO_COMPRESSION" == "none" ]] ; then

@@ -15,7 +15,6 @@ LIBRARY_LINK_OPTS =
 LIB_SUFFIX =			a
 LIBS_FOR_CONSOLE_APPLICATION =
 LIBS_FOR_GUI_APPLICATION =
-LIBS_FOR_AAC = ./lib/libfdk-aac.a
 EXE =
 ##### End of variables to change
 
@@ -38,7 +37,7 @@ GROUPSOCK_DIR = groupsock
 GROUPSOCK_LIB = $(GROUPSOCK_DIR)/libgroupsock.$(libgroupsock_LIB_SUFFIX)
 LOCAL_LIBS =	$(LIVEMEDIA_LIB) $(GROUPSOCK_LIB) \
 		$(BASIC_USAGE_ENVIRONMENT_LIB) $(USAGE_ENVIRONMENT_LIB)
-LIBS =			$(LOCAL_LIBS) $(LIBS_FOR_CONSOLE_APPLICATION) $(LIBS_FOR_AAC)
+LIBS =			$(LOCAL_LIBS) $(LIBS_FOR_CONSOLE_APPLICATION)
 
 
 LIVEMEDIA_DIR = liveMedia
@@ -71,11 +70,11 @@ livemedia:
 	$(CPLUSPLUS_COMPILER) -c $(CPLUSPLUS_FLAGS) -o $@ $<
 
 rRTSPServer_OBJS	= src/rRTSPServer.$(OBJ) \
-				src/FramedMemorySource.$(OBJ) src/H264VideoFramedMemoryServerMediaSubsession.$(OBJ) \
+				src/AudioFramedMemorySource.$(OBJ) src/VideoFramedMemorySource.$(OBJ) \
+				src/H264VideoFramedMemoryServerMediaSubsession.$(OBJ) \
 				src/H265VideoFramedMemoryServerMediaSubsession.$(OBJ) \
-				src/FramedMemoryServerMediaSubsession.$(OBJ) \
+				src/ADTSAudioFramedMemoryServerMediaSubsession.$(OBJ) \
 				src/WAVAudioFifoSource.$(OBJ) src/WAVAudioFifoServerMediaSubsession.$(OBJ) \
-				src/ADTSFromWAVAudioFifoSource.$(OBJ) src/ADTSFromWAVAudioFifoServerMediaSubsession.$(OBJ) \
 				src/aLawAudioFilter.$(OBJ) \
 				src/DummySink.$(OBJ)
 

@@ -16,20 +16,21 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // "liveMedia"
 // Copyright (c) 1996-2020 Live Networks, Inc.  All rights reserved.
 // A 'ServerMediaSubsession' object that creates new, unicast, "RTPSink"s
-// on demand, from a H265 Elementary Stream video memory.
+// on demand, from a H264 Elementary Stream video memory.
 // C++ header
 
-#ifndef _H265_VIDEO_FRAMED_MEMORY_SERVER_MEDIA_SUBSESSION_HH
-#define _H265_VIDEO_FRAMED_MEMORY_SERVER_MEDIA_SUBSESSION_HH
+#ifndef _ADTS_AUDIO_FRAMED_MEMORY_SERVER_MEDIA_SUBSESSION_HH
+#define _ADTS_AUDIO_FRAMED_MEMORY_SERVER_MEDIA_SUBSESSION_HH
 
 #include "OnDemandServerMediaSubsession.hh"
+#include "StreamReplicator.hh"
 
 #include "rRTSPServer.h"
 
-class H265VideoFramedMemoryServerMediaSubsession: public OnDemandServerMediaSubsession {
+class ADTSAudioFramedMemoryServerMediaSubsession: public OnDemandServerMediaSubsession {
 public:
-    static H265VideoFramedMemoryServerMediaSubsession*
-        createNew(UsageEnvironment& env, cb_output_buffer *cbBuffer,
+    static ADTSAudioFramedMemoryServerMediaSubsession*
+    createNew(UsageEnvironment& env, StreamReplicator *replicator,
                                 Boolean reuseFirstSource);
 
     // Used to implement "getAuxSDPLine()":
@@ -37,19 +38,19 @@ public:
     void afterPlayingDummy1();
 
 protected:
-    H265VideoFramedMemoryServerMediaSubsession(UsageEnvironment& env,
-                                        cb_output_buffer *cbBuffer,
+    ADTSAudioFramedMemoryServerMediaSubsession(UsageEnvironment& env,
+                                        StreamReplicator *replicator,
                                         Boolean reuseFirstSource);
-      // called only by createNew();
-      virtual ~H265VideoFramedMemoryServerMediaSubsession();
+        // called only by createNew();
+    virtual ~ADTSAudioFramedMemoryServerMediaSubsession();
 
-      void setDoneFlag() { fDoneFlag = ~0; }
+    void setDoneFlag() { fDoneFlag = ~0; }
 
 protected: // redefined virtual functions
     virtual char const* getAuxSDPLine(RTPSink* rtpSink,
                                     FramedSource* inputSource);
     virtual FramedSource* createNewStreamSource(unsigned clientSessionId,
-                                              unsigned& estBitrate);
+                                                unsigned& estBitrate);
     virtual RTPSink* createNewRTPSink(Groupsock* rtpGroupsock,
                                     unsigned char rtpPayloadTypeIfDynamic,
                                     FramedSource* inputSource);
@@ -58,7 +59,9 @@ private:
     cb_output_buffer *fBuffer;
     char* fAuxSDPLine;
     char fDoneFlag; // used when setting up "fAuxSDPLine"
+    char fConfigStr[5];
     RTPSink* fDummyRTPSink; // ditto
+    StreamReplicator *fReplicator;
 };
 
 #endif

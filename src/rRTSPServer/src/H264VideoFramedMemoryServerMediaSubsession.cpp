@@ -21,7 +21,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include "H264VideoFramedMemoryServerMediaSubsession.hh"
 #include "H264VideoRTPSink.hh"
-#include "FramedMemorySource.hh"
+#include "VideoFramedMemorySource.hh"
 #include "H264VideoStreamDiscreteFramer.hh"
 
 H264VideoFramedMemoryServerMediaSubsession*
@@ -34,8 +34,8 @@ H264VideoFramedMemoryServerMediaSubsession::createNew(UsageEnvironment& env,
 H264VideoFramedMemoryServerMediaSubsession::H264VideoFramedMemoryServerMediaSubsession(UsageEnvironment& env,
                                                                         cb_output_buffer *cbBuffer,
                                                                         Boolean reuseFirstSource)
-    : FramedMemoryServerMediaSubsession(env, cbBuffer, reuseFirstSource),
-      fAuxSDPLine(NULL), fDoneFlag(0), fDummyRTPSink(NULL) {
+    : OnDemandServerMediaSubsession(env, reuseFirstSource),
+      fBuffer(cbBuffer), fAuxSDPLine(NULL), fDoneFlag(0), fDummyRTPSink(NULL) {
 }
 
 H264VideoFramedMemoryServerMediaSubsession::~H264VideoFramedMemoryServerMediaSubsession() {
@@ -89,7 +89,7 @@ char const* H264VideoFramedMemoryServerMediaSubsession::getAuxSDPLine(RTPSink* r
         // and we need to start reading data from our file until this changes.
         fDummyRTPSink = rtpSink;
 
-        // Start reading the file:
+        // Start reading the source:
         fDummyRTPSink->startPlaying(*inputSource, afterPlayingDummy, this);
 
         // Check whether the sink's 'auxSDPLine()' is ready:
@@ -105,7 +105,7 @@ FramedSource* H264VideoFramedMemoryServerMediaSubsession::createNewStreamSource(
     estBitrate = 500; // kbps, estimate
 
     // Create the video source:
-    FramedMemorySource* memorySource = FramedMemorySource::createNew(envir(), fBuffer);
+    VideoFramedMemorySource* memorySource = VideoFramedMemorySource::createNew(envir(), fBuffer);
     if (memorySource == NULL) return NULL;
 
     // Create a framer for the Video Elementary Stream:

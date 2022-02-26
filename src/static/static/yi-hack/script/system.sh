@@ -117,7 +117,7 @@ esac
 
 if [[ $(get_config DISABLE_CLOUD) == "no" ]] ; then
     (
-        if [ $(get_config RTSP_AUDIO) != "no" ]; then
+        if [ $(get_config RTSP_AUDIO) == "pcm" ] || [ $(get_config RTSP_AUDIO) == "alaw" ] || [ $(get_config RTSP_AUDIO) == "ulaw" ]; then
             touch /tmp/audio_fifo.requested
         fi
         if [ $(get_config SPEAKER_AUDIO) != "no" ]; then
@@ -143,7 +143,7 @@ if [[ $(get_config DISABLE_CLOUD) == "no" ]] ; then
     )
 else
     (
-        if [ $(get_config RTSP_AUDIO) != "no" ]; then
+        if [ $(get_config RTSP_AUDIO) == "pcm" ] || [ $(get_config RTSP_AUDIO) == "alaw" ] || [ $(get_config RTSP_AUDIO) == "ulaw" ]; then
             touch /tmp/audio_fifo.requested
         fi
         if [ $(get_config SPEAKER_AUDIO) != "no" ]; then
@@ -247,9 +247,6 @@ if [[ $(get_config RTSP) == "yes" ]] ; then
 
     if [[ "$RTSP_ALT" == "yes" ]] ; then
         RTSP_DAEMON="rtsp_server_yi"
-        if [[ "$RTSP_AUDIO_COMPRESSION" == "aac" ]] ; then
-            RTSP_AUDIO_COMPRESSION="alaw"
-        fi
     fi
     if [[ "$RTSP_AUDIO_COMPRESSION" == "none" ]] ; then
         RTSP_AUDIO_COMPRESSION="no"

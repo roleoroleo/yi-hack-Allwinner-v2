@@ -200,17 +200,6 @@ void WAVAudioFifoSource::doReadFromFile() {
   unsigned bytesToRead = fScaleFactor == 1 ? fMaxSize - fMaxSize%bytesPerSample : bytesPerSample;
   unsigned numBytesRead;
 
-//  int cap, avail;
-//  cap = fcntl(fileno(fFid), F_GETPIPE_SZ);
-//  ioctl(fileno(fFid), FIONREAD, &avail);
-//  fprintf(stderr, "fFrameSize %d - numBytesRead %d - fifo capacity %d - fifo available %d\n", fFrameSize, numBytesRead, cap, avail);
-//  if (avail < cap*9/10) {
-//    // Clean fifo content
-//    fprintf(stderr, "Cleaning fifo\n");
-//    unsigned char null[4];
-//    while (fread(null, 1, sizeof(null), fFid) > 0) {}
-//  }
-
   while (1) { // loop for 'trick play' only
     while (1) {
       if (fFidIsSeekable) {

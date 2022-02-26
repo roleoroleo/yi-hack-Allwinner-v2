@@ -35,7 +35,7 @@
 
 //#define USE_SEMAPHORE 1
 #ifdef USE_SEMAPHORE
-#include <sempahore.H>
+#include <semaphore.h>
 #endif
 
 #define BUF_OFFSET_Y21GA 368

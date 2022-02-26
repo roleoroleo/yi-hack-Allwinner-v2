@@ -47,7 +47,7 @@ if [ -f /tmp/sd/audio/$POST_DATA ] && [ -e /tmp/audio_in_fifo ]; then
     TMP_FILE="/tmp/sd/speak.pcm"
     if [ ! -f $TMP_FILE ]; then
         speaker on > /dev/null
-		cat $FILE_PATH$POST_DATA > $TMP_FILE
+        cat $FILE_PATH$POST_DATA > $TMP_FILE
         cat $TMP_FILE | pcmvol -G $VOLDB > /tmp/audio_in_fifo
         sleep 1
         speaker off > /dev/null

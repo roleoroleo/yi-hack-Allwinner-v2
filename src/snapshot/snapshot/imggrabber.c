@@ -33,6 +33,11 @@
 #include "convert2jpg.h"
 #include "add_water.h"
 
+//#define USE_SEMAPHORE 1
+#ifdef USE_SEMAPHORE
+#include <sempahore.H>
+#endif
+
 #define BUF_OFFSET_Y21GA 368
 #define FRAME_HEADER_SIZE_Y21GA 28
 
@@ -156,8 +161,10 @@ int debug;
 
 unsigned char *addr;
 
+#ifdef USE_SEMAPHORE
 sem_t *sem_fshare_read_lock = SEM_FAILED;
 sem_t *sem_fshare_write_lock = SEM_FAILED;
+#endif
 
 unsigned char *cb_move(unsigned char *buf, int offset)
 {
@@ -229,6 +236,7 @@ void cb2s_headercpy(unsigned char *dest, unsigned char *src, size_t n)
     }
 }
 
+#ifdef USE_SEMAPHORE
 int sem_fshare_open()
 {
     sem_fshare_read_lock = sem_open(READ_LOCK_FILE, O_RDWR);
@@ -281,6 +289,7 @@ void sem_write_unlock()
     sem_post(sem_fshare_read_lock);
     return;
 }
+#endif
 
 int frame_decode(unsigned char *outbuffer, unsigned char *p, int length, int h26x)
 {
@@ -575,10 +584,12 @@ int main(int argc, char **argv)
     fclose(fFS);
     if (debug) fprintf(stderr, "The size of the buffer is %d\n", buf_size);
 
-//    if (sem_fshare_open() != 0) {
-//        fprintf(stderr, "Could not open semaphores\n") ;
-//        exit(-3);
-//    }
+#ifdef USE_SEMAPHORE
+    if (sem_fshare_open() != 0) {
+        fprintf(stderr, "Could not open semaphores\n") ;
+        exit(-3);
+    }
+#endif
 
     // Opening an existing file
     fshm = shm_open(BUFFER_SHM, O_RDWR, 0);
@@ -609,7 +620,9 @@ int main(int argc, char **argv)
     fhi_addr = NULL;
 
     while (1) {
-//        sem_write_lock();
+#ifdef USE_SEMAPHORE
+        sem_write_lock();
+#endif
         memcpy(&i, addr + 16, sizeof(i));
         buf_idx = addr + buf_offset + i;
         memcpy(&i, addr + 4, sizeof(i));
@@ -649,7 +662,9 @@ int main(int argc, char **argv)
             buf_idx_cur = cb_move(buf_idx_cur, fh.len + frame_header_size);
         }
 
-//        sem_write_unlock();
+#ifdef USE_SEMAPHORE
+        sem_write_unlock();
+#endif
         if (fhs_addr != NULL) break;
         usleep(10000);
     }
@@ -719,7 +734,9 @@ int main(int argc, char **argv)
         if (debug) fprintf(stderr, "Unmapping file %s, size %d, from %08x\n", BUFFER_FILE, buf_size, addr);
     }
 
-//    sem_fshare_close();
+#ifdef USE_SEMAPHORE
+    sem_fshare_close();
+#endif
 
     return 0;
 }

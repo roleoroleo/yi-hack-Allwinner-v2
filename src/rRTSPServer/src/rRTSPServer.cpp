@@ -1371,7 +1371,7 @@ int main(int argc, char** argv)
         char const* streamName = "ch0_1.h264";
 
         // First, make sure that the RTPSinks' buffers will be large enough to handle the huge size of DV frames (as big as 288000).
-        OutPacketBuffer::maxSize = 131072;
+        OutPacketBuffer::maxSize = 262144;
 
         ServerMediaSession* sms_low
             = ServerMediaSession::createNew(*env, streamName, streamName,
@@ -1401,7 +1401,7 @@ int main(int argc, char** argv)
         char const* streamName = "ch0_2.h264";
 
         // First, make sure that the RTPSinks' buffers will be large enough to handle the huge size of DV frames (as big as 288000).
-        OutPacketBuffer::maxSize = 65536;
+        OutPacketBuffer::maxSize = 262144;
 
         ServerMediaSession* sms_audio
             = ServerMediaSession::createNew(*env, streamName, streamName,

@@ -48,11 +48,15 @@ if [ "$DIR" == "none" ] ; then
     exit
 fi
 
+DIRS00="${DIR:0:4}-${DIR:5:2}-${DIR:8:2} ${DIR:11:2}:00"
+DIRS00E=$(date -u -d "$DIRS00" +"%s")
+DIRL=$(date +%YY%mM%dD%HH -d "@$DIRS00E")
+
 printf "Content-type: application/json\r\n\r\n"
 
 printf "{"
 printf "\"%s\":\"%s\",\\n" "error" "false"
-printf "\"date\":\"${DIR:0:4}-${DIR:5:2}-${DIR:8:2}\",\n"
+printf "\"date\":\"${DIRL:0:4}-${DIRL:5:2}-${DIRL:8:2}\",\n"
 printf "\"records\":[\n"
 
 COUNT=`ls -r /tmp/sd/record/$DIR | grep mp4 -c`
@@ -61,9 +65,9 @@ for f in `ls -r /tmp/sd/record/$DIR | grep mp4`; do
     if [ ${#f} == 12 ] || [ ${#f} == 14 ]; then
         printf "{\n"
         if [ ${#f} == 14 ]; then
-            printf "\"%s\":\"%s\",\n" "time" "Time: ${DIR:11:2}:${f:2:2}"
+            printf "\"%s\":\"%s\",\n" "time" "Time: ${DIRL:11:2}:${f:2:2}"
         else
-            printf "\"%s\":\"%s\",\n" "time" "Time: ${DIR:11:2}:${f:0:2}"
+            printf "\"%s\":\"%s\",\n" "time" "Time: ${DIRL:11:2}:${f:0:2}"
         fi
         printf "\"%s\":\"%s\"\n" "filename" "$f"
         if [ "$IDX" == "$COUNT" ]; then

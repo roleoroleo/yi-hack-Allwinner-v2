@@ -117,9 +117,9 @@
 #define OUTPUT_BUFFER_SIZE_HIGH 262144
 #define OUTPUT_BUFFER_SIZE_AUDIO 32768
 
-#define CODEC_NONE -1
-#define CODEC_H264 0
-#define CODEC_H265 1
+#define CODEC_NONE 0
+#define CODEC_H264 264
+#define CODEC_H265 265
 
 typedef struct
 {

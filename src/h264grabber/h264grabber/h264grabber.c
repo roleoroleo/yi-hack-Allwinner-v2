@@ -101,9 +101,9 @@
 #define FIFO_NAME_HIGH "/tmp/h264_high_fifo"
 #define FIFO_NAME_AAC  "/tmp/aac_audio_fifo"
 
-#define CODEC_NONE -1
-#define CODEC_H264 0
-#define CODEC_H265 1
+#define CODEC_NONE 0
+#define CODEC_H264 264
+#define CODEC_H265 265
 
 /*
 Type:

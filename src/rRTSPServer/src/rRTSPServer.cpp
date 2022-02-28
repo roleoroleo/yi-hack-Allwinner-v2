@@ -44,7 +44,6 @@
 
 #include "rRTSPServer.h"
 
-//#define REORDER_VPS5 1
 //#define USE_SEMAPHORE 1
 #ifdef USE_SEMAPHORE
 #include <semaphore.h>
@@ -160,8 +159,8 @@ unsigned char VPS5_1920X1080[]      = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C,
 unsigned char VPS5_1920X1080_TI[]   = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
                                        0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
-                                       0x00, 0x7B, 0xAC, 0x0C, 0x00, 0x00, 0x0F, 0xA4,
-                                       0x00, 0x01, 0x38, 0x81, 0x40};
+                                       0x00, 0x7B, 0xAC, 0x0C, 0x00, 0x00, 0x00, 0x40,
+                                       0x00, 0x00, 0x00, 0x05, 0x40};
 unsigned char VPS5_2_1920X1080[]    = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
                                        0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
@@ -674,9 +673,9 @@ void *capture(void *ptr)
 
             // Send the frame to the ouput buffer
             if (write_enable) {
-                if ((frame_type == TYPE_LOW) && (resolution != RESOLUTION_HIGH)) {
+                if ((frame_type == TYPE_LOW) && (resolution != RESOLUTION_HIGH) && (stream_type.codec_low != CODEC_NONE)) {
                     cb_current = &output_buffer_low;
-                } else if ((frame_type == TYPE_HIGH) && (resolution != RESOLUTION_LOW)) {
+                } else if ((frame_type == TYPE_HIGH) && (resolution != RESOLUTION_LOW) && (stream_type.codec_high != CODEC_NONE)) {
                     cb_current = &output_buffer_high;
                 } else if (frame_type == TYPE_AAC) {
                     cb_current = &output_buffer_audio;
@@ -690,16 +689,6 @@ void *capture(void *ptr)
                         fprintf(stderr, "%lld: error - frame size exceeds buffer size\n", current_timestamp());
                     } else {
                         pthread_mutex_lock(&(cb_current->mutex));
-#ifdef REORDER_VPS5
-                        if (nal_is_sps_or_vps5 == NAL_IS_VPS5) {
-                            if (debug & 1) fprintf(stderr, "%lld: h265 SPS detected, writing VPS - frame_len: %d - resolution: %d\n", current_timestamp(), sizeof(VPS5_1920X1080), frame_type);
-                            if (sps_timing_info) {
-                                s2cb_memcpy(cb_current, VPS5_1920X1080_TI, sizeof(VPS5_1920X1080_TI));
-                            } else {
-                                s2cb_memcpy(cb_current, VPS5_1920X1080, sizeof(VPS5_1920X1080));
-                            }
-                        }
-#endif
                         input_buffer.read_index = buf_idx_start;
 
                         cb_current->output_frame[cb_current->frame_write_index].ptr = cb_current->write_index;

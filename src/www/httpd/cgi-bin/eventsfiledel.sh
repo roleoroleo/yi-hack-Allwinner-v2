@@ -27,6 +27,11 @@ validateRecFile()
     fi
 }
 
+fbasename()
+{
+    echo ${1:0:$((${#1} - 4))}
+}
+
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 
 . $YI_HACK_PREFIX/www/cgi-bin/validate.sh
@@ -58,7 +63,9 @@ if [ "$FILE" == "none" ] ; then
     exit
 fi
 
-rm -f /tmp/sd/record/$FILE
+BASE_NAME=$(fbasename "$FILE")
+rm -f /tmp/sd/record/$BASE_NAME.mp4
+rm -f /tmp/sd/record/$BASE_NAME.jpg
 
 printf "Content-type: application/json\r\n\r\n"
 

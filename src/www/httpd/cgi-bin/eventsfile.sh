@@ -19,6 +19,11 @@ validateRecDir()
     fi
 }
 
+fbasename()
+{
+    echo ${1:0:$((${#1} - 4))}
+}
+
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 
 . $YI_HACK_PREFIX/www/cgi-bin/validate.sh
@@ -63,13 +68,20 @@ COUNT=`ls -r /tmp/sd/record/$DIR | grep mp4 -c`
 IDX=1
 for f in `ls -r /tmp/sd/record/$DIR | grep mp4`; do
     if [ ${#f} == 12 ] || [ ${#f} == 14 ]; then
+        base_name=$(fbasename "$f")
+        if [ -f /tmp/sd/record/$DIR/$base_name.jpg ] && [ -s /tmp/sd/record/$DIR/$base_name.jpg ]; then
+            thumbbasename="$base_name.jpg"
+        else
+            thumbbasename=""
+        fi
         printf "{\n"
         if [ ${#f} == 14 ]; then
             printf "\"%s\":\"%s\",\n" "time" "Time: ${DIRL:11:2}:${f:2:2}"
         else
             printf "\"%s\":\"%s\",\n" "time" "Time: ${DIRL:11:2}:${f:0:2}"
         fi
-        printf "\"%s\":\"%s\"\n" "filename" "$f"
+        printf "\"%s\":\"%s\",\n" "filename" "$f"
+        printf "\"%s\":\"%s\"\n" "thumbfilename" "$thumbbasename"
         if [ "$IDX" == "$COUNT" ]; then
             printf "}\n"
         else

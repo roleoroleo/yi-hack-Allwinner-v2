@@ -57,18 +57,24 @@ APP.eventsfile = (function($) {
                 document.getElementById("title-container").innerHTML = data.date + " - Select event";
                 html = "<table class=\"u-full-width padded-table\"><tbody>";
                 html += "<tr><td><b>Time</b></td>";
+                html += "<td><b>Thumbnail</b></td>";
                 html += "<td><b>File name</b></td>";
-                html += "<td><b>Play file</b></td>";
-                html += "<td><b>Delete file</b></td></tr>";
+                html += "<td><b>Play/Delete</b></td></tr>";
                 if (data.records.length == 0) {
                     html += "<tr><td>No events in this folder</td><td></td></tr>";
                 } else {
                     for (var i = 0; i < data.records.length; i++) {
                         var record = data.records[i];
                         html += "<tr><td>" + record.time + "</td>";
+                        if (record.thumbfilename != "") {
+                            html += "<td><a href=\"record/" + getUrlVar('dirname') + "/" + record.thumbfilename + "\">";
+                            html += "<img src=\"record/" + getUrlVar('dirname') + "/" + record.thumbfilename + "\" width=\"100\"></a></td>";
+                        } else {
+                            html += "<td>No preview</td>";
+                        }
                         html += "<td><a href=\"record/" + getUrlVar('dirname') + "/" + record.filename + "\">" + record.filename + "</a></td>";
-                        html += "<td><input class=\"button-primary button-play\" type=\"button\" id=\"button-play-" + "record/" + getUrlVar('dirname') + "/" + record.filename + "\" value=\"Play\"/></td>";
-                        html += "<td><input class=\"button-primary button-delete\" type=\"button\" id=\"button-delete-" + getUrlVar('dirname') + "/" + record.filename + "\" value=\"Delete\"/></td></tr>";
+                        html += "<td><input class=\"button-primary button-play\" type=\"button\" id=\"button-play-" + "record/" + getUrlVar('dirname') + "/" + record.filename + "\" value=\"Play\"/><br/>";
+                        html += "<input class=\"button-primary button-delete\" type=\"button\" id=\"button-delete-" + getUrlVar('dirname') + "/" + record.filename + "\" value=\"Delete\"/></td></tr>";
                     }
                 }
                 html += "</tbody></table>";

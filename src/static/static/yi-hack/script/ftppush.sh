@@ -81,7 +81,9 @@ checkFiles ()
 			echo $LAST_FILE_SENT > ${LAST_FILE_SENT_FILE}
 			sync
 			if [ "${FTP_FILE_DELETE_AFTER_UPLOAD}" == "yes" ]; then
-				rm -f "${file}"
+				FBASENAME="$(fbasename ${file})"
+				rm -f $FBASENAME.mp4
+				rm -f $FBASENAME.jpg
 			fi
 		else
 			logAdd "[INFO] checkFiles: ignore file [${file}] - already sent."
@@ -98,6 +100,12 @@ checkFiles ()
 	fi
 	#
 	return 0
+}
+
+
+fbasename ()
+{
+	echo ${1:0:$((${#1} - 4))}
 }
 
 
@@ -242,10 +250,20 @@ serviceMain ()
 trap "" SIGHUP
 #
 if [ "${1}" = "cron" ]; then
+	RUNNING=$(ps | grep $SCRIPT_FULLFN | grep -v grep | awk 'END { print NR }')
+	if [ $RUNNING -gt 2 ]; then
+		logAdd "[INFO] === SERVICE ALREADY RUNNING ==="
+		exit 0
+	fi
 	serviceMain --one-shot
 	logAdd "[INFO] === SERVICE STOPPED ==="
 	exit 0
 elif [ "${1}" = "start" ]; then
+	RUNNING=$(ps | grep $SCRIPT_FULLFN | grep -v grep | awk 'END { print NR }')
+	if [ $RUNNING -gt 2 ]; then
+		logAdd "[INFO] === SERVICE ALREADY RUNNING ==="
+		exit 0
+	fi
 	serviceMain &
 	#
 	# Wait for kill -INT.

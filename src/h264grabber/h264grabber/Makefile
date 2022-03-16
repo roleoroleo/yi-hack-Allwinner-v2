@@ -7,10 +7,10 @@ STRIP= arm-openwrt-linux-strip
 all: h264grabber
 
 h264grabber.o: h264grabber.c $(HEADERS)
-	$(CC) -c $< $(OPTS) -fPIC -O2 -Wall -o $@
+	$(CC) -c $< $(OPTS) -fPIC -Os -Wall -o $@
 
 h264grabber: $(OBJECTS)
-	$(CC) $(OBJECTS) $(LIB) $(OPTS) -fPIC -O2 -Wall -o $@
+	$(CC) $(OBJECTS) $(LIB) $(OPTS) -fPIC -Os -Wall -o $@
 	$(STRIP) $@
 
 .PHONY: clean

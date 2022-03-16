@@ -7,25 +7,26 @@ JPEGLIB = jpeg-9c
 JPEGLIB_DIR = ./$(JPEGLIB)
 INC_J = -I$(JPEGLIB_DIR)
 LIB_J = $(JPEGLIB_DIR)/.libs/libjpeg.a
+OPTS = -Os -ffunction-sections -fdata-sections
 
 all: imggrabber
 
 imggrabber.o: imggrabber.c $(HEADERS)
 	@$(build_ffmpeg)
 	@$(build_jpeglib)
-	$(CC) -c $< $(INC_J) $(INC_FF) -fPIC -O2 -o $@
+	$(CC) -c $< $(OPTS) $(INC_J) $(INC_FF) -fPIC -o $@
 
 convert2jpg.o: convert2jpg.c $(HEADERS)
-	$(CC) -c $< $(INC_J) -fPIC -O2 -o $@
+	$(CC) -c $< $(OPTS) $(INC_J) -fPIC -o $@
 
 add_water.o: add_water.c $(HEADERS)
-	$(CC) -c $< $(INC_J) -fPIC -O2 -o $@
+	$(CC) -c $< $(OPTS) $(INC_J) -fPIC -o $@
 
 water_mark.o: water_mark.c $(HEADERS)
-	$(CC) -c $< $(INC_J) -fPIC -O2 -o $@
+	$(CC) -c $< $(OPTS) $(INC_J) -fPIC -o $@
 
 imggrabber: $(OBJECTS)
-	$(CC) $(OBJECTS) $(LIB_J) $(LIB_FF) -fPIC -O2 -o $@
+	$(CC) -Os -Wl,--gc-sections $(OBJECTS) $(LIB_J) $(LIB_FF) -fPIC -o $@
 	$(STRIP) $@
 
 .PHONY: clean
@@ -52,10 +53,10 @@ define build_ffmpeg
          tar jxvf ./SDK/ffmpeg.tar.bz2; \
     fi
 
-   # build
+    # build
     if [ ! -f $(FFMPEG)/libavcodec/libavcodec.a ] || [ ! -f $(FFMPEG)/libavutil/libavutil.a ]; then \
          cd $(FFMPEG); \
-        ./configure --enable-cross-compile --cross-prefix=$(CROSSPREFIX) --arch=armel --target-os=linux --prefix=$(CROSSPATH) --disable-ffplay --disable-ffprobe --disable-doc  --disable-decoders --enable-decoder=h264 --enable-decoder=hevc --disable-encoders --disable-demuxers --enable-demuxer=h264 --enable-demuxer=hevc --disable-muxers --disable-protocols --disable-parsers --enable-parser=h264 --enable-parser=hevc --disable-filters --disable-bsfs --disable-indevs --disable-outdevs && \
+        ./configure --enable-cross-compile --cross-prefix=$(CROSSPREFIX) --arch=armel --target-os=linux --prefix=$(CROSSPATH) --enable-small --disable-ffplay --disable-ffprobe --disable-doc  --disable-decoders --enable-decoder=h264 --enable-decoder=hevc --disable-encoders --disable-demuxers --enable-demuxer=h264 --enable-demuxer=hevc --disable-muxers --disable-protocols --disable-parsers --enable-parser=h264 --enable-parser=hevc --disable-filters --disable-bsfs --disable-indevs --disable-outdevs --extra-cflags="-Os -ffunction-sections -fdata-sections" && \
          make; \
          cd ..;\
     fi
@@ -75,11 +76,11 @@ define build_jpeglib
          tar zxvf ./SDK/jpeg.tar.gz; \
     fi
 
-   # build
+    # build
     if [ ! -f $(JPEGLIB)/.libs/libjpeg.a ]; then \
-         cd $(JPEGLIB); \
+        cd $(JPEGLIB); \
         ./configure --host=$(CROSS) --enable-shared=yes && \
-         make; \
-         cd ..;\
+        make CFLAGS+="-Os -ffunction-sections -fdata-sections"; \
+        cd ..;\
     fi
 endef

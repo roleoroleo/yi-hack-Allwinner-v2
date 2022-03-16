@@ -22,4 +22,5 @@ patch -p1 < ../patch/300-ensure-ringbuffer-empty-with-dmix.patch
 
 patch -p1 < ../alsa-lib.patch
 
+export CFLAGS+="-Os"
 ./configure --host=arm-openwrt-linux --disable-aload --disable-topology --disable-ucm --disable-alisp --disable-python --without-debug --with-versioned=no

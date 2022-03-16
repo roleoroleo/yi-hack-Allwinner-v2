@@ -6,24 +6,24 @@ OBJECTS_M = ipc_multiplexer.o
 all: ipc_cmd ipc_read ipc_multiplexer
 
 ipc_cmd.o: ipc_cmd.c $(HEADERS)
-	$(CC) -c $< -fPIC -O2 -o $@
+	$(CC) -c $< -fPIC -Os -o $@
 
 ipc_read.o: ipc_read.c $(HEADERS)
-	$(CC) -c $< -fPIC -O2 -o $@
+	$(CC) -c $< -fPIC -Os -o $@
 
 ipc_multiplexer.o: ipc_multiplexer.c $(HEADERS)
-	$(CC) -c $< -fPIC -O2 -o $@
+	$(CC) -c $< -fPIC -Os -o $@
 
 ipc_cmd: $(OBJECTS_C)
-	$(CC) $(OBJECTS_C) $(LIBS) -fPIC -O2 -o $@
+	$(CC) $(OBJECTS_C) $(LIBS) -fPIC -Os -o $@
 	$(STRIP) $@
 
 ipc_read: $(OBJECTS_R)
-	$(CC) $(OBJECTS_R) $(LIBS) -fPIC -O2 -o $@
+	$(CC) $(OBJECTS_R) $(LIBS) -fPIC -Os -o $@
 	$(STRIP) $@
 
 ipc_multiplexer: $(OBJECTS_M)
-	$(CC) $(OBJECTS_M) $(LIBS) -fPIC -O2 -o $@
+	$(CC) $(OBJECTS_M) $(LIBS) -fPIC -Os -o $@
 	$(STRIP) $@
 
 .PHONY: clean

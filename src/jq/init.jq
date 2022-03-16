@@ -14,4 +14,5 @@ tar zxvf $ARCHIVE
 
 cd jq-1.5 || exit 1
 
+export CFLAGS+="-Os"
 ./configure --host=arm-openwrt-linux --disable-docs

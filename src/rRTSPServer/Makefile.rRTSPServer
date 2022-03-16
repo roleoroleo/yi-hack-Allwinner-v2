@@ -1,5 +1,5 @@
 ##### Change the following for your environment:
-COMPILE_OPTS =		$(INCLUDES) -I. -I./include -O0 -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DNO_OPENSSL=1
+COMPILE_OPTS =		$(INCLUDES) -I. -I./include -O2 -ffunction-sections -fdata-sections -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DNO_OPENSSL=1
 C =			c
 C_COMPILER =		$(CC)
 C_FLAGS =		$(COMPILE_OPTS) $(CPPFLAGS) $(CFLAGS)
@@ -8,7 +8,7 @@ CPLUSPLUS_COMPILER =	$(CXX)
 CPLUSPLUS_FLAGS =	$(COMPILE_OPTS) -Wall -DBSD=1 $(CPPFLAGS) $(CXXFLAGS)
 OBJ =			o
 LINK =			$(CXX) -o
-LINK_OPTS =		-L. $(LDFLAGS)
+LINK_OPTS =		-Wl,--gc-sections -L. $(LDFLAGS)
 CONSOLE_LINK_OPTS =	$(LINK_OPTS)
 LIBRARY_LINK =		$(AR) cr 
 LIBRARY_LINK_OPTS =	

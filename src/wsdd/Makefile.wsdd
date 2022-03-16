@@ -34,7 +34,7 @@ CFLAGS           += -DDAEMON_NO_CLOSE_STDIO=$(DAEMON_NO_CLOSE_STDIO)
 CFLAGS           += -I$(COMMON_DIR)
 CFLAGS           += -I$(GENERATED_DIR)
 CFLAGS           += -I$(GSOAP_DIR) -I$(GSOAP_PLUGIN_DIR) -I$(GSOAP_IMPORT_DIR)
-CFLAGS           += -O2  -Wall  -pipe
+CFLAGS           += -Os -ffunction-sections -fdata-sections -Wall  -pipe
 
 GCC              ?= g++
 
@@ -175,7 +175,7 @@ endif
 $(GENERATED_DIR)/wsdd.h:
 	@$(build_gsoap)
 	@mkdir -p $(GENERATED_DIR)
-	$(WSDL2H) -cg -t $(GSOAP_DIR)/WS/typemap.dat  -o $@  wsdl/remotediscovery.wsdl
+	$(WSDL2H) -O2 -cg -t $(GSOAP_DIR)/WS/typemap.dat  -o $@  wsdl/remotediscovery.wsdl
 
 
 
@@ -204,7 +204,7 @@ endef
 
 define build_bin
     @$(BUILD_ECHO)
-    $(GCC)  $1 -o $@  $(CFLAGS)
+    $(GCC)  $1 -o $@  -Wl,--gc-sections $(CFLAGS)
     @echo "\n---- Compiled $@ ver $(DAEMON_MAJOR_VERSION).$(DAEMON_MINOR_VERSION).$(DAEMON_PATCH_VERSION) ----\n"
 endef
 

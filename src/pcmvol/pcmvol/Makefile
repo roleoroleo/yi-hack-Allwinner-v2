@@ -2,10 +2,10 @@ OBJECTS = pcmvol.o
 all: pcmvol
 
 pcmvol.o: pcmvol.c $(HEADERS)
-	$(CC) -c $< -fPIC -O1 -o $@
+	$(CC) -c $< -fPIC -Os -o $@
 
 pcmvol: $(OBJECTS)
-	$(CC) $(OBJECTS) -lm -fPIC -O1 -o $@
+	$(CC) $(OBJECTS) -lm -fPIC -Os -o $@
 	$(STRIP) $@
 
 .PHONY: clean

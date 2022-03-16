@@ -3,10 +3,10 @@ OBJECTS = speaker.o
 all: speaker
 
 speaker.o: speaker.c $(HEADERS)
-	$(CC) -c $< -fPIC -O2 -o $@
+	$(CC) -c $< -fPIC -Os -o $@
 
 speaker: $(OBJECTS)
-	$(CC) $(OBJECTS) $(LIBS) -fPIC -O2 -o $@
+	$(CC) $(OBJECTS) $(LIBS) -fPIC -Os -o $@
 	$(STRIP) $@
 
 .PHONY: clean

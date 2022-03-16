@@ -28,5 +28,3 @@ mkdir -p ../_install/bin || exit 1
 cp ./rRTSPServer ../_install/bin || exit 1
 
 arm-openwrt-linux-strip ../_install/bin/* || exit 1
-
-cd ../_install/bin/

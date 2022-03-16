@@ -8,26 +8,50 @@ mkdir -p ../../build/yi-hack/bin
 mkdir -p ../../build/yi-hack/sbin
 mkdir -p ../../build/yi-hack/usr/bin
 mkdir -p ../../build/yi-hack/usr/sbin
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/base64
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/gzip
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/hostname
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/netstat
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/rmdir
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/tar
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/sbin/mkswap
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/bzip2
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/dirname
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/find
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/free
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/ftpget
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/ftpput
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/lsof
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/mkpasswd
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/nc
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/sort
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/tail
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/xargs
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/bin/wget
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/sbin/crond
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/sbin/httpd
-cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/usr/sbin/ntpd
+cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/busybox
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/base64
+chmod 0755 ../../build/yi-hack/bin/base64
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/gzip
+chmod 0755 ../../build/yi-hack/bin/gzip
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/hostname
+chmod 0755 ../../build/yi-hack/bin/hostname
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/netstat
+chmod 0755 ../../build/yi-hack/bin/netstat
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/rmdir
+chmod 0755 ../../build/yi-hack/bin/rmdir
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/tar
+chmod 0755 ../../build/yi-hack/bin/tar
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/sbin/mkswap
+chmod 0755 ../../build/yi-hack/sbin/mkswap
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/bzip2
+chmod 0755 ../../build/yi-hack/usr/bin/bzip2
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/dirname
+chmod 0755 ../../build/yi-hack/usr/bin/dirname
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/find
+chmod 0755 ../../build/yi-hack/usr/bin/find
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/free
+chmod 0755 ../../build/yi-hack/usr/bin/free
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/ftpget
+chmod 0755 ../../build/yi-hack/usr/bin/ftpget
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/ftpput
+chmod 0755 ../../build/yi-hack/usr/bin/ftpput
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/lsof
+chmod 0755 ../../build/yi-hack/usr/bin/lsof
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/mkpasswd
+chmod 0755 ../../build/yi-hack/usr/bin/mkpasswd
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/nc
+chmod 0755 ../../build/yi-hack/usr/bin/nc
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/sort
+chmod 0755 ../../build/yi-hack/usr/bin/sort
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/tail
+chmod 0755 ../../build/yi-hack/usr/bin/tail
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/xargs
+chmod 0755 ../../build/yi-hack/usr/bin/xargs
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/wget
+chmod 0755 ../../build/yi-hack/usr/bin/wget
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/sbin/crond
+chmod 0755 ../../build/yi-hack/usr/sbin/crond
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/sbin/httpd
+chmod 0755 ../../build/yi-hack/usr/sbin/httpd
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/sbin/ntpd
+chmod 0755 ../../build/yi-hack/usr/sbin/ntpd

@@ -10,11 +10,16 @@ mkdir -p ../../build/yi-hack/usr/bin/
 arm-openwrt-linux-strip ./_install/dropbearmulti
 rsync -a ./_install/dropbearmulti ../../build/yi-hack/bin/
 
-# Copy binary with different names: fat32 doesn't support symbolic links
-cp -f ../../build/yi-hack/bin/dropbearmulti ../../build/yi-hack/bin/dbclient
-cp -f ../../build/yi-hack/bin/dropbearmulti ../../build/yi-hack/bin/dropbearconvert
-cp -f ../../build/yi-hack/bin/dropbearmulti ../../build/yi-hack/bin/dropbearkey
-cp -f ../../build/yi-hack/bin/dropbearmulti ../../build/yi-hack/bin/scp
-cp -f ../../build/yi-hack/bin/dbclient ../../build/yi-hack/bin/ssh
-
-cp -f ../../build/yi-hack/bin/dropbearmulti ../../build/yi-hack/sbin/dropbear
+# fat32 doesn't support symbolic links
+echo "#!/tmp/sd/yi-hack/bin/dropbearmulti" > ../../build/yi-hack/bin/dbclient
+chmod 0755 ../../build/yi-hack/bin/dbclient
+echo "#!/tmp/sd/yi-hack/bin/dropbearmulti" > ../../build/yi-hack/bin/dropbearconvert
+chmod 0755 ../../build/yi-hack/bin/dropbearconvert
+echo "#!/tmp/sd/yi-hack/bin/dropbearmulti" > ../../build/yi-hack/bin/dropbearkey
+chmod 0755 ../../build/yi-hack/bin/dropbearkey
+echo "#!/tmp/sd/yi-hack/bin/dropbearmulti" > ../../build/yi-hack/bin/scp
+chmod 0755 ../../build/yi-hack/bin/scp
+echo "#!/tmp/sd/yi-hack/bin/dropbearmulti" > ../../build/yi-hack/bin/ssh
+chmod 0755 ../../build/yi-hack/bin/ssh
+echo "#!/tmp/sd/yi-hack/bin/dropbearmulti" > ../../build/yi-hack/sbin/dropbear
+chmod 0755 ../../build/yi-hack/sbin/dropbear

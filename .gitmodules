@@ -25,3 +25,6 @@
 [submodule "src/rtsp_server_yi/RtspServer"]
 	path = src/rtsp_server_yi/RtspServer
 	url = https://github.com/roleoroleo/RtspServer
+[submodule "src/minimp4/minimp4"]
+	path = src/minimp4/minimp4
+	url = https://github.com/roleoroleo/minimp4

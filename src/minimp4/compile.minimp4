@@ -1,0 +1,32 @@
+#!/bin/bash
+
+export CROSSPATH=/opt/yi/toolchain-sunxi-musl/toolchain/bin
+export PATH=${PATH}:${CROSSPATH}
+
+export TARGET=arm-openwrt-linux
+export CROSS=arm-openwrt-linux
+export BUILD=x86_64-pc-linux-gnu
+
+export CROSSPREFIX=${CROSS}-
+
+export STRIP=${CROSSPREFIX}strip
+export CXX=${CROSSPREFIX}g++
+export CC=${CROSSPREFIX}gcc
+export LD=${CROSSPREFIX}ld
+export AS=${CROSSPREFIX}as
+export AR=${CROSSPREFIX}ar
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+cd minimp4 || exit 1
+rm -f minimp4_yi
+
+$CC -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -DNDEBUG -D_FILE_OFFSET_BITS=64 \
+-flto -Os -fomit-frame-pointer -ftree-vectorize \
+-o minimp4_yi minimp4_yi.c -lm -lpthread
+
+mkdir -p ../_install/bin || exit 1
+
+cp ./minimp4_yi ../_install/bin || exit 1
+$STRIP ../_install/bin/* || exit 1

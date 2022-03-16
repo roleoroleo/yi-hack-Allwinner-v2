@@ -389,7 +389,7 @@ int frame_decode(unsigned char *outbuffer, unsigned char *p, int length, int h26
     return 0;
 }
 
-int add_watermark(char *buffer, int w_res, int h_res)
+int add_watermark(unsigned char *buffer, int w_res, int h_res)
 {
     char path_res[1024];
     FILE *fBuf;
@@ -422,6 +422,7 @@ void usage(char *prog_name)
 {
     fprintf(stderr, "Usage: %s [options]\n", prog_name);
     fprintf(stderr, "\t-m, --model MODEL       Set model: y21ga, y211ga, h30ga, r30gb, r35gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t-f, --file FILE         Ignore model and read frame from file FILE\n");
     fprintf(stderr, "\t-r, --res RES           Set resolution: \"low\" or \"high\" (default \"high\")\n");
     fprintf(stderr, "\t-w, --watermark         Add watermark to image\n");
     fprintf(stderr, "\t-d, --debug             Enable debug\n");
@@ -430,23 +431,34 @@ void usage(char *prog_name)
 
 int main(int argc, char **argv)
 {
-    FILE *fFS;
+    FILE *fFS, *fHF;
     int fshm;
     uint32_t offset, length;
 
     unsigned char *buf_idx, *buf_idx_cur, *buf_idx_end;
     unsigned char *bufferh26x, *bufferyuv;
+    char file[256];
     int watermark = 0;
     int model_high_res;
     int width, height;
 
-    int i, c;
+    int c;
 
     struct frame_header fh, fhs, fhp, fhv, fhi;
     unsigned char *fhs_addr, *fhp_addr, *fhv_addr, *fhi_addr;
 
+    int sps_start_found = -1, sps_end_found = -1;
+    int pps_start_found = -1, pps_end_found = -1;
+    int vps_start_found = -1, vps_end_found = -1;
+    int idr_start_found = -1;
+    int i, j, f, start_code;
+    unsigned char *h26x_file_buffer;
+    long h26x_file_size;
+    size_t nread;
+
     buf_offset = BUF_OFFSET_Y21GA;
     frame_header_size = FRAME_HEADER_SIZE_Y21GA;
+    memset(file, '\0', sizeof(file));
     res = RESOLUTION_HIGH;
     model_high_res = RESOLUTION_FHD;
     width = W_FHD;
@@ -456,6 +468,7 @@ int main(int argc, char **argv)
     while (1) {
         static struct option long_options[] = {
             {"model",     required_argument, 0, 'm'},
+            {"file",      required_argument, 0, 'f'},
             {"res",       required_argument, 0, 'r'},
             {"watermark", no_argument,       0, 'w'},
             {"debug",     no_argument,       0, 'd'},
@@ -464,7 +477,7 @@ int main(int argc, char **argv)
         };
 
         int option_index = 0;
-        c = getopt_long(argc, argv, "m:r:wdh",
+        c = getopt_long(argc, argv, "m:f:r:wdh",
             long_options, &option_index);
         if (c == -1)
             break;
@@ -530,6 +543,11 @@ int main(int argc, char **argv)
                 }
                 break;
 
+            case 'f':
+                if (strlen(optarg) < sizeof(file)) {
+                    strcpy(file, optarg);
+                }
+
             case 'r':
                 if (strcasecmp("low", optarg) == 0)
                     res = RESOLUTION_LOW;
@@ -574,139 +592,253 @@ int main(int argc, char **argv)
         }
     }
 
-    fFS = fopen(BUFFER_FILE, "r");
-    if ( fFS == NULL ) {
-        fprintf(stderr, "Could not get size of %s\n", BUFFER_FILE);
-        exit(-2);
-    }
-    fseek(fFS, 0, SEEK_END);
-    buf_size = ftell(fFS);
-    fclose(fFS);
-    if (debug) fprintf(stderr, "The size of the buffer is %d\n", buf_size);
+    if (file[0] == '\0') {
+        // Read frames from frame buffer
+        fFS = fopen(BUFFER_FILE, "r");
+        if ( fFS == NULL ) {
+            fprintf(stderr, "Could not get size of %s\n", BUFFER_FILE);
+            exit(-2);
+        }
+        fseek(fFS, 0, SEEK_END);
+        buf_size = ftell(fFS);
+        fclose(fFS);
+        if (debug) fprintf(stderr, "The size of the buffer is %d\n", buf_size);
 
 #ifdef USE_SEMAPHORE
-    if (sem_fshare_open() != 0) {
-        fprintf(stderr, "Could not open semaphores\n") ;
-        exit(-3);
-    }
+        if (sem_fshare_open() != 0) {
+            fprintf(stderr, "Could not open semaphores\n") ;
+            exit(-3);
+        }
 #endif
 
-    // Opening an existing file
-    fshm = shm_open(BUFFER_SHM, O_RDWR, 0);
-    if (fshm == -1) {
-        fprintf(stderr, "Could not open file %s\n", BUFFER_FILE) ;
-        exit(-4);
-    }
-
-    // Map file to memory
-    addr = (unsigned char*) mmap(NULL, buf_size, PROT_READ | PROT_WRITE, MAP_SHARED, fshm, 0);
-    if (addr == MAP_FAILED) {
-        fprintf(stderr, "Error mapping file %s\n", BUFFER_FILE);
-        close(fshm);
-        exit(-5);
-    }
-    if (debug) fprintf(stderr, "Mapping file %s, size %d, to %08x\n", BUFFER_FILE, buf_size, addr);
-
-    // Closing the file
-    close(fshm);
-
-    fhs.len = 0;
-    fhp.len = 0;
-    fhv.len = 0;
-    fhi.len = 0;
-    fhs_addr = NULL;
-    fhp_addr = NULL;
-    fhv_addr = NULL;
-    fhi_addr = NULL;
-
-    while (1) {
-#ifdef USE_SEMAPHORE
-        sem_write_lock();
-#endif
-        memcpy(&i, addr + 16, sizeof(i));
-        buf_idx = addr + buf_offset + i;
-        memcpy(&i, addr + 4, sizeof(i));
-        buf_idx_end = buf_idx + i;
-        if (buf_idx_end >= addr + buf_size) buf_idx_end -= (buf_size - buf_offset);
-        // Check if the header is ok
-        memcpy(&i, addr + 12, sizeof(i));
-        if (buf_idx_end != addr + buf_offset + i) {
-            usleep(1000);
-            continue;
+        // Opening an existing file
+        fshm = shm_open(BUFFER_SHM, O_RDWR, 0);
+        if (fshm == -1) {
+            fprintf(stderr, "Could not open file %s\n", BUFFER_FILE) ;
+            exit(-4);
         }
 
-        buf_idx_cur = buf_idx;
+        // Map file to memory
+        addr = (unsigned char*) mmap(NULL, buf_size, PROT_READ | PROT_WRITE, MAP_SHARED, fshm, 0);
+        if (addr == MAP_FAILED) {
+            fprintf(stderr, "Error mapping file %s\n", BUFFER_FILE);
+            close(fshm);
+            exit(-5);
+        }
+        if (debug) fprintf(stderr, "Mapping file %s, size %d, to %08x\n", BUFFER_FILE, buf_size, addr);
 
-        while (buf_idx_cur != buf_idx_end) {
-            cb2s_headercpy((unsigned char *) &fh, buf_idx_cur, frame_header_size);
-            // Check the len
-            if (fh.len > buf_size - buf_offset - frame_header_size) {
-                fhs_addr = NULL;
-                break;
+        // Closing the file
+        close(fshm);
+
+        fhs.len = 0;
+        fhp.len = 0;
+        fhv.len = 0;
+        fhi.len = 0;
+        fhs_addr = NULL;
+        fhp_addr = NULL;
+        fhv_addr = NULL;
+        fhi_addr = NULL;
+
+        while (1) {
+#ifdef USE_SEMAPHORE
+            sem_write_lock();
+#endif
+            memcpy(&i, addr + 16, sizeof(i));
+            buf_idx = addr + buf_offset + i;
+            memcpy(&i, addr + 4, sizeof(i));
+            buf_idx_end = buf_idx + i;
+            if (buf_idx_end >= addr + buf_size) buf_idx_end -= (buf_size - buf_offset);
+            // Check if the header is ok
+            memcpy(&i, addr + 12, sizeof(i));
+            if (buf_idx_end != addr + buf_offset + i) {
+                usleep(1000);
+                continue;
             }
-            if (((res == RESOLUTION_LOW) && (fh.type & 0x0800)) || ((res == RESOLUTION_HIGH) && (fh.type & 0x0400))) {
-                if (fh.type & 0x0002) {
-                    memcpy((unsigned char *) &fhs, (unsigned char *) &fh, sizeof(struct frame_header));
-                    fhs_addr = buf_idx_cur;
-                } else if (fh.type & 0x0004) {
-                    memcpy((unsigned char *) &fhp, (unsigned char *) &fh, sizeof(struct frame_header));
-                    fhp_addr = buf_idx_cur;
-                } else if (fh.type & 0x0008) {
-                    memcpy((unsigned char *) &fhv, (unsigned char *) &fh, sizeof(struct frame_header));
-                    fhv_addr = buf_idx_cur;
-                } else if (fh.type & 0x0001) {
-                    memcpy((unsigned char *) &fhi, (unsigned char *) &fh, sizeof(struct frame_header));
-                    fhi_addr = buf_idx_cur;
+
+            buf_idx_cur = buf_idx;
+
+            while (buf_idx_cur != buf_idx_end) {
+                cb2s_headercpy((unsigned char *) &fh, buf_idx_cur, frame_header_size);
+                // Check the len
+                if (fh.len > buf_size - buf_offset - frame_header_size) {
+                    fhs_addr = NULL;
+                    break;
+                }
+                if (((res == RESOLUTION_LOW) && (fh.type & 0x0800)) || ((res == RESOLUTION_HIGH) && (fh.type & 0x0400))) {
+                    if (fh.type & 0x0002) {
+                        memcpy((unsigned char *) &fhs, (unsigned char *) &fh, sizeof(struct frame_header));
+                        fhs_addr = buf_idx_cur;
+                    } else if (fh.type & 0x0004) {
+                        memcpy((unsigned char *) &fhp, (unsigned char *) &fh, sizeof(struct frame_header));
+                        fhp_addr = buf_idx_cur;
+                    } else if (fh.type & 0x0008) {
+                        memcpy((unsigned char *) &fhv, (unsigned char *) &fh, sizeof(struct frame_header));
+                        fhv_addr = buf_idx_cur;
+                    } else if (fh.type & 0x0001) {
+                        memcpy((unsigned char *) &fhi, (unsigned char *) &fh, sizeof(struct frame_header));
+                        fhi_addr = buf_idx_cur;
+                    }
+                }
+                buf_idx_cur = cb_move(buf_idx_cur, fh.len + frame_header_size);
+            }
+
+#ifdef USE_SEMAPHORE
+            sem_write_unlock();
+#endif
+            if (fhs_addr != NULL) break;
+            usleep(10000);
+        }
+
+        // Remove headers
+        if (fhv_addr != NULL) fhv_addr = cb_move(fhv_addr, frame_header_size);
+        fhs_addr = cb_move(fhs_addr, frame_header_size + 6);
+        fhs.len -= 6;
+        fhp_addr = cb_move(fhp_addr, frame_header_size);
+        fhi_addr = cb_move(fhi_addr, frame_header_size);
+
+    } else {
+        // Read frames from h26x file
+        fhs.len = 0;
+        fhp.len = 0;
+        fhv.len = 0;
+        fhi.len = 0;
+        fhs_addr = NULL;
+        fhp_addr = NULL;
+        fhv_addr = NULL;
+        fhi_addr = NULL;
+
+        fHF = fopen(file, "r");
+        if ( fHF == NULL ) {
+            fprintf(stderr, "Could not get size of %s\n", file);
+            exit(-6);
+        }
+        fseek(fHF, 0, SEEK_END);
+        h26x_file_size = ftell(fHF);
+        fseek(fHF, 0, SEEK_SET);
+        h26x_file_buffer = (unsigned char *) malloc(h26x_file_size);
+        nread = fread(h26x_file_buffer, 1, h26x_file_size, fHF);
+        fclose(fHF);
+        if (debug) fprintf(stderr, "The size of the file is %d\n", h26x_file_size);
+
+        if (nread != h26x_file_size) {
+            fprintf(stderr, "Read error %s\n", file);
+            exit(-7);
+        }
+
+        for (f=0; f<h26x_file_size; i++) {
+            for (i=f; i<h26x_file_size; i++) {
+                if(h26x_file_buffer[i] == 0 && h26x_file_buffer[i+1] == 0 && h26x_file_buffer[i+2] == 0 && h26x_file_buffer[i+3] == 1) {
+                    start_code = 4;
+                } else {
+                    continue;
+                }
+
+                if ((h26x_file_buffer[i+start_code]&0x7E) == 0x40) {
+                    vps_start_found = i;
+                    break;
+                } else if (((h26x_file_buffer[i+start_code]&0x1F) == 0x7) || ((h26x_file_buffer[i+start_code]&0x7E) == 0x42)) {
+                    sps_start_found = i;
+                    break;
+                } else if (((h26x_file_buffer[i+start_code]&0x1F) == 0x8) || ((h26x_file_buffer[i+start_code]&0x7E) == 0x44)) {
+                    pps_start_found = i;
+                    break;
+                } else if (((h26x_file_buffer[i+start_code]&0x1F) == 0x5) || ((h26x_file_buffer[i+start_code]&0x7E) == 0x26)) {
+                    idr_start_found = i;
+                    break;
                 }
             }
-            buf_idx_cur = cb_move(buf_idx_cur, fh.len + frame_header_size);
+
+            for (j = i + 4; j<h26x_file_size; j++) {
+                if (h26x_file_buffer[j] == 0 && h26x_file_buffer[j+1] == 0 && h26x_file_buffer[j+2] == 0 && h26x_file_buffer[j+3] == 1) {
+                    start_code = 4;
+                } else {
+                    continue;
+                }
+
+                if ((h26x_file_buffer[j+start_code]&0x7E) == 0x42) {
+                    vps_end_found = j;
+                    break;
+                } else if (((h26x_file_buffer[j+start_code]&0x1F) == 0x8) || ((h26x_file_buffer[j+start_code]&0x7E) == 0x44)) {
+                    sps_end_found = j;
+                    break;
+                } else if (((h26x_file_buffer[j+start_code]&0x1F) == 0x5) || ((h26x_file_buffer[j+start_code]&0x7E) == 0x26)) {
+                    pps_end_found = j;
+                    break;
+                }
+            }
+            f = j;
         }
 
-#ifdef USE_SEMAPHORE
-        sem_write_unlock();
-#endif
-        if (fhs_addr != NULL) break;
-        usleep(10000);
-    }
+        if ((sps_start_found >= 0) && (pps_start_found >= 0) && (idr_start_found >= 0) &&
+                (sps_end_found >= 0) && (pps_end_found >= 0)) {
 
-    // Remove headers
-    if (fhv_addr != NULL) fhv_addr = cb_move(fhv_addr, frame_header_size);
-    fhs_addr = cb_move(fhs_addr, frame_header_size + 6);
-    fhs.len -= 6;
-    fhp_addr = cb_move(fhp_addr, frame_header_size);
-    fhi_addr = cb_move(fhi_addr, frame_header_size);
+            if ((vps_start_found >= 0) && (vps_end_found >= 0)) {
+                fhv.len = vps_end_found - vps_start_found;
+                fhv_addr = &h26x_file_buffer[vps_start_found];
+            }
+            fhs.len = sps_end_found - sps_start_found;
+            fhp.len = pps_end_found - pps_start_found;
+            fhi.len = h26x_file_size - idr_start_found;
+            fhs_addr = &h26x_file_buffer[sps_start_found];
+            fhp_addr = &h26x_file_buffer[pps_start_found];
+            fhi_addr = &h26x_file_buffer[idr_start_found];
+
+            if (debug) {
+                fprintf(stderr, "Found SPS at %d, len %d\n", sps_start_found, fhs.len);
+                fprintf(stderr, "Found PPS at %d, len %d\n", pps_start_found, fhp.len);
+                if (fhv_addr != NULL) {
+                    fprintf(stderr, "Found VPS at %d, len %d\n", vps_start_found, fhv.len);
+                }
+                fprintf(stderr, "Found IDR at %d, len %d\n", idr_start_found, fhi.len);
+            }
+        } else {
+            if (debug) fprintf(stderr, "No frame found\n");
+            exit(-8);
+        }
+    }
 
     // Add FF_INPUT_BUFFER_PADDING_SIZE to make the size compatible with ffmpeg conversion
     bufferh26x = (unsigned char *) malloc(fhv.len + fhs.len + fhp.len + fhi.len + FF_INPUT_BUFFER_PADDING_SIZE);
     if (bufferh26x == NULL) {
         fprintf(stderr, "Unable to allocate memory\n");
-        exit(-6);
+        exit(-9);
     }
 
     bufferyuv = (unsigned char *) malloc(width * height * 3 / 2);
     if (bufferyuv == NULL) {
         fprintf(stderr, "Unable to allocate memory\n");
-        exit(-7);
+        exit(-10);
     }
 
-    if (fhv_addr != NULL) {
-        cb_memcpy(bufferh26x, fhv_addr, fhv.len);
+    if (file[0] == '\0') {
+        if (fhv_addr != NULL) {
+            cb_memcpy(bufferh26x, fhv_addr, fhv.len);
+        }
+        cb_memcpy(bufferh26x + fhv.len, fhs_addr, fhs.len);
+        cb_memcpy(bufferh26x + fhv.len + fhs.len, fhp_addr, fhp.len);
+        cb_memcpy(bufferh26x + fhv.len + fhs.len + fhp.len, fhi_addr, fhi.len);
+    } else {
+        if (fhv_addr != NULL) {
+            memcpy(bufferh26x, fhv_addr, fhv.len);
+        }
+        memcpy(bufferh26x + fhv.len, fhs_addr, fhs.len);
+        memcpy(bufferh26x + fhv.len + fhs.len, fhp_addr, fhp.len);
+        memcpy(bufferh26x + fhv.len + fhs.len + fhp.len, fhi_addr, fhi.len);
+
+        free(h26x_file_buffer);
     }
-    cb_memcpy(bufferh26x + fhv.len, fhs_addr, fhs.len);
-    cb_memcpy(bufferh26x + fhv.len + fhs.len, fhp_addr, fhp.len);
-    cb_memcpy(bufferh26x + fhv.len + fhs.len + fhp.len, fhi_addr, fhi.len);
 
     if (fhv_addr == NULL) {
         if (debug) fprintf(stderr, "Decoding h264 frame\n");
         if(frame_decode(bufferyuv, bufferh26x, fhs.len + fhp.len + fhi.len, 4) < 0) {
             fprintf(stderr, "Error decoding h264 frame\n");
-            exit(-8);
+            exit(-11);
         }
     } else {
         if (debug) fprintf(stderr, "Decoding h265 frame\n");
         if(frame_decode(bufferyuv, bufferh26x, fhv.len + fhs.len + fhp.len + fhi.len, 5) < 0) {
             fprintf(stderr, "Error decoding h265 frame\n");
-            exit(-8);
+            exit(-11);
         }
     }
     free(bufferh26x);
@@ -715,28 +847,30 @@ int main(int argc, char **argv)
         if (debug) fprintf(stderr, "Adding watermark\n");
         if (add_watermark(bufferyuv, width, height) < 0) {
             fprintf(stderr, "Error adding watermark\n");
-            exit(-9);
+            exit(-12);
         }
     }
 
     if (debug) fprintf(stderr, "Encoding jpeg image\n");
     if(YUVtoJPG("stdout", bufferyuv, width, height, width, height) < 0) {
         fprintf(stderr, "Error encoding jpeg file\n");
-        exit(-10);
+        exit(-13);
     }
 
     free(bufferyuv);
 
-    // Unmap file from memory
-    if (munmap(addr, buf_size) == -1) {
-        fprintf(stderr, "Error munmapping file\n");
-    } else {
-        if (debug) fprintf(stderr, "Unmapping file %s, size %d, from %08x\n", BUFFER_FILE, buf_size, addr);
-    }
+    if (file[0] == '\0') {
+        // Unmap file from memory
+        if (munmap(addr, buf_size) == -1) {
+            fprintf(stderr, "Error munmapping file\n");
+        } else {
+            if (debug) fprintf(stderr, "Unmapping file %s, size %d, from %08x\n", BUFFER_FILE, buf_size, addr);
+        }
 
 #ifdef USE_SEMAPHORE
-    sem_fshare_close();
+        sem_fshare_close();
 #endif
+    }
 
     return 0;
 }

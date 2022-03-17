@@ -40,13 +40,16 @@ fi
 
 CURRENT_SSID=$(dd bs=1 skip=28 count=64 if=/dev/mtdblock7 2>/dev/null)
 CURRENT_KEY=$(dd bs=1 skip=92 count=64 if=/dev/mtdblock7 2>/dev/null)
+CONNECTED_BIT=$(hexdump -s 24 -n 4 -v /dev/mtdblock7 | awk 'FNR <=1' | awk '{print $3$2}')
 
 echo $SSID ${#SSID} - $CURRENT_SSID ${#CURRENT_SSID}
 echo $KEY ${#KEY} - $CURRENT_KEY ${#CURRENT_KEY}
 
-if [ "$SSID" == "$CURRENT_SSID" ] && [ "$KEY" == "$CURRENT_KEY" ]; then
+if [ "$SSID" == "$CURRENT_SSID" ] && [ "$KEY" == "$CURRENT_KEY" ] && [ "$CONNECTED_BIT" == "00000000" ]; then
     echo "ssid and key already configured"
-    exit
+    if [ $# -ne 1 ] || [ "$1" != "force" ]; then
+        exit
+    fi
 fi
 
 echo "creating partition backup..."

@@ -152,8 +152,8 @@ serviceMain ()
 trap "" SIGHUP
 #
 if [ "${1}" = "cron" ]; then
-	RUNNING=$(ps | grep $SCRIPT_FULLFN | grep -v grep | awk 'END { print NR }')
-	if [ $RUNNING -gt 2 ]; then
+	RUNNING=$(ps | grep $SCRIPT_FULLFN | grep -v grep | grep /bin/sh | awk 'END { print NR }')
+	if [ $RUNNING -gt 1 ]; then
 		logAdd "[INFO] === SERVICE ALREADY RUNNING ==="
 		exit 0
 	fi
@@ -161,8 +161,8 @@ if [ "${1}" = "cron" ]; then
 	logAdd "[INFO] === SERVICE STOPPED ==="
 	exit 0
 elif [ "${1}" = "start" ]; then
-	RUNNING=$(ps | grep $SCRIPT_FULLFN | grep -v grep | awk 'END { print NR }')
-	if [ $RUNNING -gt 2 ]; then
+	RUNNING=$(ps | grep $SCRIPT_FULLFN | grep -v grep | grep /bin/sh | awk 'END { print NR }')
+	if [ $RUNNING -gt 1 ]; then
 		logAdd "[INFO] === SERVICE ALREADY RUNNING ==="
 		exit 0
 	fi

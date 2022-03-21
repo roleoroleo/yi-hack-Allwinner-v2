@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ARCHIVE=live.2022.01.06.tar.gz
+ARCHIVE=live.2022.02.07.tar.gz
 
 export CROSSPATH=/opt/yi/toolchain-sunxi-musl/toolchain/bin
 export PATH=${PATH}:${CROSSPATH}

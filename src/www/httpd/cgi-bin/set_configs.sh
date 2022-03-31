@@ -82,6 +82,12 @@ for ROW in $ROWS; do
                 sed -i "s/^\(${KEY}\s*=\s*\).*$/\1${VALUE}/" $CONF_FILE
             fi
         fi
+    elif [ "$KEY" == "PROXYCHAINS_SERVERS" ] ; then
+        VALUE=$(echo $VALUE | sed 's/^\"//g')
+        VALUE=$(echo $VALUE | sed 's/\"$//g')
+        VALUE=$(echo $VALUE | sed 's/;/\\n/g')
+        cat $CONF_FILE.template > $CONF_FILE
+        echo -e $VALUE >> $CONF_FILE
     else
         VALUE=$(echo "$VALUE" | sedencode)
         sed -i "s/^\(${KEY}\s*=\s*\).*$/\1${VALUE}/" $CONF_FILE

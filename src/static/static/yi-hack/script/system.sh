@@ -2,6 +2,7 @@
 
 CONF_FILE="etc/system.conf"
 
+YI_PREFIX="/home/app"
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 YI_HACK_UPGRADE_PATH="/tmp/sd/.fw_upgrade"
 
@@ -109,11 +110,10 @@ case $(get_config HTTPD_PORT) in
     *) HTTPD_PORT=$(get_config HTTPD_PORT) ;;
 esac
 
-# todo
-#if [ ! -f $YI_PREFIX/cloudAPI_real ]; then
-#    mv $YI_PREFIX/cloudAPI $YI_PREFIX/cloudAPI_real
-#    cp $YI_HACK_PREFIX/script/cloudAPI $YI_PREFIX/
-#fi
+if [ ! -f $YI_HACK_PREFIX/bin/cloudAPI_real ]; then
+    cp $YI_PREFIX/cloudAPI $YI_HACK_PREFIX/bin/cloudAPI_real
+fi
+mount --bind $YI_HACK_PREFIX/script/cloudAPI $YI_PREFIX/cloudAPI
 
 if [[ $(get_config DISABLE_CLOUD) == "no" ]] ; then
     (

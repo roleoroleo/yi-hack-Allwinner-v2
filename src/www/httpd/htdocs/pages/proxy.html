@@ -1,0 +1,68 @@
+<div class="row">
+    <div class="twelve columns">
+        <div class="row">
+            <div class="twelve columns">
+                <h3 class="no-margin inline-block" id="header">Configurations</h3>
+                <h6 id="loading-wifi-status" class="float-right loading-text"></h6>
+            </div>
+        </div>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <p>
+                In this page you can configure proxychains.
+            </p>
+        </div>
+        <h4 class="no-margin">proxychains</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>Server list</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="PROXYCHAINS_SERVERS" id="PROXYCHAINS_SERVERS"/>
+                            <span class="switch-description">
+                                List of proxy servers (semicolon separated).
+                                <br/>
+                                e.g. "socks4 1.2.3.4 4080;socks4 5.6.7.8 8080"
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Test result</td>
+                        <td>
+                            <div style="float: left;width: 50%;">
+                                <div class="padded-right">
+                                    Test without proxy:
+                                </div>
+                                <br/>
+                                <textarea class="u-full-width" rows="13" cols="25" data-key="TEST_WITHOUT_PROXY" id="TEST_WITHOUT_PROXY" style="height:auto;"></textarea>
+                                <div class="padded-right save-text" id="test0-proxy-status"></div>
+                            </div>
+                            <div style="float: left;width: 50%;">
+                                <div class="padded-right">
+                                    Test with proxy:
+                                </div>
+                                <br/>
+                                <textarea class="u-full-width" rows="13" cols="25" data-key="TEST_WITH_PROXY" id="TEST_WITH_PROXY" style="height:auto;"></textarea>
+                                <div class="padded-right save-text" id="test1-proxy-status"></div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="align-right">
+            <span class="strong">Any change will take effect after the reboot of the camera.</span>
+        </div>
+        <br/>
+        <div class="float-right">
+<!--            <div class="padded-right save-text" id="test0-proxy-status"></div>
+            <div class="padded-right save-text" id="test1-proxy-status"></div>-->
+            <div class="padded-right save-text" id="save-proxy-status"></div>
+            <input class="button-primary" type="button" id="button-save-proxy" value="Save and Test Configuration"/>
+        </div>
+    </div>
+</div>

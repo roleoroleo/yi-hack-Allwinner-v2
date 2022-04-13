@@ -186,7 +186,7 @@ APP.maintenance = (function($) {
             },
             success: function(data) {
                 setFwStatus("Installed: " + data.fw_version + " - Available: " + data.latest_fw);
-                if (data.fw_version == data.latest_fw) {
+                if ((data.fw_version == data.latest_fw) && (!data.local_fw)) {
                     $('#button-upgrade').attr("disabled", true);
                 }
             }

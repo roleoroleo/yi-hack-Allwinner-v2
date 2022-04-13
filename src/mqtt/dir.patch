@@ -11,5 +11,5 @@ diff -Naur mqttv4.ori/include/mqttv4.h mqttv4/include/mqttv4.h
 -#define MQTTV4_SNAPSHOT     "export MOD=$(cat /home/yi-hack/model_suffix); /home/yi-hack/bin/imggrabber -m $MOD -r high -w"
 +#define MQTTV4_SNAPSHOT     "export MOD=$(cat /tmp/sd/yi-hack/model_suffix); /tmp/sd/yi-hack/bin/imggrabber -m $MOD -r high -w"
  
- typedef struct
- {
+ #define TH_AVAILABLE 0
+ #define TH_WAITING   1

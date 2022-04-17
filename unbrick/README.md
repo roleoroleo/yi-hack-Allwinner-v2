@@ -2,6 +2,11 @@
 
 This procedure allows you to unbrick your cam using a backup file (which you did previously).
 
+Please note: bootloader saves the hash of the file and if it matches the hash of the file you are trying to load, this procedure will not work.
+
+In this case, you have to use a different file: for example you can use "factory" if you have previously used "hacked" and vice versa (see below).
+
+
 ## How to use
 
 1. Clone this repo on a linux machine.

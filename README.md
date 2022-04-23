@@ -49,6 +49,7 @@ Otherwise, follow this wiki: https://github.com/roleoroleo/yi-hack-Allwinner-v2/
 6. Wait a minute for the camera to update.
 7. Check the hack opening the web interface http://IP-CAM:8080
 8. Don't remove the microSD card (yes this hack requires a dedicated microSD card).
+9. Check the FAQ if you have a problem: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/FAQ
 
 ### Optional Utilities 
 Several [optional untilies](https://github.com/roleoroleo/yi-hack-utils) are avaiable, some supporting experimental features like text-to-speech.

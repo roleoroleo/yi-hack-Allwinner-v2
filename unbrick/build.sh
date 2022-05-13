@@ -33,25 +33,35 @@ fi
 for DIR in * ; do
     if [ -d $DIR ]; then
         FILENAME=`cat $DIR/filename`
-        if [ "$TYPE" == "hacked" ]; then
-            mkdir -p $DIR/mnt
-            ./mount.jffs2 $DIR/mtdblock4.bin $DIR/mnt 4
-            cp -r $DIR/mnt $DIR/backup
-            umount $DIR/mnt
-            rm -rf $DIR/mnt
-            update_init
-            if [ $FILENAME == "b091qp" ]; then
-                PAD="0x00150000"
-            else
-                PAD="0x00130000"
-            fi
-            ./create.jffs2 $PAD $DIR/backup $DIR/mtdblock4_hacked.bin
-            rm -rf $DIR/backup
-        else
-            cp $DIR/mtdblock4.bin $DIR/mtdblock4_hacked.bin
+        if [ -f $DIR/mtdblock2.bin ]; then
+            mkimage -A arm -O linux -T filesystem -C none -a 0x0 -e 0x0 -n "xiaoyi-rootfs" -d $DIR/mtdblock2.bin $DIR/rootfs_$FILENAME
+            gzip $DIR/rootfs_$FILENAME
         fi
-        mkimage -A arm -O linux -T filesystem -C none -a 0x0 -e 0x0 -n "xiaoyi-backup" -d $DIR/mtdblock4_hacked.bin $DIR/backup_$FILENAME
-        rm -f $DIR/mtdblock4_hacked.bin
-        gzip $DIR/backup_$FILENAME
+        if [ -f $DIR/mtdblock3.bin ]; then
+            mkimage -A arm -O linux -T filesystem -C none -a 0x0 -e 0x0 -n "xiaoyi-home" -d $DIR/mtdblock3.bin $DIR/home_$FILENAME
+            gzip $DIR/home_$FILENAME
+        fi
+        if [ -f $DIR/mtdblock4.bin ]; then
+            if [ "$TYPE" == "hacked" ]; then
+                mkdir -p $DIR/mnt
+                ./mount.jffs2 $DIR/mtdblock4.bin $DIR/mnt 4
+                cp -r $DIR/mnt $DIR/backup
+                umount $DIR/mnt
+                rm -rf $DIR/mnt
+                update_init
+                if [ $FILENAME == "b091qp" ]; then
+                    PAD="0x00150000"
+                else
+                    PAD="0x00130000"
+                fi
+                ./create.jffs2 $PAD $DIR/backup $DIR/mtdblock4_hacked.bin
+                rm -rf $DIR/backup
+            else
+                cp $DIR/mtdblock4.bin $DIR/mtdblock4_hacked.bin
+            fi
+            mkimage -A arm -O linux -T filesystem -C none -a 0x0 -e 0x0 -n "xiaoyi-backup" -d $DIR/mtdblock4_hacked.bin $DIR/backup_$FILENAME
+            rm -f $DIR/mtdblock4_hacked.bin
+            gzip $DIR/backup_$FILENAME
+        fi
     fi
 done

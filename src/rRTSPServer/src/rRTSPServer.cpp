@@ -1314,9 +1314,10 @@ int main(int argc, char** argv)
     // Wait for stream type autodetect
     while (1) {
         if ((stream_type.codec_low != CODEC_NONE) && (stream_type.codec_high != CODEC_NONE)) {
-            usleep(100000);
+            usleep(10000);
             break;
         }
+        usleep(10000);
     }
 
     if (debug & 1) {

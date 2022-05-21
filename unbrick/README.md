@@ -25,7 +25,7 @@ In this case, you have to use a different file: for example you can use "factory
    
    The last option allows you to run the hack after the unbrick (but you need to install the hack separately).
 5. You will find the file backup_XXX.gz in the folder corresponding to your model.
-6. Unzip it in the root folder of your cam.
+6. Unzip it in the root folder of your sd card.
 7. Switch on the cam and wait for the cam to come online.
 
 To run this script correctly you have to comply some dependencies depending on your OS.

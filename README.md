@@ -131,6 +131,7 @@ Currently this project supports only the following cameras:
 | MIBAO G1 1296p dome | 9.0.04* | qg311r | - |
 | BLITZWOLF BW-YIC1 | 9.0.41* | b091qp | - |
 | ESCAM PT202 | 9.0.41* | b091qp | - |
+| YS-QC-02 | 9.0.41* | b091qp | https://github.com/roleoroleo/yi-hack_ha_integration/issues/84 |
 
 USE AT YOUR OWN RISK.
 

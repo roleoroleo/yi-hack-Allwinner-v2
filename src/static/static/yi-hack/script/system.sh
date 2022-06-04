@@ -62,6 +62,11 @@ fi
 
 $YI_HACK_PREFIX/script/check_conf.sh
 
+# Make /etc writable
+mkdir /tmp/etc
+cp -R /etc/* /tmp/etc
+mount --bind /tmp/etc /etc
+
 hostname -F $YI_HACK_PREFIX/etc/hostname
 
 if [[ $(get_config SWAP_FILE) == "yes" ]] ; then
@@ -88,13 +93,11 @@ fi
 if [[ x$(get_config SSH_PASSWORD) != "x" ]] ; then
     SSH_PASSWORD=$(get_config SSH_PASSWORD)
     PASSWORD_MD5="$(echo "${SSH_PASSWORD}" | mkpasswd --method=MD5 --stdin)"
-    cp -f "/etc/passwd" "/tmp/sd/yi-hack/etc/passwd"
-    sed -i 's|^root::|root:'${PASSWORD_MD5}':|g' "/tmp/sd/yi-hack/etc/passwd"
-    sed -i 's|/root|/tmp/sd/yi-hack|g' "/tmp/sd/yi-hack/etc/passwd"
-    mount --bind "/tmp/sd/yi-hack/etc/passwd" "/etc/passwd"
-    cp -f "/etc/shadow" "/tmp/sd/yi-hack/etc/shadow"
-    sed -i 's|^root::|root:'${PASSWORD_MD5}':|g' "/tmp/sd/yi-hack/etc/shadow"
-    mount --bind "/tmp/sd/yi-hack/etc/shadow" "/etc/shadow"
+    sed -i 's|^root::|root:'${PASSWORD_MD5}':|g' "/etc/passwd"
+    sed -i 's|/root|/tmp/sd/yi-hack|g' "/etc/passwd"
+    sed -i 's|^root::|root:'${PASSWORD_MD5}':|g' "/etc/shadow"
+else
+    sed -i 's|/root|/tmp/sd/yi-hack|g' "/etc/passwd"
 fi
 
 case $(get_config RTSP_PORT) in
@@ -160,9 +163,6 @@ else
             ./mp4record &
         fi
 
-        mkdir /tmp/etc
-        cp -R /etc/* /tmp/etc
-        mount --bind /tmp/etc /etc
         echo "127.0.0.1    api.eu.xiaoyi.com" >> /etc/hosts
         echo "127.0.0.1    api.us.xiaoyi.com" >> /etc/hosts
         echo "127.0.0.1    api.xiaoyi.com.tw" >> /etc/hosts

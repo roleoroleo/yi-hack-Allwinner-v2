@@ -12,16 +12,38 @@ if ! $(validateQueryString $QUERY_STRING); then
     exit
 fi
 
+ACTION="none"
 NUM=-1
 
-CONF="$(echo $QUERY_STRING | cut -d'=' -f1)"
-VAL="$(echo $QUERY_STRING | cut -d'=' -f2)"
+for I in 1 2
+do
+    CONF="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f1)"
+    VAL="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f2)"
 
-if [ "$CONF" == "num" ] ; then
-    NUM=$VAL
+    if [ "$CONF" == "action" ] ; then
+        ACTION="$VAL"
+    elif [ "$CONF" == "num" ] ; then
+        if $(validateNumber $VAL); then
+            NUM="$VAL"
+        fi
+    fi
+done
+
+if [ $ACTION != "go_preset" ] ; then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
 fi
-
-if [ $NUM -eq -1 ] ; then
+if [ $NUM -lt 0 ] ; then
+    printf "Content-type: application/json\r\n\r\n"
+    printf "{\n"
+    printf "\"%s\":\"%s\"\\n" "error" "true"
+    printf "}"
+    exit
+fi
+if [ $NUM -gt 7 ] ; then
     printf "Content-type: application/json\r\n\r\n"
     printf "{\n"
     printf "\"%s\":\"%s\"\\n" "error" "true"
@@ -29,16 +51,9 @@ if [ $NUM -eq -1 ] ; then
     exit
 fi
 
-if $(validateNumber $NUM); then
-    ipc_cmd -p $NUM
+ipc_cmd -p $NUM
 
-    printf "Content-type: application/json\r\n\r\n"
-    printf "{\n"
-    printf "\"%s\":\"%s\"\\n" "error" "false"
-    printf "}"
-else
-    printf "Content-type: application/json\r\n\r\n"
-    printf "{\n"
-    printf "\"%s\":\"%s\"\\n" "error" "true"
-    printf "}"
-fi
+printf "Content-type: application/json\r\n\r\n"
+printf "{\n"
+printf "\"%s\":\"%s\"\\n" "error" "false"
+printf "}"

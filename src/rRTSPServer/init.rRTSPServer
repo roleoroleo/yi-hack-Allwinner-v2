@@ -29,6 +29,10 @@ if [ ! -f $ARCHIVE ]; then
     wget https://download.videolan.org/pub/contrib/live555/$ARCHIVE
 fi
 tar zxvf $ARCHIVE
+find live -type d -exec chmod 755 {} +
+find live -type f -name "*.cpp" -exec chmod 644 {} +
+find live -type f -name "*.hh" -exec chmod 644 {} +
+find live -type f -name "Makefile*" -exec chmod 644 {} +
 
 patch -p0 < rRTSPServer.patch
 

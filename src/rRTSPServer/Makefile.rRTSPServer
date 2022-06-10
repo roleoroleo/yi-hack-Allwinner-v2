@@ -18,6 +18,8 @@ LIBS_FOR_GUI_APPLICATION =
 EXE =
 ##### End of variables to change
 
+.PHONY: all livemedia rRTSPServer install distclean clean
+
 INCLUDES = -IUsageEnvironment/include -Igroupsock/include -IliveMedia/include -IBasicUsageEnvironment/include
 # Default library filename suffixes for each library that we link with.  The "config.*" file might redefine these later.
 libliveMedia_LIB_SUFFIX = $(LIB_SUFFIX)

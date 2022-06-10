@@ -1,7 +1,6 @@
-diff -Naur mqttv4.ori/src/files.c mqttv4/src/files.c
---- mqttv4.ori/src/files.c	2022-04-12 21:28:47.000000000 +0200
-+++ mqttv4/src/files.c	2022-04-12 21:29:21.028326640 +0200
-@@ -77,8 +77,8 @@
+--- mqttv4.ori/src/files.c	2022-06-10 12:47:22.775769275 +0200
++++ mqttv4/src/files.c	2022-06-10 12:46:58.000000000 +0200
+@@ -89,8 +89,8 @@
      sprintf(output + strlen(output), "\"%s%c%c%c:%c%c\",\n\"files\":[ ", s8601date,
              s8601date_z[0], s8601date_z[1], s8601date_z[2], s8601date_z[3], s8601date_z[4]);
  
@@ -12,7 +11,7 @@ diff -Naur mqttv4.ori/src/files.c mqttv4/src/files.c
      sprintf(sDir, "%dY%02dM%02dD%02dH", timeinfo->tm_year + 1900,
          timeinfo->tm_mon + 1, timeinfo->tm_mday, timeinfo->tm_hour);
      sprintf(sFile, "%02dM", timeinfo->tm_min);
-@@ -90,9 +90,9 @@
+@@ -102,9 +102,9 @@
          num++;
          if (num >= limit) break;
  

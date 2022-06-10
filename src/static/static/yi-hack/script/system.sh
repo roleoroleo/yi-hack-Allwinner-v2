@@ -93,11 +93,11 @@ fi
 if [[ x$(get_config SSH_PASSWORD) != "x" ]] ; then
     SSH_PASSWORD=$(get_config SSH_PASSWORD)
     PASSWORD_MD5="$(echo "${SSH_PASSWORD}" | mkpasswd --method=MD5 --stdin)"
-    sed -i 's|^root::|root:'${PASSWORD_MD5}':|g' "/etc/passwd"
-    sed -i 's|/root|/tmp/sd/yi-hack|g' "/etc/passwd"
-    sed -i 's|^root::|root:'${PASSWORD_MD5}':|g' "/etc/shadow"
+    sed -i 's|^root::|root:*:|g' /etc/passwd
+    sed -i 's|:/root:|:/tmp/sd/yi-hack:|g' /etc/passwd
+    sed -i 's|^root::|root:'${PASSWORD_MD5}':|g' /etc/shadow
 else
-    sed -i 's|/root|/tmp/sd/yi-hack|g' "/etc/passwd"
+    sed -i 's|:/root:|:/tmp/sd/yi-hack:|g' /etc/passwd
 fi
 
 case $(get_config RTSP_PORT) in

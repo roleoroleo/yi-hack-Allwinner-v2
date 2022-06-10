@@ -180,11 +180,13 @@ data:
 
 If you want to build your own firmware, clone this git and compile using a linux machine. Quick explanation:
 
-1. Download and install the SDK as described [here](https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Build-your-own-firmware
+1. Download and install the SDK as described [here](https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Build-your-own-firmware)
 2. Clone this git: `git clone https://github.com/roleoroleo/yi-hack-Allwinner-v2`
 3. Init modules: `git submodule update --init`
 4. Compile: `./scripts/compile.sh`
 5. Pack the firmware: `./scripts/pack_fw.all.sh`
+
+Instead of installing the SDK on your host machine, there's also the option to use a [`devcontainer`](https://code.visualstudio.com/docs/remote/containers) from within [Visual Studio Code](https://code.visualstudio.com/). Please ensure you have the [`Remote - Containers`](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension installed for this to work.
 
 
 ## Unbricking

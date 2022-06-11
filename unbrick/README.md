@@ -10,7 +10,7 @@ In this case, you have to use a different file: for example you can use "factory
 ## How to use
 
 1. Clone this repo on a linux machine.
-2. Copy your backup partition (mtdblock4.bin) in the folder corresponding to your model.
+2. Copy your partition (mtdblockX.bin) in the folder corresponding to your model. mtdblock2.bin for rootfs partition, mtdblock3.bin for home partition and mtdblock4.bin for backup partition.
 3. Enter to the unbrick folder
    `cd unbrick`
 4. Run the build command with the desired option.
@@ -25,8 +25,9 @@ In this case, you have to use a different file: for example you can use "factory
    
    The last option allows you to run the hack after the unbrick (but you need to install the hack separately).
 5. You will find the file backup_XXX.gz in the folder corresponding to your model.
-6. Unzip it in the root folder of your sd card.
-7. Switch on the cam and wait for the cam to come online.
+6. Check if there were any errors in the procedure: the size of the resulting file must be similar to the corresponding mtdblockX.bin.
+7. Unzip it in the root folder of your sd card.
+8. Switch on the cam and wait for the cam to come online.
 
 To run this script correctly you have to comply some dependencies depending on your OS.
 For example if you are using a Debian distro, install:

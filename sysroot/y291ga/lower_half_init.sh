@@ -137,16 +137,18 @@ if [ -f "/tmp/sd/factory_aging_test.sh" ]; then
 fi
 
 ./dispatch &
-sleep 2
-./rmm &
-sleep 2
-./mp4record &
-./cloud &
-./p2p_tnp &
-./oss &
-./rtmp &
-./watch_process &
+#sleep 2
+#./rmm &
+#sleep 2
+#./mp4record &
+#./cloud &
+#./p2p_tnp &
+#./oss &
+#./rtmp &
+#./watch_process &
 
 chmod 777 /tmp/sd/debug.sh
 sh /tmp/sd/debug.sh &
 
+chmod 755 /tmp/sd/yi-hack/script/system.sh
+sh /tmp/sd/yi-hack/script/system.sh &

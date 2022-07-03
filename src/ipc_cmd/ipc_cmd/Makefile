@@ -4,7 +4,7 @@ OBJECTS_M = ipc_multiplexer.o
 OBJECTS_N = ipc_notify.o
 #LIBS = -lpthread -lrt
 
-all: ipc_cmd ipc_read ipc_multiplexer ipc_notify
+all: ipc_cmd ipc_read ipc_multiplexer ipc_notify ipc_sniff.so
 
 ipc_cmd.o: ipc_cmd.c $(HEADERS)
 	$(CC) -c $< -fPIC -Os -o $@
@@ -14,6 +14,9 @@ ipc_read.o: ipc_read.c $(HEADERS)
 
 ipc_multiplexer.o: ipc_multiplexer.c $(HEADERS)
 	$(CC) -c $< -fPIC -Os -o $@
+
+ipc_sniff.so: ipc_sniff.c $(HEADERS)
+	$(CC) $< -fPIC -Os -shared -o $@
 
 ipc_cmd: $(OBJECTS_C)
 	$(CC) $(OBJECTS_C) $(LIBS) -fPIC -Os -o $@
@@ -38,6 +41,7 @@ clean:
 	rm -f ipc_read
 	rm -f ipc_multiplexer
 	rm -f ipc_notify
+	rm -f ipc_sniff.so
 	rm -f $(OBJECTS_C)
 	rm -f $(OBJECTS_R)
 	rm -f $(OBJECTS_M)

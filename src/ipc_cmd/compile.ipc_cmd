@@ -25,10 +25,13 @@ make clean
 make || exit 1
 
 mkdir -p ../_install/bin || exit 1
+mkdir -p ../_install/lib || exit 1
 
 cp ./ipc_cmd ../_install/bin || exit 1
 cp ./ipc_read ../_install/bin || exit 1
 cp ./ipc_multiplexer ../_install/bin || exit 1
 cp ./ipc_notify ../_install/bin || exit 1
+cp ./ipc_sniff.so ../_install/lib || exit 1
 
 ${STRIP} ../_install/bin/* || exit 1
+${STRIP} ../_install/lib/* || exit 1

@@ -10,7 +10,7 @@
 #include <mqueue.h>
 #include <pthread.h>
 
-#define IPC_QUEUE_NAME          "/ipc_sniff"
+#define IPC_QUEUE_NAME          "/ipc_dispatch"
 #define IPC_MESSAGE_MAX_SIZE    512
 #define COMMAND_MAX_SIZE        512
 

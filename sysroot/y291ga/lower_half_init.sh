@@ -137,15 +137,15 @@ if [ -f "/tmp/sd/factory_aging_test.sh" ]; then
 fi
 
 LD_PRELOAD=/tmp/sd/yi-hack/lib/ipc_multiplex.so ./dispatch &
-sleep 2
-./rmm &
-sleep 2
-./mp4record &
-./cloud &
-./p2p_tnp &
-./oss &
-./rtmp &
-./watch_process &
+#sleep 2
+#./rmm &
+#sleep 2
+#./mp4record &
+#./cloud &
+#./p2p_tnp &
+#./oss &
+#./rtmp &
+#./watch_process &
 
 chmod 777 /tmp/sd/debug.sh
 sh /tmp/sd/debug.sh &

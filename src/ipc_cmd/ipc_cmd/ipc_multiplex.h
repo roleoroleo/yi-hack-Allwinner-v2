@@ -9,7 +9,7 @@
 #include <dlfcn.h>
 
 #define IPC_QUEUE_NAME          "/ipc_dispatch"
-#define CONFIG_FILE_PATH        "/tmp/sd/yi-hack/config/message_mappings.conf"
+#define CONFIG_FILE_PATH        "/tmp/sd/yi-hack/config/ipc_multiplex.conf"
 #define ENV_IPC_MULTIPLEX_DEBUG "IPC_MULTIPLEX_DEBUG"
 #define IPC_MESSAGE_MAX_SIZE    128
 #define MESSAGE_PRIORITY        1

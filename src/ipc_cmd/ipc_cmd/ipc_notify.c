@@ -2,6 +2,7 @@
 
 static mqd_t ipc_mq;
 static char command_buffer[COMMAND_MAX_SIZE + 1];
+static char message_buffer[(IPC_MESSAGE_MAX_SIZE * 2) + 1];
 static int debug = 0;
 
 static int open_queue();
@@ -64,12 +65,24 @@ static int clear_queue()
     return 0;
 }
 
+char lookup[16] = {
+    '0', '1', '2', '3', '4', '5', '6', '7',
+    '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+};
+
 static int parse_message(char *buffer, char *cmd, ssize_t len)
 {
+    // Convert message to hex string
+    for (int i = 0; i < len; i++) {
+        message_buffer[i * 2]     = lookup[buffer[i] >>  4];
+        message_buffer[i * 2 + 1] = lookup[buffer[i] & 0xF];
+    }
+
+    message_buffer[(len * 2) + 1] = '\0';
 
     // Prepare command string
     size_t buffer_size = sizeof(command_buffer);
-    int bytes_written = snprintf(command_buffer, buffer_size, "%s \"%s\"", cmd, buffer);
+    int bytes_written = snprintf(command_buffer, buffer_size, "%s \"%s\"", cmd, message_buffer);
     if (bytes_written >= buffer_size) {
         return E2BIG;
     }

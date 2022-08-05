@@ -1,0 +1,6 @@
+#!/bin/bash
+
+VERSION="1.19"
+PACKAGE="micropython-${VERSION}"
+ARCHIVE="${PACKAGE}.tar.xz"
+PORT="ports/unix"

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+source config.micropython
+
+rm -rf ./_install
+rm -rf "${PACKAGE}"
+rm "${ARCHIVE}"
+
+# Cleanup dependency too
+./libffi/cleanup.libffi
+

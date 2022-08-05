@@ -1,0 +1,11 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+source config.libffi
+
+rm -rf ./_install
+rm -rf "${PACKAGE}"
+rm "${ARCHIVE}"
+

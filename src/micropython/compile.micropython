@@ -7,21 +7,30 @@ export CROSSPREFIX="arm-openwrt-linux-"
 export STRIP=${CROSSPREFIX}strip
 
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
-cd "${SCRIPT_DIR}"
 
 source config.micropython
 
-cd "${PACKAGE}/${PORT}" || exit 1
+# Compile mpy-cross
+cd "${SCRIPT_DIR}/${PACKAGE}/${MPY_CROSS_DIR}"
+make clean || exit 1
+make || exit 1
+
+# Compile micropython
+cd "${SCRIPT_DIR}/${PACKAGE}/${PORT}" || exit 1
 
 export CROSS_COMPILE="${CROSSPREFIX}"
-export FROZEN_MANIFEST=""
 export LDFLAGS_MOD="-L${SCRIPT_DIR}/libffi/_install/lib"
 
 make clean || exit 1
 make || exit 1
 
+# Copy micropython binary to install dir
 mkdir -p "${SCRIPT_DIR}/_install/bin" || exit 1
-
 cp ./micropython "${SCRIPT_DIR}/_install/bin/python3" || exit 1
-
 $STRIP "${SCRIPT_DIR}/_install/bin/python3" || exit 1
+
+# Copy upip package manager for micropython
+mkdir -p "${SCRIPT_DIR}/_install/.micropython/lib" || exit 1
+cp ./build-standard/frozen_mpy/upip.mpy "${SCRIPT_DIR}/_install/.micropython/lib" || exit 1
+cp ./build-standard/frozen_mpy/upip_utarfile.mpy "${SCRIPT_DIR}/_install/.micropython/lib" || exit 1
+

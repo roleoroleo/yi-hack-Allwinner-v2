@@ -118,6 +118,7 @@ Currently this project supports only the following cameras:
 | Yi 1080p Home IFUS | 9.0.36* | y211ga | - |
 | Yi 1080p Home QFUS | 9.0.36* | y211ga | - |
 | Yi 1080p Home RFUS | 9.0.36* | y211ga | - |
+| Yi 1080p Home RFUS | 9.0.35* | y291ga | - |
 | Yi Outdoor 1080p IFUS | 9.0.26* | h30ga | - |
 | Yi 1080p Dome *FUS | 9.0.05* | r30gb | beta version (high stream is h265 coded) |
 | Yi Dome Camera U BFUS (Full HD) | 9.0.22* | h52ga | - |
@@ -132,6 +133,7 @@ Currently this project supports only the following cameras:
 | BLITZWOLF BW-YIC1 | 9.0.41* | b091qp | - |
 | ESCAM PT202 | 9.0.41* | b091qp | - |
 | YS-QC-02 | 9.0.41* | b091qp | https://github.com/roleoroleo/yi-hack_ha_integration/issues/84 |
+| Flood Light Camera Outdoor L850Y-US | 9.0.41* | b091qp | - |
 
 USE AT YOUR OWN RISK.
 

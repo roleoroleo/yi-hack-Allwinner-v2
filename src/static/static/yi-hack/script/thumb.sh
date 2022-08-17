@@ -132,9 +132,7 @@ serviceMain ()
 			chmod -R 0755 "${FOLDER_TO_WATCH}"
 		fi
 		#
-#		if [[ $(get_config FTP_UPLOAD) == "yes" ]] ; then
-			checkFiles
-#		fi
+		checkFiles
 		#
 		if [ "${1}" = "--one-shot" ]; then
 			break

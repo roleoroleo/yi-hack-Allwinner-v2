@@ -136,7 +136,7 @@ if [ -f "/tmp/sd/factory_aging_test.sh" ]; then
 	exit
 fi
 
-./dispatch &
+LD_PRELOAD=/tmp/sd/yi-hack/lib/ipc_multiplex.so ./dispatch &
 #sleep 2
 #./rmm &
 #sleep 2

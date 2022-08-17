@@ -76,7 +76,7 @@ fi
 
 mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /home/app/script/wifidhcp.sh
 
-./dispatch &
+LD_PRELOAD=/tmp/sd/yi-hack/lib/ipc_multiplex.so ./dispatch &
 #sleep 2
 #./rmm &
 #sleep 2

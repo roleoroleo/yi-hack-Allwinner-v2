@@ -62,6 +62,11 @@ fi
 
 $YI_HACK_PREFIX/script/check_conf.sh
 
+# Set timezone for yi processes
+TIMEZONE=$(get_config TIMEZONE)
+TZP=$(TZ=$TIMEZONE date +%z)
+set_tz_offset -v $((${TZP:1:2}*3600+${TZP:3:2}*60))
+
 # Make /etc writable
 mkdir /tmp/etc
 cp -R /etc/* /tmp/etc

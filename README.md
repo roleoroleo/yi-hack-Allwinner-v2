@@ -52,7 +52,7 @@ Otherwise, follow this wiki: https://github.com/roleoroleo/yi-hack-Allwinner-v2/
 9. Check the FAQ if you have a problem: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/FAQ
 
 ### Optional Utilities 
-Several [optional untilies](https://github.com/roleoroleo/yi-hack-utils) are avaiable, some supporting experimental features like text-to-speech.
+Several [optional utilities](https://github.com/roleoroleo/yi-hack-utils) are avaiable, some supporting experimental features like text-to-speech.
 
 
 ## Contributing and Bug Reports

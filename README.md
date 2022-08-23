@@ -119,6 +119,7 @@ Currently this project supports only the following cameras:
 | Yi 1080p Home QFUS | 9.0.36* | y211ga | - |
 | Yi 1080p Home RFUS | 9.0.36* | y211ga | - |
 | Yi 1080p Home RFUS | 9.0.35* | y291ga | - |
+| Yi 1080p Home RFUS | 9.0.35* | y291ge | - |
 | Yi Outdoor 1080p IFUS | 9.0.26* | h30ga | - |
 | Yi 1080p Dome *FUS | 9.0.05* | r30gb | beta version (high stream is h265 coded) |
 | Yi Dome Camera U BFUS (Full HD) | 9.0.22* | h52ga | - |

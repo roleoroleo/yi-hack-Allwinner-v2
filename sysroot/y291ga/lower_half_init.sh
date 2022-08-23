@@ -1,6 +1,6 @@
 #!/bin/sh
 mount -t vfat /dev/mmcblk0 /tmp/sd
-if [ "${SUFFIX}" = "y211ga" ] || [ "${SUFFIX}" = "y211ba" ] || [ "${SUFFIX}" = "y291ga" ];then
+if [ "${SUFFIX}" = "y211ga" ] || [ "${SUFFIX}" = "y211ba" ] || [ "${SUFFIX}" = "y291ga" ] || [ "${SUFFIX}" = "y291ge" ];then
     echo "need reset gpio198"
     echo 198 > /sys/class/gpio/export 
     echo out > /sys/class/gpio/gpio198/direction  

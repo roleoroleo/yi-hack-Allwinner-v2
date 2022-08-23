@@ -49,6 +49,9 @@
 #define BUF_OFFSET_Y291GA 368
 #define FRAME_HEADER_SIZE_Y291GA 28
 
+#define BUF_OFFSET_Y291GE 368
+#define FRAME_HEADER_SIZE_Y291GE 28
+
 #define BUF_OFFSET_H30GA 368
 #define FRAME_HEADER_SIZE_H30GA 28
 
@@ -570,6 +573,9 @@ int main(int argc, char **argv) {
             } else if (strcasecmp("y291ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_Y291GA;
                 frame_header_size = FRAME_HEADER_SIZE_Y291GA;
+            } else if (strcasecmp("y291ge", optarg) == 0) {
+                buf_offset = BUF_OFFSET_Y291GE;
+                frame_header_size = FRAME_HEADER_SIZE_Y291GE;            
             } else if (strcasecmp("h30ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_H30GA;
                 frame_header_size = FRAME_HEADER_SIZE_H30GA;

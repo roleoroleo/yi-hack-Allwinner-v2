@@ -243,6 +243,10 @@ if [[ $(get_config SNAPSHOT) == "no" ]] ; then
     touch /tmp/snapshot.disabled
 fi
 
+if [[ $(get_config SNAPSHOT_LOW) == "yes" ]] ; then
+    touch /tmp/snapshot.low
+fi
+
 if [[ $(get_config RTSP) == "yes" ]] ; then
     RTSP_DAEMON="rRTSPServer"
     RTSP_AUDIO_COMPRESSION=$(get_config RTSP_AUDIO)

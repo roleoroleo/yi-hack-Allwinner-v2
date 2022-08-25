@@ -19,7 +19,8 @@ make || exit 1
 cd "${SCRIPT_DIR}/${PACKAGE}/${PORT}" || exit 1
 
 export CROSS_COMPILE="${CROSSPREFIX}"
-export LDFLAGS_MOD="-L${SCRIPT_DIR}/libffi/_install/lib"
+export CFLAGS_MOD="-I${SCRIPT_DIR}/libffi/_include"
+export LDFLAGS_MOD="-L${SCRIPT_DIR}/libffi/_install/lib -lffi"
 
 make clean || exit 1
 make || exit 1

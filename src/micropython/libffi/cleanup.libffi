@@ -6,6 +6,7 @@ cd $SCRIPT_DIR
 source config.libffi
 
 rm -rf ./_install
+rm -rf ./_include
 rm -rf "${PACKAGE}"
-rm "${ARCHIVE}"
+rm -f "${ARCHIVE}"
 

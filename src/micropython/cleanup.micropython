@@ -7,7 +7,7 @@ source config.micropython
 
 rm -rf ./_install
 rm -rf "${PACKAGE}"
-rm "${ARCHIVE}"
+rm -f "${ARCHIVE}"
 
 # Cleanup dependency too
 ./libffi/cleanup.libffi

@@ -27,7 +27,10 @@ make clean
 make install || exit 1
 
 mkdir -p ../_install/lib || exit 1
+mkdir -p ../_include/ || exit 1
 
 cp -a ./build/lib/libffi.so* ../_install/lib || exit 1
+cp -a ./build/lib/libffi.so* ../_install/lib || exit 1
+cp -a ./build/include/*.h ../_include || exit 1
 
 $STRIP ../_install/lib/* || exit 1

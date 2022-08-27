@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Compile dependency first
+./libffi/compile.libffi
+
+export CROSSPREFIX="arm-openwrt-linux-"
+export STRIP=${CROSSPREFIX}strip
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+
+source config.micropython
+
+# Compile mpy-cross
+cd "${SCRIPT_DIR}/${PACKAGE}/${MPY_CROSS_DIR}"
+make clean || exit 1
+make || exit 1
+
+# Compile micropython
+cd "${SCRIPT_DIR}/${PACKAGE}/${PORT}" || exit 1
+
+export CROSS_COMPILE="${CROSSPREFIX}"
+export CFLAGS_MOD="-I${SCRIPT_DIR}/libffi/_include"
+export LDFLAGS_MOD="-L${SCRIPT_DIR}/libffi/_install/lib -lffi"
+
+# Set the standard variant and the build output folder name
+export VARIANT="standard"
+export BUILD="build"
+
+make clean || exit 1
+make || exit 1
+
+# Copy micropython binary to install dir
+mkdir -p "${SCRIPT_DIR}/_install/bin" || exit 1
+cp "${SCRIPT_DIR}/${PACKAGE}/${PORT}/micropython" "${SCRIPT_DIR}/_install/bin/python3" || exit 1
+$STRIP "${SCRIPT_DIR}/_install/bin/python3" || exit 1
+
+# Copy upip package manager for micropython
+mkdir -p "${SCRIPT_DIR}/_install/.micropython/lib" || exit 1
+cp "${SCRIPT_DIR}/${PACKAGE}/${PORT}/${BUILD}/frozen_mpy/upip.mpy" "${SCRIPT_DIR}/_install/.micropython/lib" || exit 1
+cp "${SCRIPT_DIR}/${PACKAGE}/${PORT}/${BUILD}/frozen_mpy/upip_utarfile.mpy" "${SCRIPT_DIR}/_install/.micropython/lib" || exit 1
+

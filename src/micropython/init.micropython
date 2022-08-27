@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Initialize dependency first
+./libffi/init.libffi
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd "${SCRIPT_DIR}"
+
+source config.micropython
+
+rm -rf ./_install
+
+if [ ! -f "${ARCHIVE}" ]; then
+    wget "https://github.com/micropython/micropython/releases/download/v${VERSION}/${ARCHIVE}"
+fi
+
+tar xvf "${ARCHIVE}"

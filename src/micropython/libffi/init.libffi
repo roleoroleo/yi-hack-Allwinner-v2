@@ -1,0 +1,18 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd "${SCRIPT_DIR}"
+
+source config.libffi
+
+rm -rf ./_install
+
+if [ ! -f "${ARCHIVE}" ]; then
+    wget "https://github.com/libffi/libffi/releases/download/v${VERSION}/${ARCHIVE}"
+fi
+
+tar zxvf "${ARCHIVE}"
+
+cd "${PACKAGE}" || exit 1
+
+./configure --host=arm-openwrt-linux --prefix="$(pwd)/build"

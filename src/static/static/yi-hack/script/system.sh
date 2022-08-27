@@ -390,6 +390,14 @@ if [ -f "$YI_HACK_PREFIX/script/mqtt_advertise/startup.sh" ]; then
     $YI_HACK_PREFIX/script/mqtt_advertise/startup.sh
 fi
 
+# Add library path for linker
+echo "/lib:/usr/lib:/tmp/sd/yi-hack/lib" > /etc/ld-musl-armhf.path
+
+# Add custom binaries to PATH
+echo "" >> /etc/profile
+echo "# Custom yi-hack binaries" >> /etc/profile
+echo "PATH=/tmp/sd/yi-hack/bin:/tmp/sd/yi-hack/sbin:/tmp/sd/yi-hack/usr/bin:\$PATH" >> /etc/profile
+
 # Remove log files written to SD on boot containing the WiFi password
 #rm -f "/tmp/sd/log/log_first_login.tar.gz"
 #rm -f "/tmp/sd/log/log_login.tar.gz"

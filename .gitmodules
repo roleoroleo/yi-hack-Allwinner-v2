@@ -28,3 +28,6 @@
 [submodule "src/minimp4/minimp4"]
 	path = src/minimp4/minimp4
 	url = https://github.com/roleoroleo/minimp4
+[submodule "src/sftp-server/openssh-portable"]
+	path = src/sftp-server/openssh-portable
+	url = https://github.com/openssh/openssh-portable

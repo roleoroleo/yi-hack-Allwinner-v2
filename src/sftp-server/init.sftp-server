@@ -1,0 +1,18 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+rm -rf ./_install
+
+cd openssh-portable
+git reset --hard 
+
+autoreconf || exit 1
+
+./configure CC=arm-openwrt-linux-gcc \
+    --prefix=$SCRIPT_DIR/_install \
+    --host=arm \
+    --without-openssl \
+    --without-zlib \
+    || exit 1

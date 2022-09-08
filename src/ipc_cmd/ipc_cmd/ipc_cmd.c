@@ -56,7 +56,7 @@ void ipc_stop()
 
 void print_usage(char *progname)
 {
-    fprintf(stderr, "\nUsage: %s [t ON/OFF] [-s SENS] [-l LED] [-v WHEN] [-i IR] [-r ROTATE] [-a AIHUMANDETECTION] [-c FACEDETECTION] [-o MOTIONTRACKING] [-I MIC] [-b SOUNDDETECTION] [-m MOVE] [-p NUM] [-f FILE] [-S] [-T] [-d]\n\n", progname);
+    fprintf(stderr, "\nUsage: %s [t ON/OFF] [-s SENS] [-l LED] [-v WHEN] [-i IR] [-r ROTATE] [-a AIHUMANDETECTION] [-c FACEDETECTION] [-o MOTIONTRACKING] [-I MIC] [-b SOUNDDETECTION] [-m MOVE] [-p NUM] [-P] [-f FILE] [-S] [-T] [-d]\n\n", progname);
     fprintf(stderr, "\t-t ON/OFF, --switch ON/OFF\n");
     fprintf(stderr, "\t\tswitch ON or OFF the cam\n");
     fprintf(stderr, "\t-s SENS, --sensitivity SENS\n");
@@ -85,6 +85,8 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tsend PTZ command: RIGHT, LEFT, DOWN, UP or STOP\n");
     fprintf(stderr, "\t-p NUM, --preset NUM\n");
     fprintf(stderr, "\t\tsend PTZ go to preset command: NUM = [0..7]\n");
+    fprintf(stderr, "\t-P, --set_preset\n");
+    fprintf(stderr, "\t\tadd PTZ preset\n");
     fprintf(stderr, "\t-f FILE, --file FILE\n");
     fprintf(stderr, "\t\tread binary command from FILE\n");
     fprintf(stderr, "\t-x, --xxx\n");
@@ -120,6 +122,7 @@ int main(int argc, char ** argv)
 //    int babycrying = NONE;
     int move = NONE;
     int preset = NONE;
+    int set_preset = NONE;
     int debug = 0;
     unsigned char preset_msg[20];
     int start = 0;
@@ -151,6 +154,7 @@ int main(int argc, char ** argv)
             {"move",  required_argument, 0, 'm'},
             {"move-reverse",  required_argument, 0, 'M'},
             {"preset",  required_argument, 0, 'p'},
+            {"set_preset",  no_argument, 0, 'P'},
             {"file", required_argument, 0, 'f'},
             {"start", required_argument, 0, 'S'},
             {"stop", no_argument, 0, 'T'},
@@ -162,7 +166,7 @@ int main(int argc, char ** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:c:o:I:b:n:m:M:p:f:S:Txdh",
+        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:c:o:I:b:n:m:M:p:Pf:S:Txdh",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -315,6 +319,10 @@ int main(int argc, char ** argv)
                 print_usage(argv[0]);
                 exit(EXIT_FAILURE);
             }
+            break;
+
+        case 'P':
+            set_preset = 1;
             break;
 
         case 'f':
@@ -481,6 +489,10 @@ int main(int argc, char ** argv)
         memcpy(preset_msg, IPC_GOTO_PRESET, sizeof(IPC_GOTO_PRESET) - 1);
         preset_msg[16] = preset & 0xff;
         mq_send(ipc_mq, preset_msg, sizeof(IPC_GOTO_PRESET) - 1, 0);
+    }
+
+    if (set_preset != NONE) {
+        mq_send(ipc_mq, IPC_SET_PRESET, sizeof(IPC_SET_PRESET) - 1, 0);
     }
 
     if (file[0] != '\0') {

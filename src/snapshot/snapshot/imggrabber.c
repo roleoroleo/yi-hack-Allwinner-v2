@@ -791,7 +791,7 @@ int main(int argc, char **argv)
             exit(-7);
         }
 
-        for (f=0; f<h26x_file_size; i++) {
+        for (f=0; f<h26x_file_size; f++) {
             for (i=f; i<h26x_file_size; i++) {
                 if(h26x_file_buffer[i] == 0 && h26x_file_buffer[i+1] == 0 && h26x_file_buffer[i+2] == 0 && h26x_file_buffer[i+3] == 1) {
                     start_code = 4;
@@ -832,7 +832,7 @@ int main(int argc, char **argv)
                     break;
                 }
             }
-            f = j;
+            f = j - 1;
         }
 
         if ((sps_start_found >= 0) && (pps_start_found >= 0) && (idr_start_found >= 0) &&

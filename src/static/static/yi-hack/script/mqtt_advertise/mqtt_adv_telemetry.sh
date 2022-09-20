@@ -17,7 +17,6 @@ get_mqtt_advertise_config() {
     grep -w $1 $YI_HACK_PREFIX/$CONF_MQTT_ADVERTISE_FILE | cut -d "=" -f2
 }
 
-HOSTNAME=$(hostname)
 UPTIME=$(cat /proc/uptime | cut -d ' ' -f1)
 LOAD_AVG=$(cat /proc/loadavg | cut -d ' ' -f1-3)
 TOTAL_MEMORY=$(free -k | awk 'NR==2{print $2}')
@@ -70,4 +69,4 @@ CONTENT=$CONTENT'"total_memory":"'$TOTAL_MEMORY'",'
 CONTENT=$CONTENT'"free_memory":"'$FREE_MEMORY'",'
 CONTENT=$CONTENT'"wlan_strength":"'$WLAN_STRENGTH'"'
 CONTENT=$CONTENT" }"
-$YI_HACK_PREFIX/bin/mosquitto_pub -i $HOSTNAME $QOS $RETAIN -h $HOST -t $TOPIC -m "$CONTENT"
+$YI_HACK_PREFIX/bin/mosquitto_pub $QOS $RETAIN -h $HOST -t $TOPIC -m "$CONTENT"

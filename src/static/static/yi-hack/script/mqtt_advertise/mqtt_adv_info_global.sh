@@ -80,4 +80,4 @@ CONTENT=$CONTENT'"gateway":"'$GATEWAY'",'
 CONTENT=$CONTENT'"mac_addr":"'$MAC_ADDR'",'
 CONTENT=$CONTENT'"wlan_essid":"'$WLAN_ESSID'"'
 CONTENT=$CONTENT" }"
-$YI_HACK_PREFIX/bin/mosquitto_pub -i $HOSTNAME $QOS $RETAIN -h $HOST -t $TOPIC -m "$CONTENT"
+$YI_HACK_PREFIX/bin/mosquitto_pub $QOS $RETAIN -h $HOST -t $TOPIC -m "$CONTENT"

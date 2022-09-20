@@ -18,7 +18,6 @@ get_mqtt_advertise_config() {
     grep -w $1 $YI_HACK_PREFIX/$CONF_MQTT_ADVERTISE_FILE | cut -d "=" -f2
 }
 
-HOSTNAME=$(hostname)
 MQTT_IP=$(get_config MQTT_IP)
 MQTT_PORT=$(get_config MQTT_PORT)
 MQTT_USER=$(get_config MQTT_USER)
@@ -49,4 +48,4 @@ fi
 TOPIC=$MQTT_PREFIX/$MQTT_ADV_LINK_TOPIC
 
 
-$YI_HACK_PREFIX/bin/mosquitto_pub -i $HOSTNAME $QOS $RETAIN -h $HOST -t $TOPIC -m "$CONTENT"
+$YI_HACK_PREFIX/bin/mosquitto_pub $QOS $RETAIN -h $HOST -t $TOPIC -m "$CONTENT"

@@ -15,4 +15,7 @@ tar zxvf "${ARCHIVE}"
 
 cd "${PACKAGE}" || exit 1
 
+# See https://github.com/libffi/libffi/issues/552.
+sed -i 's/mv \$srcdir\/config.log/cp \$srcdir\/config.log/' configure
+
 ./configure --host=arm-openwrt-linux --prefix="$(pwd)/build"

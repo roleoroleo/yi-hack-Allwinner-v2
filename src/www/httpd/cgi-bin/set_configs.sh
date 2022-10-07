@@ -48,6 +48,7 @@ if [ "$VALID" != "0" ]; then
     printf "{\n"
     printf "\"%s\":\"%s\"\\n" "error" "true"
     printf "}"
+    exit
 fi
 # Change temporarily \n with \t (2 bytes)
 POST_DATA="${POST_DATA/\\n/\\t}"

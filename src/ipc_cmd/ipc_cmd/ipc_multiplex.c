@@ -80,9 +80,9 @@ ssize_t mq_receive(mqd_t mqdes, char *msg_ptr, size_t msg_len, unsigned int *msg
     }
 
     // Filter out messages not targeted at the ipc_dispatch queue.
-    if (get_message_target(msg_ptr) != MESSAGE_ID_IPC_DISPATCH) {
-        return bytes_read;
-    }
+//    if (get_message_target(msg_ptr) != MESSAGE_ID_IPC_DISPATCH) {
+//        return bytes_read;
+//    }
 
     // Resend the received message to the dispatch queues
     for (int i = 1; i < 10; i++) {

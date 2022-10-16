@@ -77,6 +77,7 @@ hostname -F $YI_HACK_PREFIX/etc/hostname
 if [[ $(get_config SWAP_FILE) == "yes" ]] ; then
     SD_PRESENT=$(mount | grep mmc | grep "/tmp/sd " | grep -c ^)
     if [[ $SD_PRESENT -eq 1 ]]; then
+        sysctl -w vm.swappiness=15
         if [[ -f /tmp/sd/swapfile ]]; then
             swapon /tmp/sd/swapfile
         else

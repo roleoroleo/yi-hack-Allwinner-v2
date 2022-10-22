@@ -2,8 +2,9 @@
 
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 CONF_FILE="etc/mqttv4.conf"
-
 CONF_MQTT_ADVERTISE_FILE="etc/mqtt_advertise.conf"
+CONF_SYSTEM_FILE="etc/system.conf"
+
 PATH=$PATH:$YI_HACK_PREFIX/bin:$YI_HACK_PREFIX/usr/bin
 LD_LIBRARY_PATH=$YI_HACK_PREFIX/lib:$LD_LIBRARY_PATH
 
@@ -12,10 +13,21 @@ get_config() {
     grep -w $key $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2
 }
 
+get_system_config() {
+    key=^$1
+    grep -w $key $YI_HACK_PREFIX/$CONF_SYSTEM_FILE | cut -d "=" -f2
+}
+
 get_mqtt_advertise_config() {
     key=$1
     grep -w $1 $YI_HACK_PREFIX/$CONF_MQTT_ADVERTISE_FILE | cut -d "=" -f2
 }
+
+LOCAL_IP=$(ifconfig eth0 | awk '/inet addr/{print substr($2,6)}')
+if [ -z $LOCAL_IP ]; then
+    LOCAL_IP=$(ifconfig wlan0 | awk '/inet addr/{print substr($2,6)}')
+fi
+HTTPD_PORT=$(get_system_config HTTPD_PORT)
 
 MQTT_IP=$(get_config MQTT_IP)
 MQTT_PORT=$(get_config MQTT_PORT)
@@ -68,7 +80,7 @@ IDENTIFIERS=$(get_mqtt_advertise_config HOMEASSISTANT_IDENTIFIERS)
 MANUFACTURER=$(get_mqtt_advertise_config HOMEASSISTANT_MANUFACTURER)
 MODEL=$(get_mqtt_advertise_config HOMEASSISTANT_MODEL)
 SW_VERSION=$(cat $YI_HACK_PREFIX/version)
-DEVICE_DETAILS="{\"identifiers\":[\"'$IDENTIFIERS'\"],\"manufacturer\":\"'$MANUFACTURER'\",\"model\":\"'$MODEL'\",\"name\":\"'$NAME'\",\"sw_version\":\"'$SW_VERSION'\"}"
+DEVICE_DETAILS="{\"identifiers\":[\"'$IDENTIFIERS'\"],\"manufacturer\":\"'$MANUFACTURER'\",\"model\":\"'$MODEL'\",\"name\":\"'$NAME'\",\"sw_version\":\"'$SW_VERSION'\",\"configuration_url\":\"http://'$LOCAL_IP':'$HTTPD_PORT'\"}"
 if [ "$HOMEASSISTANT_RETAIN" == "1" ]; then
     HA_RETAIN="-r"
 else

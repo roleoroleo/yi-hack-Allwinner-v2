@@ -80,7 +80,7 @@ IDENTIFIERS=$(get_mqtt_advertise_config HOMEASSISTANT_IDENTIFIERS)
 MANUFACTURER=$(get_mqtt_advertise_config HOMEASSISTANT_MANUFACTURER)
 MODEL=$(get_mqtt_advertise_config HOMEASSISTANT_MODEL)
 SW_VERSION=$(cat $YI_HACK_PREFIX/version)
-DEVICE_DETAILS="{\"identifiers\":[\"'$IDENTIFIERS'\"],\"manufacturer\":\"'$MANUFACTURER'\",\"model\":\"'$MODEL'\",\"name\":\"'$NAME'\",\"sw_version\":\"'$SW_VERSION'\",\"configuration_url\":\"http://'$LOCAL_IP':'$HTTPD_PORT'\"}"
+DEVICE_DETAILS="{\"identifiers\":[\"$IDENTIFIERS\"],\"manufacturer\":\"$MANUFACTURER\",\"model\":\"$MODEL\",\"name\":\"$NAME\",\"sw_version\":\"$SW_VERSION\",\"configuration_url\":\"http://$LOCAL_IP:$HTTPD_PORT\"}"
 if [ "$HOMEASSISTANT_RETAIN" == "1" ]; then
     HA_RETAIN="-r"
 else

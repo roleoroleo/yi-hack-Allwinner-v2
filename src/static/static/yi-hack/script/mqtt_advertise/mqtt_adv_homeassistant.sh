@@ -102,18 +102,26 @@ hass_topic(){
   TOPIC="$HOMEASSISTANT_MQTT_PREFIX/$1/$IDENTIFIERS/$2/config"
 }
 hass_setup_sensor(){
-  # topic, Full name, icon, state_topic, unit_of_measurement (optional)
+  # topic, Full name, icon, state_topic, unit_of_measurement (optional), entity category (optional)
   hass_topic "sensor" "$1" "$2"
   CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:'$3'","state_topic":"'$MQTT_PREFIX'/'$4'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.'$1' }}", "platform": "mqtt"'
   if [ -n "$5" ]; then
     CONTENT=$CONTENT', "unit_of_measurement":"'$5'"'
   fi
+  if [ -n "$6" ]; then
+    CONTENT=$CONTENT', "entity_category":"'$6'"'
+  fi
   CONTENT="$CONTENT}"
 }
 hass_setup_switch(){
-  # topic, Full name, icon, state_topic
+  # topic, Full name, icon, state_topic, entity_category (optional)
   hass_topic "switch" "$1" $2
-  CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:'$3'","state_topic":"'$MQTT_PREFIX'/'$4'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.'$1' }}", "platform": "mqtt", "command_topic":"'$MQTT_PREFIX'/'$4'/'$1'/set", "payload_on":"yes", "payload_off":"no"}'
+  CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:'$3'","state_topic":"'$MQTT_PREFIX'/'$4'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.'$1' }}", "platform": "mqtt"'
+  CONTENT=$CONTENT', "command_topic":"'$MQTT_PREFIX'/'$4'/'$1'/set", "payload_on":"yes", "payload_off":"no"'
+  if [ -n "$5" ]; then
+    CONTENT=$CONTENT', "entity_category":"'$5'"'
+  fi
+  CONTENT="$CONTENT}"
 }
 
 if [ "$MQTT_ADV_INFO_GLOBAL_ENABLE" == "yes" ]; then
@@ -129,34 +137,34 @@ if [ "$MQTT_ADV_INFO_GLOBAL_ENABLE" == "yes" ]; then
         QOS=""
     fi
     #Hostname
-    hass_setup_sensor "hostname" "Hostname" "network" $MQTT_ADV_INFO_GLOBAL_TOPIC
+    hass_setup_sensor "hostname" "Hostname" "network" $MQTT_ADV_INFO_GLOBAL_TOPIC "" "diagnostic"
     mqtt_publish
     #IP
-    hass_setup_sensor "local_ip" "Local IP" "ip" $MQTT_ADV_INFO_GLOBAL_TOPIC
+    hass_setup_sensor "local_ip" "Local IP" "ip" $MQTT_ADV_INFO_GLOBAL_TOPIC "" "diagnostic"
     mqtt_publish
     #Netmask
-    hass_setup_sensor "netmask" "Netmask" "ip" $MQTT_ADV_INFO_GLOBAL_TOPIC
+    hass_setup_sensor "netmask" "Netmask" "ip" $MQTT_ADV_INFO_GLOBAL_TOPIC "" "diagnostic"
     mqtt_publish
     #Gateway
-    hass_setup_sensor "gateway" "Gateway" "ip" $MQTT_ADV_INFO_GLOBAL_TOPIC
+    hass_setup_sensor "gateway" "Gateway" "ip" $MQTT_ADV_INFO_GLOBAL_TOPIC "" "diagnostic"
     mqtt_publish
     #WLan ESSID
-    hass_setup_sensor "wlan_essid" "WiFi ESSID" "wifi" $MQTT_ADV_INFO_GLOBAL_TOPIC
+    hass_setup_sensor "wlan_essid" "WiFi ESSID" "wifi" $MQTT_ADV_INFO_GLOBAL_TOPIC "" "diagnostic"
     mqtt_publish
     #Mac Address
-    hass_setup_sensor "mac_addr" "Mac Address" "network" $MQTT_ADV_INFO_GLOBAL_TOPIC
+    hass_setup_sensor "mac_addr" "Mac Address" "network" $MQTT_ADV_INFO_GLOBAL_TOPIC "" "diagnostic"
     mqtt_publish
     #Home Version
-    hass_setup_sensor "home_version" "Home Version" "memory" $MQTT_ADV_INFO_GLOBAL_TOPIC
+    hass_setup_sensor "home_version" "Home Version" "memory" $MQTT_ADV_INFO_GLOBAL_TOPIC "" "diagnostic"
     mqtt_publish
     #Firmware Version
-    hass_setup_sensor "fw_version" "Firmware Version" "network" $MQTT_ADV_INFO_GLOBAL_TOPIC
+    hass_setup_sensor "fw_version" "Firmware Version" "network" $MQTT_ADV_INFO_GLOBAL_TOPIC "" "diagnostic"
     mqtt_publish
     #Model Suffix
-    hass_setup_sensor "model_suffix" "Model Suffix" "network" $MQTT_ADV_INFO_GLOBAL_TOPIC
+    hass_setup_sensor "model_suffix" "Model Suffix" "network" $MQTT_ADV_INFO_GLOBAL_TOPIC "" "diagnostic"
     mqtt_publish
     #Serial Number
-    hass_setup_sensor "serial_number" "Serial Number" "webcam" $MQTT_ADV_INFO_GLOBAL_TOPIC
+    hass_setup_sensor "serial_number" "Serial Number" "webcam" $MQTT_ADV_INFO_GLOBAL_TOPIC "" "diagnostic"
     mqtt_publish
 else
     for ITEM in hostname local_ip netmask gateway wlan_essid mac_addr home_version fw_version model_suffix serial_number; do
@@ -177,25 +185,25 @@ if [ "$MQTT_ADV_TELEMETRY_ENABLE" == "yes" ]; then
         QOS=""
     fi
     #Total Memory
-    hass_setup_sensor "total_memory" "Total Memory" "memory" $MQTT_ADV_TELEMETRY_TOPIC "KB"
+    hass_setup_sensor "total_memory" "Total Memory" "memory" $MQTT_ADV_TELEMETRY_TOPIC "KB" "diagnostic"
     mqtt_publish
     #Free Memory
-    hass_setup_sensor "free_memory" "Free Memory" "memory" $MQTT_ADV_TELEMETRY_TOPIC "KB"
+    hass_setup_sensor "free_memory" "Free Memory" "memory" $MQTT_ADV_TELEMETRY_TOPIC "KB" "diagnostic"
     mqtt_publish
     #FreeSD
     hass_topic "sensor" "free_sd" "Free SD"
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:micro-sd","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.free_sd|regex_replace(find=\"%\", replace=\"\", ignorecase=False) }}","unit_of_measurement":"%", "platform": "mqtt"}'
+    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:micro-sd","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.free_sd|regex_replace(find=\"%\", replace=\"\", ignorecase=False) }}","platform": "mqtt","unit_of_measurement":"%","entity_category": "diagnostic"}'
     mqtt_publish
     #Load AVG
-    hass_setup_sensor "load_avg" "Load AVG" "network" $MQTT_ADV_TELEMETRY_TOPIC
+    hass_setup_sensor "load_avg" "Load AVG" "network" $MQTT_ADV_TELEMETRY_TOPIC "" "diagnostic"
     mqtt_publish
     #Uptime
     hass_topic "sensor" "uptime" "Uptime"
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "device_class":"timestamp","icon":"mdi:timer-outline","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","'unique_id'":"'$UNIQUE_ID'","value_template":"{{ (as_timestamp(now())-(value_json.uptime|int))|timestamp_local }}", "platform": "mqtt"}'
+    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "device_class":"timestamp","icon":"mdi:timer-outline","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","'unique_id'":"'$UNIQUE_ID'","value_template":"{{ (as_timestamp(now())-(value_json.uptime|int))|timestamp_local }}", "platform": "mqtt","entity_category": "diagnostic"}'
     mqtt_publish
     #WLanStrenght
     hass_topic "sensor" "wlan_strength" "Wlan Strengh"
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "device_class":"signal_strength","icon":"mdi:wifi","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ ((value_json.wlan_strength|int) * 100 / 70 )|int }}","unit_of_measurement":"%", "platform": "mqtt"}'
+    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "device_class":"signal_strength","icon":"mdi:wifi","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ ((value_json.wlan_strength|int) * 100 / 70 )|int }}","platform": "mqtt","unit_of_measurement":"%","entity_category": "diagnostic"}'
     mqtt_publish
 else
     for ITEM in total_memory free_memory free_sd load_avg uptime wlan_strength; do
@@ -263,22 +271,22 @@ if [ "$MQTT_ADV_CAMERA_SETTING_ENABLE" == "yes" ]; then
         QOS=""
     fi
     # Switch On
-    hass_setup_switch "SWITCH_ON" "Switch Status" "video" $MQTT_ADV_CAMERA_SETTING_TOPIC
+    hass_setup_switch "SWITCH_ON" "Switch Status" "video" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
     # Sound Detection
-    hass_setup_switch "SOUND_DETECTION" "Sound Detection" "music-note" $MQTT_ADV_CAMERA_SETTING_TOPIC
+    hass_setup_switch "SOUND_DETECTION" "Sound Detection" "music-note" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
     # try to remove baby_crying topic
     hass_topic "switch" "BABY_CRYING_DETECT"
     $YI_HACK_PREFIX/bin/mosquitto_pub -h $HOST -t $TOPIC -n
     # Led
-    hass_setup_switch "LED" "Status Led" "led-on" $MQTT_ADV_CAMERA_SETTING_TOPIC
+    hass_setup_switch "LED" "Status Led" "led-on" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
     # IR
-    hass_setup_switch "IR" "IR Led" "remote" $MQTT_ADV_CAMERA_SETTING_TOPIC
+    hass_setup_switch "IR" "IR Led" "remote" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
     # Rotate
-    hass_setup_switch "ROTATE" "Rotate" "monitor" $MQTT_ADV_CAMERA_SETTING_TOPIC
+    hass_setup_switch "ROTATE" "Rotate" "monitor" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
 else
     for ITEM in SWITCH_ON SOUND_DETECTION BABY_CRYING_DETECT LED IR ROTATE; do

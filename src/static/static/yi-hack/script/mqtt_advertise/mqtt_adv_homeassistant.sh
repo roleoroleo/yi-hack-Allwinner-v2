@@ -95,11 +95,15 @@ fi
 mqtt_publish(){
   $YI_HACK_PREFIX/bin/mosquitto_pub $HA_QOS $HA_RETAIN -h $HOST -t $TOPIC -m "$CONTENT"
 }
+hass_topic(){
+  # type, topic, Full name (optional)
+  [ -n "$3" ] && UNIQUE_NAME="$NAME $3"
+  UNIQUE_ID="$IDENTIFIERS-$2"
+  TOPIC="$HOMEASSISTANT_MQTT_PREFIX/$1/$IDENTIFIERS/$2/config"
+}
 hass_setup_sensor(){
   # topic, Full name, icon, state_topic
-  UNIQUE_NAME="$NAME $2"
-  UNIQUE_ID="$IDENTIFIERS-$1"
-  TOPIC="$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/$1/config"
+  hass_topic "sensor" "$1" "$2"
   CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:'$3'","state_topic":"'$MQTT_PREFIX'/'$4'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.'$1' }}", "platform": "mqtt"}'
 }
 
@@ -164,49 +168,37 @@ if [ "$MQTT_ADV_TELEMETRY_ENABLE" == "yes" ]; then
         QOS=""
     fi
     #Total Memory
-    UNIQUE_NAME=$NAME" Total Memory"
-    UNIQUE_ID=$IDENTIFIERS"-total_memory"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/total_memory/config
+    hass_topic "sensor" "total_memory" "Total Memory"
     CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:memory","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.total_memory }}","unit_of_measurement":"KB", "platform": "mqtt"}'
     mqtt_publish
     #Free Memory
-    UNIQUE_NAME=$NAME" Free Memory"
-    UNIQUE_ID=$IDENTIFIERS"-free_memory"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/free_memory/config
+    hass_topic "sensor" "free_memory" "Free Memory"
     CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:memory","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.free_memory }}","unit_of_measurement":"KB", "platform": "mqtt"}'
     mqtt_publish
     #FreeSD
-    UNIQUE_NAME=$NAME" Free SD"
-    UNIQUE_ID=$IDENTIFIERS"-free_sd"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/free_sd/config
+    hass_topic "sensor" "free_sd" "Free SD"
     CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:micro-sd","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.free_sd|regex_replace(find=\"%\", replace=\"\", ignorecase=False) }}","unit_of_measurement":"%", "platform": "mqtt"}'
     mqtt_publish
     #Load AVG
     hass_setup_sensor "load_avg" "Load AVG" "network" $MQTT_ADV_TELEMETRY_TOPIC
     mqtt_publish
     #Uptime
-    UNIQUE_NAME=$NAME" Uptime"
-    UNIQUE_ID=$IDENTIFIERS"-uptime"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/uptime/config
+    hass_topic "sensor" "uptime" "Uptime"
     CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "device_class":"timestamp","icon":"mdi:timer-outline","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","'unique_id'":"'$UNIQUE_ID'","value_template":"{{ (as_timestamp(now())-(value_json.uptime|int))|timestamp_local }}", "platform": "mqtt"}'
     mqtt_publish
     #WLanStrenght
-    UNIQUE_NAME=$NAME" Wlan Strengh"
-    UNIQUE_ID=$IDENTIFIERS"-wlan_strength"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/wlan_strength/config
+    hass_topic "sensor" "wlan_strength" "Wlan Strengh"
     CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "device_class":"signal_strength","icon":"mdi:wifi","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ ((value_json.wlan_strength|int) * 100 / 70 )|int }}","unit_of_measurement":"%", "platform": "mqtt"}'
     mqtt_publish
 else
     for ITEM in total_memory free_memory free_sd load_avg uptime wlan_strength; do
-        TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/$ITEM/config
+        hass_topic "sensor" "$ITEM"
         $YI_HACK_PREFIX/bin/mosquitto_pub $HA_QOS $HA_RETAIN -h $HOST -t $TOPIC -n
     done
 fi
 
 # Motion Detection
-UNIQUE_NAME=$NAME" Movement"
-UNIQUE_ID=$IDENTIFIERS"-motion_detection"
-TOPIC=$HOMEASSISTANT_MQTT_PREFIX/binary_sensor/$IDENTIFIERS/motion_detection/config
+hass_topic "binary_sensor" "motion_detection" "Movement"
 MQTT_RETAIN_MOTION=$(get_config MQTT_RETAIN_MOTION)
 #Don't know why... ..Home Assistant don't allow retain for Sensor and Binary Sensor
 # if [ "$MQTT_RETAIN_MOTION" == "1" ]; then
@@ -217,9 +209,7 @@ MQTT_RETAIN_MOTION=$(get_config MQTT_RETAIN_MOTION)
 CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS', "qos": "'$MQTT_QOS'", '$RETAIN' "device_class":"motion","state_topic":"'$MQTT_PREFIX'/'$TOPIC_MOTION'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","payload_on":"'$MOTION_START_MSG'","payload_off":"'$MOTION_STOP_MSG'", "platform": "mqtt"}'
 mqtt_publish
 # Human Detection
-UNIQUE_NAME=$NAME" Human Detection"
-UNIQUE_ID=$IDENTIFIERS"-ai_human_detection"
-TOPIC=$HOMEASSISTANT_MQTT_PREFIX/binary_sensor/$IDENTIFIERS/ai_human_detection/config
+hass_topic "binary_sensor" "ai_human_detection" "Human Detection"
 MQTT_RETAIN_AI_HUMAN_DETECTION=$(get_config MQTT_RETAIN_MOTION)
 #Don't know why... ..Home Assistant don't allow retain for Sensor and Binary Sensor
 # if [ "$MQTT_RETAIN_AI_HUMAN_DETECTION" == "1" ]; then
@@ -230,9 +220,7 @@ MQTT_RETAIN_AI_HUMAN_DETECTION=$(get_config MQTT_RETAIN_MOTION)
 CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS', "qos": "'$MQTT_QOS'", '$RETAIN' "device_class":"motion","state_topic":"'$MQTT_PREFIX'/'$TOPIC_MOTION'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","payload_on":"'$AI_HUMAN_DETECTION_MSG'","payload_off":"'$MOTION_STOP_MSG'", "platform": "mqtt"}'
 mqtt_publish
 # Sound Detection
-UNIQUE_NAME=$NAME" Sound Detection"
-UNIQUE_ID=$IDENTIFIERS"-sound_detection"
-TOPIC=$HOMEASSISTANT_MQTT_PREFIX/binary_sensor/$IDENTIFIERS/sound_detection/config
+hass_topic "binary_sensor" "sound_detection" "Sound Detection"
 MQTT_RETAIN_SOUND_DETECTION=$(get_config MQTT_RETAIN_SOUND_DETECTION)
 #Don't know why... ..Home Assistant don't allow retain for Sensor and Binary Sensor
 # if [ "$MQTT_RETAIN_SOUND_DETECTION" == "1" ]; then
@@ -243,12 +231,10 @@ MQTT_RETAIN_SOUND_DETECTION=$(get_config MQTT_RETAIN_SOUND_DETECTION)
 CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS', "qos": "'$MQTT_QOS'", '$RETAIN' "device_class":"sound","state_topic":"'$MQTT_PREFIX'/'$TOPIC_SOUND_DETECTION'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","payload_on":"'$SOUND_DETECTION_MSG'","off_delay":60, "platform": "mqtt"}'
 mqtt_publish
 # try to remove baby_crying topic
-TOPIC=$HOMEASSISTANT_MQTT_PREFIX/binary_sensor/$IDENTIFIERS/baby_crying/config
+hass_topic "binary_sensor" "baby_crying"
 $YI_HACK_PREFIX/bin/mosquitto_pub -h $HOST -t $TOPIC -m ""
 # Motion Detection Image
-UNIQUE_NAME=$NAME" Motion Detection Image"
-UNIQUE_ID=$IDENTIFIERS"-motion_detection_image"
-TOPIC=$HOMEASSISTANT_MQTT_PREFIX/camera/$IDENTIFIERS/motion_detection_image/config
+hass_topic "camera" "motion_detection_image" "Motion Detection Image"
 MQTT_RETAIN_MOTION_IMAGE=$(get_config MQTT_RETAIN_MOTION_IMAGE)
 #Don't know why... ..Home Assistant don't allow retain for Sensor and Binary Sensor
 # if [ "$MQTT_RETAIN_MOTION_IMAGE" == "1" ]; then
@@ -270,41 +256,31 @@ if [ "$MQTT_ADV_CAMERA_SETTING_ENABLE" == "yes" ]; then
         QOS=""
     fi
     # Switch On
-    UNIQUE_NAME=$NAME" Switch Status"
-    UNIQUE_ID=$IDENTIFIERS"-SWITCH_ON"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/switch/$IDENTIFIERS/SWITCH_ON/config
+    hass_topic "switch" "SWITCH_ON" "Switch Status"
     CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:video","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_CAMERA_SETTING_TOPIC'","command_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_CAMERA_SETTING_TOPIC'/SWITCH_ON/set","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.SWITCH_ON }}","payload_on":"yes","payload_off":"no", "platform": "mqtt"}'
     mqtt_publish
     # Sound Detection
-    UNIQUE_NAME=$NAME" Sound Detection"
-    UNIQUE_ID=$IDENTIFIERS"-SOUND_DETECTION"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/switch/$IDENTIFIERS/SOUND_DETECTION/config
+    hass_topic "switch" "SOUND_DETECTION" "Sound Detection"
     CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS', '$QOS' '$RETAIN' "icon":"mdi:music-note","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_CAMERA_SETTING_TOPIC'","command_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_CAMERA_SETTING_TOPIC'/SOUND_DETECTION/set","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.SOUND_DETECTION }}","payload_on":"yes","payload_off":"no", "platform": "mqtt"}'
     mqtt_publish
     # try to remove baby_crying topic
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/switch/$IDENTIFIERS/BABY_CRYING_DETECT/config
+    hass_topic "switch" "BABY_CRYING_DETECT"
     $YI_HACK_PREFIX/bin/mosquitto_pub -h $HOST -t $TOPIC -n
     # Led
-    UNIQUE_NAME=$NAME" Status Led"
-    UNIQUE_ID=$IDENTIFIERS"-LED"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/switch/$IDENTIFIERS/LED/config
+    hass_topic "switch" "LED" "Status Led"
     CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:led-on","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_CAMERA_SETTING_TOPIC'","command_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_CAMERA_SETTING_TOPIC'/LED/set","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.LED }}","payload_on":"yes","payload_off":"no", "platform": "mqtt"}'
     mqtt_publish
     # IR
-    UNIQUE_NAME=$NAME" IR Led"
-    UNIQUE_ID=$IDENTIFIERS"-IR"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/switch/$IDENTIFIERS/IR/config
+    hass_topic "switch" "IR" "IR Led"
     CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:remote","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_CAMERA_SETTING_TOPIC'","command_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_CAMERA_SETTING_TOPIC'/IR/set","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.IR }}","payload_on":"yes","payload_off":"no", "platform": "mqtt"}'
     mqtt_publish
     # Rotate
-    UNIQUE_NAME=$NAME"  Rotate"
-    UNIQUE_ID=$IDENTIFIERS"-ROTATE"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/switch/$IDENTIFIERS/ROTATE/config
+    hass_topic "switch" "ROTATE" "Rotate"
     CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:monitor","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_CAMERA_SETTING_TOPIC'","command_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_CAMERA_SETTING_TOPIC'/ROTATE/set","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.ROTATE }}","payload_on":"yes","payload_off":"no", "platform": "mqtt"}'
     mqtt_publish
 else
     for ITEM in SWITCH_ON SOUND_DETECTION BABY_CRYING_DETECT LED IR ROTATE; do
-        TOPIC=$HOMEASSISTANT_MQTT_PREFIX/switch/$IDENTIFIERS/$ITEM/config
+        hass_topic "switch" "$ITEM"
         $YI_HACK_PREFIX/bin/mosquitto_pub $HA_QOS $HA_RETAIN -h $HOST -t $TOPIC -n
     done
 fi

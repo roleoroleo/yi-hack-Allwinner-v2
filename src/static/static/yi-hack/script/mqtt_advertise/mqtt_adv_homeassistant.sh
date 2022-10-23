@@ -95,6 +95,13 @@ fi
 mqtt_publish(){
   $YI_HACK_PREFIX/bin/mosquitto_pub $HA_QOS $HA_RETAIN -h $HOST -t $TOPIC -m "$CONTENT"
 }
+hass_setup_sensor(){
+  # topic, Full name, icon, state_topic
+  UNIQUE_NAME="$NAME $2"
+  UNIQUE_ID="$IDENTIFIERS-$1"
+  TOPIC="$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/$1/config"
+  CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:'$3'","state_topic":"'$MQTT_PREFIX'/'$4'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.'$1' }}", "platform": "mqtt"}'
+}
 
 if [ "$MQTT_ADV_INFO_GLOBAL_ENABLE" == "yes" ]; then
     #Don't know why... ..Home Assistant don't allow retain for Sensor and Binary Sensor
@@ -109,64 +116,34 @@ if [ "$MQTT_ADV_INFO_GLOBAL_ENABLE" == "yes" ]; then
         QOS=""
     fi
     #Hostname
-    UNIQUE_NAME=$NAME" Hostname"
-    UNIQUE_ID=$IDENTIFIERS"-hostname"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/hostname/config
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:network","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_INFO_GLOBAL_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.hostname }}", "platform": "mqtt"}'
+    hass_setup_sensor "hostname" "Hostname" "network" $MQTT_ADV_INFO_GLOBAL_TOPIC
     mqtt_publish
     #IP
-    UNIQUE_NAME=$NAME" Local IP"
-    UNIQUE_ID=$IDENTIFIERS"-local_ip"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/local_ip/config
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:ip","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_INFO_GLOBAL_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.local_ip }}", "platform": "mqtt"}'
+    hass_setup_sensor "local_ip" "Local IP" "ip" $MQTT_ADV_INFO_GLOBAL_TOPIC
     mqtt_publish
     #Netmask
-    UNIQUE_NAME=$NAME" Netmask"
-    UNIQUE_ID=$IDENTIFIERS"-netmask"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/netmask/config
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:ip","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_INFO_GLOBAL_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.netmask }}", "platform": "mqtt"}'
+    hass_setup_sensor "netmask" "Netmask" "ip" $MQTT_ADV_INFO_GLOBAL_TOPIC
     mqtt_publish
     #Gateway
-    UNIQUE_NAME=$NAME" Gateway"
-    UNIQUE_ID=$IDENTIFIERS"-gateway"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/gateway/config
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:ip","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_INFO_GLOBAL_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.gateway }}", "platform": "mqtt"}'
+    hass_setup_sensor "gateway" "Gateway" "ip" $MQTT_ADV_INFO_GLOBAL_TOPIC
     mqtt_publish
     #WLan ESSID
-    UNIQUE_NAME=$NAME" WiFi ESSID"
-    UNIQUE_ID=$IDENTIFIERS"-wlan_essid"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/wlan_essid/config
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:wifi","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_INFO_GLOBAL_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.wlan_essid }}", "platform": "mqtt"}'
+    hass_setup_sensor "wlan_essid" "WiFi ESSID" "wifi" $MQTT_ADV_INFO_GLOBAL_TOPIC
     mqtt_publish
     #Mac Address
-    UNIQUE_NAME=$NAME" Mac Address"
-    UNIQUE_ID=$IDENTIFIERS"-mac_addr"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/mac_addr/config
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:network","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_INFO_GLOBAL_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.mac_addr }}", "platform": "mqtt"}'
+    hass_setup_sensor "mac_addr" "Mac Address" "network" $MQTT_ADV_INFO_GLOBAL_TOPIC
     mqtt_publish
     #Home Version
-    UNIQUE_NAME=$NAME" Home Version"
-    UNIQUE_ID=$IDENTIFIERS"-home_version"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/home_version/config
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:memory","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_INFO_GLOBAL_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.home_version }}", "platform": "mqtt"}'
+    hass_setup_sensor "home_version" "Home Version" "memory" $MQTT_ADV_INFO_GLOBAL_TOPIC
     mqtt_publish
     #Firmware Version
-    UNIQUE_NAME=$NAME" Firmware Version"
-    UNIQUE_ID=$IDENTIFIERS"-fw_version"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/fw_version/config
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:network","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_INFO_GLOBAL_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.fw_version }}", "platform": "mqtt"}'
+    hass_setup_sensor "fw_version" "Firmware Version" "network" $MQTT_ADV_INFO_GLOBAL_TOPIC
     mqtt_publish
     #Model Suffix
-    UNIQUE_NAME=$NAME" Model Suffix"
-    UNIQUE_ID=$IDENTIFIERS"-model_suffix"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/model_suffix/config
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:network","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_INFO_GLOBAL_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.model_suffix }}", "platform": "mqtt"}'
+    hass_setup_sensor "model_suffix" "Model Suffix" "network" $MQTT_ADV_INFO_GLOBAL_TOPIC
     mqtt_publish
     #Serial Number
-    UNIQUE_NAME=$NAME" Serial Number"
-    UNIQUE_ID=$IDENTIFIERS"-serial_number"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/serial_number/config
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:webcam","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_INFO_GLOBAL_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.serial_number }}", "platform": "mqtt"}'
+    hass_setup_sensor "serial_number" "Serial Number" "webcam" $MQTT_ADV_INFO_GLOBAL_TOPIC
     mqtt_publish
 else
     for ITEM in hostname local_ip netmask gateway wlan_essid mac_addr home_version fw_version model_suffix serial_number; do
@@ -205,10 +182,7 @@ if [ "$MQTT_ADV_TELEMETRY_ENABLE" == "yes" ]; then
     CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:micro-sd","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.free_sd|regex_replace(find=\"%\", replace=\"\", ignorecase=False) }}","unit_of_measurement":"%", "platform": "mqtt"}'
     mqtt_publish
     #Load AVG
-    UNIQUE_NAME=$NAME" Load AVG"
-    UNIQUE_ID=$IDENTIFIERS"-load_avg"
-    TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/load_avg/config
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:network","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.load_avg }}", "platform": "mqtt"}'
+    hass_setup_sensor "load_avg" "Load AVG" "network" $MQTT_ADV_TELEMETRY_TOPIC
     mqtt_publish
     #Uptime
     UNIQUE_NAME=$NAME" Uptime"

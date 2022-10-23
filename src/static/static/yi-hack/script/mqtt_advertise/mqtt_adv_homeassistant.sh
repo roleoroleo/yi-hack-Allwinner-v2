@@ -102,9 +102,13 @@ hass_topic(){
   TOPIC="$HOMEASSISTANT_MQTT_PREFIX/$1/$IDENTIFIERS/$2/config"
 }
 hass_setup_sensor(){
-  # topic, Full name, icon, state_topic
+  # topic, Full name, icon, state_topic, unit_of_measurement (optional)
   hass_topic "sensor" "$1" "$2"
-  CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:'$3'","state_topic":"'$MQTT_PREFIX'/'$4'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.'$1' }}", "platform": "mqtt"}'
+  CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:'$3'","state_topic":"'$MQTT_PREFIX'/'$4'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.'$1' }}", "platform": "mqtt"'
+  if [ -n "$5" ]; then
+    CONTENT=$CONTENT', "unit_of_measurement":"'$5'"'
+  fi
+  CONTENT="$CONTENT}"
 }
 hass_setup_switch(){
   # topic, Full name, icon, state_topic
@@ -173,12 +177,10 @@ if [ "$MQTT_ADV_TELEMETRY_ENABLE" == "yes" ]; then
         QOS=""
     fi
     #Total Memory
-    hass_topic "sensor" "total_memory" "Total Memory"
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:memory","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.total_memory }}","unit_of_measurement":"KB", "platform": "mqtt"}'
+    hass_setup_sensor "total_memory" "Total Memory" "memory" $MQTT_ADV_TELEMETRY_TOPIC "KB"
     mqtt_publish
     #Free Memory
-    hass_topic "sensor" "free_memory" "Free Memory"
-    CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:memory","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.free_memory }}","unit_of_measurement":"KB", "platform": "mqtt"}'
+    hass_setup_sensor "free_memory" "Free Memory" "memory" $MQTT_ADV_TELEMETRY_TOPIC "KB"
     mqtt_publish
     #FreeSD
     hass_topic "sensor" "free_sd" "Free SD"

@@ -23,9 +23,14 @@ get_mqtt_advertise_config() {
     grep -w $1 $YI_HACK_PREFIX/$CONF_MQTT_ADVERTISE_FILE | cut -d "=" -f2
 }
 
-LOCAL_IP=$(ifconfig eth0 | awk '/inet addr/{print substr($2,6)}')
+get_network_addr() {
+    LOCAL_IP=$(ifconfig $1 | awk '/inet addr/{print substr($2,6)}')
+    LOCAL_MAC=$(cat /sys/class/net/$1/address)
+}
+
+get_network_addr eth0
 if [ -z $LOCAL_IP ]; then
-    LOCAL_IP=$(ifconfig wlan0 | awk '/inet addr/{print substr($2,6)}')
+    get_network_addr wlan0
 fi
 HTTPD_PORT=$(get_system_config HTTPD_PORT)
 
@@ -80,7 +85,7 @@ IDENTIFIERS=$(get_mqtt_advertise_config HOMEASSISTANT_IDENTIFIERS)
 MANUFACTURER=$(get_mqtt_advertise_config HOMEASSISTANT_MANUFACTURER)
 MODEL=$(get_mqtt_advertise_config HOMEASSISTANT_MODEL)
 SW_VERSION=$(cat $YI_HACK_PREFIX/version)
-DEVICE_DETAILS="{\"identifiers\":[\"$IDENTIFIERS\"],\"manufacturer\":\"$MANUFACTURER\",\"model\":\"$MODEL\",\"name\":\"$NAME\",\"sw_version\":\"$SW_VERSION\",\"configuration_url\":\"http://$LOCAL_IP:$HTTPD_PORT\"}"
+DEVICE_DETAILS="{\"identifiers\":[\"$IDENTIFIERS\"],\"connections\":[[\"mac\",\"${LOCAL_MAC}\"]],\"manufacturer\":\"$MANUFACTURER\",\"model\":\"$MODEL\",\"name\":\"$NAME\",\"sw_version\":\"$SW_VERSION\",\"configuration_url\":\"http://$LOCAL_IP:$HTTPD_PORT\"}"
 if [ "$HOMEASSISTANT_RETAIN" == "1" ]; then
     HA_RETAIN="-r"
 else

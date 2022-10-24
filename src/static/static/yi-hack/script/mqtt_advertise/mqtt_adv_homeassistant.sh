@@ -106,6 +106,26 @@ hass_topic(){
   UNIQUE_ID="$IDENTIFIERS-$2"
   TOPIC="$HOMEASSISTANT_MQTT_PREFIX/$1/$IDENTIFIERS/$2/config"
 }
+hass_setup_number(){
+  # topic, Full name, icon, state_topic, min, max, step, mode, entity category (optional)
+  hass_topic "number" "$1" "$2"
+  CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:'$3'","state_topic":"'$MQTT_PREFIX'/'$4'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.'$1' | int }}", "platform": "mqtt"'
+  CONTENT=$CONTENT', "command_topic":"'$MQTT_PREFIX'/'$4'/'$1'/set", "min": '$5', "max": '$6', "step": '$7', "mode": "'$8'"'
+  if [ -n "$9" ]; then
+    CONTENT=$CONTENT', "entity_category":"'$9'"'
+  fi
+  CONTENT="$CONTENT}"
+}
+hass_setup_select(){
+  # topic, Full name, icon, state_topic, options (as quoted list), entity category (optional)
+  hass_topic "select" "$1" "$2"
+  CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:'$3'","state_topic":"'$MQTT_PREFIX'/'$4'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.'$1' }}", "platform": "mqtt"'
+  CONTENT=$CONTENT', "command_topic":"'$MQTT_PREFIX'/'$4'/'$1'/set", "options": ['$5']'
+  if [ -n "$6" ]; then
+    CONTENT=$CONTENT', "entity_category":"'$6'"'
+  fi
+  CONTENT="$CONTENT}"
+}
 hass_setup_sensor(){
   # topic, Full name, icon, state_topic, unit_of_measurement (optional), entity category (optional)
   hass_topic "sensor" "$1" "$2"
@@ -278,6 +298,9 @@ if [ "$MQTT_ADV_CAMERA_SETTING_ENABLE" == "yes" ]; then
     # Switch On
     hass_setup_switch "SWITCH_ON" "Switch Status" "video" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
+    # Detection sensitivity
+    hass_setup_select "SENSITIVITY" "Detection sensitivity" "knob" $MQTT_ADV_CAMERA_SETTING_TOPIC '"low","medium","high"' "config"
+    mqtt_publish
     # AI Human detection
     hass_setup_switch "AI_HUMAN_DETECTION" "AI Human Detection" "human-greeting-variant" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
@@ -289,6 +312,9 @@ if [ "$MQTT_ADV_CAMERA_SETTING_ENABLE" == "yes" ]; then
     mqtt_publish
     # Sound Detection
     hass_setup_switch "SOUND_DETECTION" "Sound Detection" "music-note" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
+    mqtt_publish
+    # Sound detection sensitivity
+    hass_setup_number "SOUND_SENSITIVITY" "Sound Detection sensitivity" "account-voice" $MQTT_ADV_CAMERA_SETTING_TOPIC 30 90 5 "slider" "config"
     mqtt_publish
     # try to remove baby_crying topic
     hass_topic "switch" "BABY_CRYING_DETECT"

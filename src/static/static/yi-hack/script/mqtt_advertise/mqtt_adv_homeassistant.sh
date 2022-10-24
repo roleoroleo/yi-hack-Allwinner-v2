@@ -120,7 +120,7 @@ hass_setup_sensor(){
 }
 hass_setup_switch(){
   # topic, Full name, icon, state_topic, entity_category (optional)
-  hass_topic "switch" "$1" $2
+  hass_topic "switch" "$1" "$2"
   CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:'$3'","state_topic":"'$MQTT_PREFIX'/'$4'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ value_json.'$1' }}", "platform": "mqtt"'
   CONTENT=$CONTENT', "command_topic":"'$MQTT_PREFIX'/'$4'/'$1'/set", "payload_on":"yes", "payload_off":"no"'
   if [ -n "$5" ]; then

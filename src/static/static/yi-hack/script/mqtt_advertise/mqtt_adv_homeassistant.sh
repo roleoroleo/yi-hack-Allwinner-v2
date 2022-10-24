@@ -278,6 +278,15 @@ if [ "$MQTT_ADV_CAMERA_SETTING_ENABLE" == "yes" ]; then
     # Switch On
     hass_setup_switch "SWITCH_ON" "Switch Status" "video" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
+    # AI Human detection
+    hass_setup_switch "AI_HUMAN_DETECTION" "AI Human Detection" "human-greeting-variant" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
+    mqtt_publish
+    # Face detection
+    hass_setup_switch "FACE_DETECTION" "Face Detection" "face-recognition" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
+    mqtt_publish
+    # Motion Tracking sensor
+    hass_setup_switch "MOTION_TRACKING" "Motion Tracking sensor" "motion-sensor" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
+    mqtt_publish
     # Sound Detection
     hass_setup_switch "SOUND_DETECTION" "Sound Detection" "music-note" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
@@ -288,10 +297,10 @@ if [ "$MQTT_ADV_CAMERA_SETTING_ENABLE" == "yes" ]; then
     hass_setup_switch "LED" "Status Led" "led-on" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
     # IR
-    hass_setup_switch "IR" "IR Led" "remote" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
+    hass_setup_switch "IR" "IR Led" "led-outline" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
     # Rotate
-    hass_setup_switch "ROTATE" "Rotate" "monitor" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
+    hass_setup_switch "ROTATE" "Rotate" "rotate-right" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
 else
     for ITEM in SWITCH_ON SOUND_DETECTION BABY_CRYING_DETECT LED IR ROTATE; do

@@ -24,9 +24,9 @@ APP.ptz = (function($) {
         $(document).on("click", '#button-goto', function(e) {
             gotoPreset('#button-goto', '#select-goto');
         });
-        $(document).on("click", '#button-set', function(e)){
-            setPreset();
-        }
+        $(document).on("click", '#button-set', function(e) {
+            setPreset('#button-set');
+        });
     }
 
     function move(button, dir) {
@@ -62,7 +62,7 @@ APP.ptz = (function($) {
         });
     }
 
-    function setPreset() {
+    function setPreset(button) {
         $(button).attr("disabled", true);
         $.ajax({
             type: "POST",
@@ -97,7 +97,7 @@ APP.ptz = (function($) {
             dataType: "json",
             success: function(data) {
                 ptz_enabled = ["r30gb", "r35gb", "r40ga", "h51ga", "h52ga", "h60ga", "q321br_lsx", "qg311r", "b091qp"];
-                this_model = data.model_suffix ?? "unknown";
+                this_model = data["model_suffix"] || "unknown";
                 if (ptz_enabled.includes(this_model)) {
                     $('#ptz_description').show();
                     $('#ptz_available').hide();

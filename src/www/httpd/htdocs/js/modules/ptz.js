@@ -100,11 +100,11 @@ APP.ptz = (function($) {
                 this_model = data["model_suffix"] || "unknown";
                 if (ptz_enabled.includes(this_model)) {
                     $('#ptz_description').show();
-                    $('#ptz_available').hide();
+                    $('#ptz_unavailable').hide();
                     $('#ptz_main').show();
                 } else {
                     $('#ptz_description').hide();
-                    $('#ptz_available').show();
+                    $('#ptz_unavailable').show();
                     $('#ptz_main').hide();
                 }
             },

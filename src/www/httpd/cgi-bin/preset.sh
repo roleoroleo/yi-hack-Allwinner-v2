@@ -40,6 +40,9 @@ if [ $ACTION == "go_preset" ] ; then
         exit
     fi
     ipc_cmd -p $NUM
+elif [ $ACTION == "set_preset" ] || [ "$REQUEST_METHOD" == "POST" ]; then
+    # set preset
+    ipc_cmd -P
 else
     return_error "Invalid action received"
     exit

@@ -16,6 +16,8 @@ dd if=/dev/mtdblock5 of=/tmp/sd/backup/mtdblock5.bin
 dd if=/dev/mtdblock6 of=/tmp/sd/backup/mtdblock6.bin
 dd if=/dev/mtdblock7 of=/tmp/sd/backup/mtdblock7.bin
 
+cp /home/homever /tmp/sd/backup/homever.txt
+
 
 
 echo "############## Starting Hack ##############"

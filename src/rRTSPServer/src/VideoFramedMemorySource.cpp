@@ -146,6 +146,11 @@ void VideoFramedMemorySource::doGetNextFrame() {
     } else {
         // The size of the frame is greater than the available buffer
         fprintf(stderr, "RTSP doGetNextFrame() error - the size of the frame is greater than the available buffer %d/%d\n", fFrameSize, fMaxSize);
+        fFrameSize = 0;
+        fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
+        pthread_mutex_unlock(&(fBuffer->mutex));
+        fNumTruncatedBytes = 0;
+        fprintf(stderr, "RTSP doGetNextFrame() frame lost\n");
     }
 
 #ifndef PRES_TIME_CLOCK

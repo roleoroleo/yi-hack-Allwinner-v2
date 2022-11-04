@@ -23,7 +23,7 @@ do
     VAL="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f2)"
 
     if [ "$CONF" == "dir" ] ; then
-        if [ "$MODEL_SUFFIX" == "h60ga" ] || [ "$MODEL_SUFFIX" == "h51ga" ]; then
+        if [ "$MODEL_SUFFIX" == "h60ga" ] || [ "$MODEL_SUFFIX" == "h51ga" ] || [ "$MODEL_SUFFIX" == "h52ga" ]; then
             if [ "$VAL" == "up" ] || [ "$VAL" == "down" ]; then
                 DIR="-m $VAL"
             else

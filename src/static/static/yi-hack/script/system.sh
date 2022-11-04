@@ -312,7 +312,7 @@ SERIAL_NUMBER=$(dd bs=1 count=20 skip=36 if=/dev/$MFG_PART 2>/dev/null | tr '\0'
 HW_ID=${SERIAL_NUMBER:0:4}
 
 PTZ_UD_INV="-M"
-if [ "$MODEL_SUFFIX" == "h60ga" ] || [ "$MODEL_SUFFIX" == "h51ga" ]; then
+if [ "$MODEL_SUFFIX" == "h60ga" ] || [ "$MODEL_SUFFIX" == "h51ga" ] || [ "$MODEL_SUFFIX" == "h52ga" ]; then
     PTZ_UD_INV="-m"
 fi
 

@@ -38,6 +38,7 @@
                 </tbody>
             </table>
 
+<!--
             <h4 class="no-margin">Presets</h4>
             <hr class="tiny-margin"/>
             <table class="u-full-width ptz-table">
@@ -64,6 +65,83 @@
                 </tr>
                 </tbody>
             </table>
+
+            <br/>
+-->
+            <h4 class="no-margin">Go to Preset</h4>
+            <hr class="tiny-margin"/>
+            <div class="row">
+                <div class="twelve columns configs-switch">
+                    <table class="u-full-width padded-table config-table">
+                        <tbody>
+                        <tr class="row">
+                            <td>Preset Number</td>
+                            <td>
+                                <div id="select-goto-container" class="standard-select">
+                                </div>
+                                <span class="switch-description">
+                                    Number of the preset.
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="float-right">
+                <input class="button-primary" type="button" id="button-goto" value="Go To Preset"/>
+            </div>
+
+            <br/>
+
+            <h4 class="no-margin">Add Preset</h4>
+            <hr class="tiny-margin"/>
+            <div class="row">
+                <div class="twelve columns configs-switch">
+                    <table class="u-full-width padded-table config-table">
+                        <tbody>
+                        <tr class="row">
+                            <td>Preset Name</td>
+                            <td>
+                                <input class="u-full-width" type="text" placeholder="" data-key="PRESET_NAME" id="PRESET_NAME"/>
+                                <span class="switch-description">
+                                    Name of the preset to add (space char is not allowed).
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="float-right">
+                <input class="button-primary" type="button" id="button-add" value="Add Preset"/>
+            </div>
+
+            <h4 class="no-margin">Delete Preset</h4>
+            <hr class="tiny-margin"/>
+            <div class="row">
+                <div class="twelve columns configs-switch">
+                    <table class="u-full-width padded-table config-table">
+                        <tbody>
+                        <tr class="row">
+                            <td>Preset Number</td>
+                            <td>
+                                <div id="select-del-container" class="standard-select">
+                                </div>
+                                <span class="switch-description">
+                                    Number of the preset to remove.
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="float-right">
+                <input class="button-primary" type="button" id="button-del-all" value="Delete All Preset"/>
+                &nbsp;
+                <input class="button-primary" type="button" id="button-del" value="Delete Preset"/>
+            </div>
         </div>
     </div>
 </div>

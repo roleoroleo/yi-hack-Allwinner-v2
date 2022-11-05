@@ -15,7 +15,7 @@ fi
 
 CONF_LAST="CONF_LAST"
 
-for I in 1 2 3 4 5 6 7 8 9 10 11
+for I in 1 2 3 4 5 6 7 8 9 10 11 12
 do
     CONF="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f1)"
     VAL="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f2)"
@@ -104,6 +104,18 @@ do
             ipc_cmd -r off
         else
             ipc_cmd -r on
+        fi
+    elif [ "$CONF" == "cruise" ] ; then
+        if [ "$VAL" == "off" ]; then
+            ipc_cmd -C off
+        elif [ "$VAL" == "presets" ]; then
+            ipc_cmd -C on
+            sleep 0.5
+            ipc_cmd -C presets
+        elif [ "$VAL" == "360" ]; then
+            ipc_cmd -C on
+            sleep 0.5
+            ipc_cmd -C 360
         fi
     fi
     sleep 1

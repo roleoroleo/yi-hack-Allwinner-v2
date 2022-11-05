@@ -25,7 +25,7 @@ APP.camera_settings = (function($) {
                 loadingStatusElem.fadeOut(500);
 
                 $.each(response, function(key, state) {
-                    if(key=="SENSITIVITY" || key=="SOUND_SENSITIVITY")
+                    if(key=="SENSITIVITY" || key=="SOUND_SENSITIVITY" || key=="CRUISE")
                         $('select[data-key="' + key + '"]').prop('value', state);
                     else
                         $('input[type="checkbox"][data-key="' + key + '"]').prop('checked', state === 'yes');
@@ -51,6 +51,7 @@ APP.camera_settings = (function($) {
 
         configs["SENSITIVITY"] = $('select[data-key="SENSITIVITY"]').prop('value');
         configs["SOUND_SENSITIVITY"] = $('select[data-key="SOUND_SENSITIVITY"]').prop('value');
+        configs["CRUISE"] = $('select[data-key="CRUISE"]').prop('value');
 
         $.ajax({
             type: "GET",
@@ -65,7 +66,8 @@ APP.camera_settings = (function($) {
                 '&led=' + configs["LED"] +
                 '&ir=' + configs["IR"] +
                 '&rotate=' + configs["ROTATE"] +
-                '&switch_on=' + configs["SWITCH_ON"],
+                '&switch_on=' + configs["SWITCH_ON"] +
+                '&cruise=' + configs["CRUISE"],
             dataType: "json",
             success: function(response) {
                 saveStatusElem.text("Saved");

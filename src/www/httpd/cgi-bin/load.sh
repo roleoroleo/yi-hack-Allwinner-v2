@@ -128,3 +128,15 @@ if [[ $(get_config ROTATE) == "no" ]] ; then
 else
     ipc_cmd -r o
 fi
+
+if [[ $(get_config CRUISE) == "off" ]] ; then
+    ipc_cmd -C off
+elif [[ $(get_config CRUISE) == "presets" ]] ; then
+    ipc_cmd -C on
+    sleep 0.5
+    ipc_cmd -C presets
+elif [[ $(get_config CRUISE) == "360" ]] ; then
+    ipc_cmd -C on
+    sleep 0.5
+    ipc_cmd -C 360
+fi

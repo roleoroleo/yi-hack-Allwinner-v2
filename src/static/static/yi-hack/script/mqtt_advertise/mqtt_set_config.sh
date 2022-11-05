@@ -75,6 +75,9 @@ $YI_HACK_PREFIX/bin/mosquitto_sub -v -h $HOST -t $TOPIC | while read -r SUBSCRIB
         rotate)
             IPC_OPT="-r"
         ;;
+        ptz_preset)
+            IPC_OPT="-p"
+        ;;
     esac
     if [ "$VAL" == "no" ] || [ "$VAL" == "off" ] ; then
         VAL="off"

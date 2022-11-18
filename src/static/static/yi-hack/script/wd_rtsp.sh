@@ -167,6 +167,10 @@ do
         check_rtsp_alt
     fi
     check_rmm
+
+    echo 1500 > /sys/class/net/eth0/mtu
+    echo 1500 > /sys/class/net/wlan0/mtu
+
     if [ $COUNTER -eq 0 ]; then
         sleep $INTERVAL
     fi

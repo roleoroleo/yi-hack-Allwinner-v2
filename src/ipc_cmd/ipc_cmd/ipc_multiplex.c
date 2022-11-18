@@ -43,7 +43,7 @@ void ipc_multiplex_initialize() {
             exit(EXIT_FAILURE);
         }
     }
-    
+
     // Find original mq_receive symbol and store it for later usage
     original_mq_receive = dlsym(RTLD_NEXT, "mq_receive");
 

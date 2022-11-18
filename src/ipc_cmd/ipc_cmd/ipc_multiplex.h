@@ -15,6 +15,3 @@
 #define INVALID_QUEUE           -1
 #define MESSAGE_TARGET_OFFSET   0
 #define MESSAGE_ID_IPC_DISPATCH 1
-
-
-

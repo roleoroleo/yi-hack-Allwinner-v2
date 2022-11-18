@@ -126,7 +126,7 @@ int main(int argc, char ** argv)
 //    int babycrying = NONE;
     int move = NONE;
     int preset = NONE;
-    int set_preset = NONE;
+    int add_preset = NONE;
     int remove_preset = NONE;
     int cruise = NONE;
     int debug = 0;
@@ -160,7 +160,7 @@ int main(int argc, char ** argv)
             {"move",  required_argument, 0, 'm'},
             {"move-reverse",  required_argument, 0, 'M'},
             {"preset",  required_argument, 0, 'p'},
-            {"set_preset",  no_argument, 0, 'P'},
+            {"add_preset",  no_argument, 0, 'P'},
             {"remove_preset",  required_argument, 0, 'R'},
             {"cruise",  required_argument, 0, 'C'},
             {"file", required_argument, 0, 'f'},
@@ -330,7 +330,7 @@ int main(int argc, char ** argv)
             break;
 
         case 'P':
-            set_preset = 1;
+            add_preset = 1;
             break;
 
         case 'R':
@@ -534,8 +534,8 @@ int main(int argc, char ** argv)
         mq_send(ipc_mq, preset_msg, sizeof(IPC_GOTO_PRESET) - 1, 0);
     }
 
-    if (set_preset != NONE) {
-        mq_send(ipc_mq, IPC_SET_PRESET, sizeof(IPC_SET_PRESET) - 1, 0);
+    if (add_preset != NONE) {
+        mq_send(ipc_mq, IPC_ADD_PRESET, sizeof(IPC_ADD_PRESET) - 1, 0);
     }
 
     if (remove_preset != NONE) {

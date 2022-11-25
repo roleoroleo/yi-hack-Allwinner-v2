@@ -23,8 +23,8 @@ In this case, you have to use a different file: for example you can use "factory
    
    `./build.sh hacked`
    
-   The last option allows you to run the hack after the unbrick (but you need to install the hack separately).
-5. You will find the file backup_XXX.gz in the folder corresponding to your model.
+   The last option allows you to run the hack after the unbrick (but you need to install the hack separately). The backup partition is already modified to run the hack.
+5. You will find the file backup_XXX.gz (rootfs_XXX.gz and/or home_XXX.gz) in the folder corresponding to your model.
 6. Check if there were any errors in the procedure: the size of the resulting file must be similar to the corresponding mtdblockX.bin.
 7. Unzip it in the root folder of your sd card.
 8. Switch on the cam and wait for the cam to come online.

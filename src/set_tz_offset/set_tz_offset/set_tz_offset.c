@@ -202,6 +202,7 @@ int main(int argc, char **argv)
         printf("Invalid value: %s\n", value);
         return -2;
     }
+    printf("Setting timezone to %d ms\n", ivalue);
     cloud_set_tz_offset(ivalue);
 
     mq_close(ipc_mq);

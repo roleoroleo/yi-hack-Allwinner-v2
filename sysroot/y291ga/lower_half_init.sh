@@ -126,6 +126,9 @@ if [ -f "/tmp/sd/Factory/factory_test.sh" ]; then
 	exit
 fi
 
+mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /home/app/script/wifidhcp.sh
+mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /backup/tools/wifidhcp.sh
+
 if [ -f "/tmp/sd/factory_aging_test.sh" ]; then
 	 #/tmp/sd/factory_aging_test.sh
     ./dispatch &

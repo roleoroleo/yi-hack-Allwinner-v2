@@ -107,6 +107,7 @@ if [ -f "/tmp/sd/Factory/factory_test.sh" ]; then
 fi
 
 mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /home/app/script/wifidhcp.sh
+mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /backup/tools/wifidhcp.sh
 
 LD_PRELOAD=/tmp/sd/yi-hack/lib/ipc_multiplex.so ./dispatch &
 #sleep 2

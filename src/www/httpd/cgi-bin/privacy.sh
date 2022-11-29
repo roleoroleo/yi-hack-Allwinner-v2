@@ -54,19 +54,23 @@ if [ "$CONF" == "value" ] ; then
 fi
 
 if [ "$VALUE" == "on" ] ; then
-    touch /tmp/privacy
-    touch /tmp/snapshot.disabled
-    stop_rtsp
-    killall mp4record
+    if [ ! -f /tmp/privacy ]; then
+        touch /tmp/privacy
+        touch /tmp/snapshot.disabled
+        stop_rtsp
+        killall mp4record
+    fi
     RES="on"
 elif [ "$VALUE" == "off" ] ; then
-    rm -f /tmp/snapshot.disabled
-    start_rtsp $PARAM1 $PARAM2
-    if [[ $(get_config DISABLE_CLOUD) == "no" ]] || [[ $(get_config REC_WITHOUT_CLOUD) == "yes" ]] ; then
-        cd /home/app
-        ./mp4record >/dev/null &
+    if [ -f /tmp/privacy ]; then
+        rm -f /tmp/snapshot.disabled
+        start_rtsp $PARAM1 $PARAM2
+        if [[ $(get_config DISABLE_CLOUD) == "no" ]] || [[ $(get_config REC_WITHOUT_CLOUD) == "yes" ]] ; then
+            cd /home/app
+            ./mp4record >/dev/null &
+        fi
+        rm -f /tmp/privacy
     fi
-    rm -f /tmp/privacy
     RES="off"
 elif [ "$VALUE" == "status" ] ; then
     if [ -f /tmp/privacy ]; then

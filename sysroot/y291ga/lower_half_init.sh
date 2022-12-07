@@ -113,6 +113,13 @@ else
     ifconfig eth0 up
 fi
 
+HOMEVER=$(cat /home/homever)
+HV=${HOMEVER:0:2}
+
+if [ "$HV" == "12" ]; then
+    ln -s /home/model/BodyVehicleAnimal3.model /tmp/BodyVehicleAnimal3.model
+fi
+
 echo "============================================= home low_half_init.sh... ========================================="
 echo "============================================= begin to start app... ========================================="
 cd /home/app
@@ -122,21 +129,49 @@ fi
 #./log_server &
 
 if [ -f "/tmp/sd/Factory/factory_test.sh" ]; then
-	/tmp/sd/Factory/config.sh
-	exit
+    /tmp/sd/Factory/config.sh
+    exit
 fi
 
 mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /home/app/script/wifidhcp.sh
 mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /backup/tools/wifidhcp.sh
 
+if [ "$HV" == "12" ]; then
+    export LD_LIBRARY_PATH=/home/app/locallib:/home/app/script:$LD_LIBRARY_PATH:/tmp
+    echo $LD_LIBRARY_PATH
+fi
+
 if [ -f "/tmp/sd/factory_aging_test.sh" ]; then
-	 #/tmp/sd/factory_aging_test.sh
+    #/tmp/sd/factory_aging_test.sh
     ./dispatch &
     sleep 2
     ./rmm &
     sleep 2
     ./mp4record &
-	exit
+    exit
+fi
+
+if [ "$HV" == "12" ]; then
+    sleep 2
+    export DEVICE_MEMORY=8000000
+    export CPU_MEMORY=-1
+    export LD_LIBRARY_PATH=/tmp/:$LD_LIBRARY_PATH
+    export PATH=/home/app:/home/app/script:$PATH
+
+    if [ -f "/tmp/sd/log_tools.tar.gz" ];then
+        echo "run log_tools start."
+        if [ ! -d /tmp/sd/log_tools ];then
+            cd /tmp/sd
+            mkdir log_tools
+        fi
+        cd /tmp/sd
+        tar -zxvf log_tools.tar.gz -C /tmp/sd/log_tools
+        chmod +x /tmp/sd/log_tools/run_log_app.sh
+        source /tmp/sd/log_tools/run_log_app.sh
+        cd -
+        echo "run log_tools end."
+        #exit
+    fi
 fi
 
 LD_PRELOAD=/tmp/sd/yi-hack/lib/ipc_multiplex.so ./dispatch &
@@ -151,7 +186,10 @@ LD_PRELOAD=/tmp/sd/yi-hack/lib/ipc_multiplex.so ./dispatch &
 #./watch_process &
 
 chmod 777 /tmp/sd/debug.sh
-sh /tmp/sd/debug.sh &
+if [ -f "/tmp/sd/debug.sh" ]; then
+    echo "calling /tmp/sd/debug.sh"
+    sh /tmp/sd/debug.sh &
+fi
 
 chmod 755 /tmp/sd/yi-hack/script/system.sh
 sh /tmp/sd/yi-hack/script/system.sh &

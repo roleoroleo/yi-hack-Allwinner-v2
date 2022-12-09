@@ -22,7 +22,7 @@ jobs:
           sudo apt update
           sudo apt install -y git unzip build-essential \
             bison bisonc++ libbison-dev autoconf autotools-dev \
-            automake libssl-dev zlibc zlib1g-dev libzzip-dev flex libfl-dev \
+            automake libssl-dev zlib1g-dev libzzip-dev flex libfl-dev \
             yui-compressor closure-compiler optipng jpegoptim libtidy5deb1 node-less \
             sassc sass-spec libhtml-tidy-perl libxml2-utils rsync
       - name: Download toolchain

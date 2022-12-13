@@ -103,7 +103,12 @@ char const* H265VideoFramedMemoryServerMediaSubsession::getAuxSDPLine(RTPSink* r
 }
 
 FramedSource* H265VideoFramedMemoryServerMediaSubsession::createNewStreamSource(unsigned /*clientSessionId*/, unsigned& estBitrate) {
-    estBitrate = 500; // kbps, estimate
+    if (fBuffer->type == 360)
+        estBitrate = 200; // kbps, estimate
+    else if (fBuffer->type == 1080)
+        estBitrate = 700; // kbps, estimate
+    else
+        estBitrate = 500; // kbps, estimate
 
     // Create the video source:
     VideoFramedMemorySource* memorySource = VideoFramedMemorySource::createNew(envir(), fBuffer);

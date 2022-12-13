@@ -105,7 +105,7 @@ char const* ADTSAudioFramedMemoryServerMediaSubsession::getAuxSDPLine(RTPSink* r
 }
 
 FramedSource* ADTSAudioFramedMemoryServerMediaSubsession::createNewStreamSource(unsigned /*clientSessionId*/, unsigned& estBitrate) {
-    estBitrate = 96; // kbps, estimate
+    estBitrate = 32; // kbps, estimate
 
     FramedSource* resultSource = NULL;
     AudioFramedMemorySource* originalSource = NULL;

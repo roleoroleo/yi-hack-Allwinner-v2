@@ -179,6 +179,15 @@ else
         echo "127.0.0.1    log.eu.xiaoyi.com" >> /etc/hosts
         echo "127.0.0.1    log.us.xiaoyi.com" >> /etc/hosts
         echo "127.0.0.1    log.xiaoyi.com.tw" >> /etc/hosts
+        route add -host 47.251.52.14 reject
+        route add -host 47.90.241.246 reject
+        route add -host 47.74.131.238 reject
+        route add -host 47.74.208.204 reject
+        route add -host 47.90.203.190 reject
+        route add -host 47.254.18.99 reject
+        route add -host 47.88.59.209 reject
+        route add -host 47.90.240.160 reject
+        route add -host 47.74.255.9 reject
     )
 fi
 

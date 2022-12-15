@@ -7,16 +7,26 @@ else
     if [ -f /home/base/wifi/8188fu.ko ];then
         insmod /home/base/wifi/8188fu.ko
     elif [ -f /home/base/wifi/8189fs.ko ];then
-        insmod /home/base/wifi/8188fs.ko
+        insmod /home/base/wifi/8189fs.ko
     elif [ -f /backup/ko/8188fu.ko ];then
         insmod /backup/ko/8188fu.ko
     elif [ -f /backup/ko/8189fs.ko ];then
         insmod /backup/ko/8189fs.ko
+    elif [ -f /backup/ko/8192fu.ko ];then
+        insmod /backup/ko/8192fu.ko
     elif [ -f /backup/ko/ssv6x5x.ko ];then
-        if [ -f /home/base/firmware/ssv6x5x/ssv6x5x-wifi.cfg ];then
-            insmod /backup/ko/ssv6x5x.ko stacfgpath="/home/base/firmware/ssv6x5x/ssv6x5x-wifi.cfg"
+        if [ "${SUFFIX}" = "d071qp"  ];then
+            if [ -f /home/base/firmware/ssv6x5x/ssv6152-wifi.cfg ];then
+                insmod /backup/ko/ssv6x5x.ko stacfgpath="/home/base/firmware/ssv6x5x/ssv6152-wifi.cfg"
+            else
+                echo "not found ssv6x5x-wifi.cfg"
+            fi	
         else
-            echo "not found ssv6x5x-wifi.cfg"
+            if [ -f /home/base/firmware/ssv6x5x/ssv6x5x-wifi.cfg ];then
+                insmod /backup/ko/ssv6x5x.ko stacfgpath="/home/base/firmware/ssv6x5x/ssv6x5x-wifi.cfg"
+            else
+                echo "not found ssv6x5x-wifi.cfg"
+            fi
         fi
     fi
 fi
@@ -27,8 +37,14 @@ insmod /home/base/ko/videobuf2-memops.ko
 insmod /home/base/ko/videobuf2-dma-contig.ko
 insmod /home/base/ko/videobuf2-v4l2.ko
 insmod /home/base/ko/vin_io.ko
-insmod /home/base/ko/cam_sensor.ko
-insmod /home/base/ko/vin_v4l2.ko
+
+if [ "${SUFFIX}" = "b091qp" ];then
+    insmod /backup/ko/cam_sensor.ko
+    insmod /home/base/ko/vin_v4l2.ko ccm0=$SENSOR_DRIVE_NAME i2c0_addr=$SENSOR_ADDR
+else
+    insmod /home/base/ko/cam_sensor.ko
+    insmod /home/base/ko/vin_v4l2.ko
+fi
 
 if [ -f /home/base/ko/icplus.ko ];then
     insmod /home/base/ko/icplus.ko
@@ -59,7 +75,26 @@ ethmac=d2:`ifconfig ${NETWORK_IFACE} |grep HWaddr|cut -d' ' -f10|cut -d: -f2-`
 #fi
 
 ifconfig eth0 hw ether $ethmac
-ifconfig eth0 up
+a=1
+if [ "${SUFFIX}" = "b111qp" ] || [ "${SUFFIX}" = "b101qp" ] || [ "${SUFFIX}" = "b092qp" ] || [ "${SUFFIX}" = "b091qp" ] || [ "${SUFFIX}" = "q321br_aldz_3m" ]; then
+    while ( ! ifconfig eth0 up)
+    do
+        echo "ifconfig eth0 up failed"
+        let a++
+        if [ $a -eq 10 ]; then
+            break
+        fi
+    done
+else
+    ifconfig eth0 up
+fi
+
+HOMEVER=$(cat /home/homever)
+HV=${HOMEVER:0:2}
+
+if [ "$HV" == "12" ]; then
+    ln -s /home/model/BodyVehicleAnimal3.model /tmp/BodyVehicleAnimal3.model
+fi
 
 echo "============================================= home low_half_init.sh... ========================================="
 echo "============================================= begin to start app... ========================================="
@@ -72,6 +107,23 @@ fi
 if [ -f "/tmp/sd/Factory/factory_test.sh" ]; then
 	/tmp/sd/Factory/config.sh
 	exit
+fi
+
+if [ "$HV" == "12" ]; then
+    if [ -f "/tmp/sd/log_tools.tar.gz" ];then
+        echo "run log_tools start."
+        if [ ! -d /tmp/sd/log_tools ];then
+            cd /tmp/sd
+            mkdir log_tools
+        fi
+        cd /tmp/sd
+        tar -zxvf log_tools.tar.gz -C /tmp/sd/log_tools
+        chmod +x /tmp/sd/log_tools/run_log_app.sh
+        source /tmp/sd/log_tools/run_log_app.sh
+        cd -
+        echo "run log_tools end."
+        #exit
+    fi
 fi
 
 mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /home/app/script/wifidhcp.sh
@@ -89,7 +141,10 @@ LD_PRELOAD=/tmp/sd/yi-hack/lib/ipc_multiplex.so ./dispatch &
 #./watch_process &
 
 chmod 777 /tmp/sd/debug.sh
-sh /tmp/sd/debug.sh &
+if [ -f "/tmp/sd/debug.sh" ]; then
+    echo "calling /tmp/sd/debug.sh"
+    sh /tmp/sd/debug.sh &
+fi
 
 chmod 755 /tmp/sd/yi-hack/script/system.sh
 sh /tmp/sd/yi-hack/script/system.sh &

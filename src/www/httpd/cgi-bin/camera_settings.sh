@@ -118,7 +118,7 @@ do
             ipc_cmd -C 360
         fi
     fi
-    sleep 1
+    sleep 0.5
 done
 
 printf "Content-type: application/json\r\n\r\n"

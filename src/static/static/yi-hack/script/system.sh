@@ -172,6 +172,8 @@ else
         if [[ $(get_config REC_WITHOUT_CLOUD) == "yes" ]] ; then
             ./mp4record &
         fi
+        ./cloud &
+
         while read -r line
         do
             echo "127.0.0.1    $line" >> /etc/hosts

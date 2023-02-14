@@ -647,6 +647,15 @@ int main(int argc, char ** argv)
         mq_send(ipc_mq, IPC_BABYCRYING_ON, sizeof(IPC_BABYCRYING_ON) - 1, 0);
     }
 
+    if (soundsensitivity == SOUND_SENS_30) {
+        mq_send(ipc_mq, IPC_SOUND_SENS_30, sizeof(IPC_SOUND_SENS_30) - 1, 0);
+    } else if (soundsensitivity == SOUND_SENS_35) {
+        mq_send(ipc_mq, IPC_SOUND_SENS_35, sizeof(IPC_SOUND_SENS_35) - 1, 0);
+    } else if (soundsensitivity == SOUND_SENS_40) {
+        mq_send(ipc_mq, IPC_SOUND_SENS_40, sizeof(IPC_SOUND_SENS_40) - 1, 0);
+    } else if (soundsensitivity == SOUND_SENS_45) {
+        mq_send(ipc_mq, IPC_SOUND_SENS_45, sizeof(IPC_SOUND_SENS_45) - 1, 0);
+    } else if (soundsensitivity == SOUND_SENS_50) {
         mq_send(ipc_mq, IPC_SOUND_SENS_50, sizeof(IPC_SOUND_SENS_50) - 1, 0);
     } else if (soundsensitivity == SOUND_SENS_60) {
         mq_send(ipc_mq, IPC_SOUND_SENS_60, sizeof(IPC_SOUND_SENS_60) - 1, 0);

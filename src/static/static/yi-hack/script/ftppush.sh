@@ -9,6 +9,9 @@ CONF_FILE="etc/system.conf"
 
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 
+HOMEVER=$(cat /home/homever)
+HV=${HOMEVER:0:2}
+
 get_config()
 {
     key=$1
@@ -188,7 +191,11 @@ uploadToFtp ()
 	#
 	# Variables.
 	UTF_FULLFN="${2}"
-	UTF_FULLFN_TZ="$(translateFULLFNWithTz ${UTF_FULLFN})"
+	if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+		UTF_FULLFN_TZ="${UTF_FULLFN}"
+	else
+		UTF_FULLFN_TZ="$(translateFULLFNWithTz ${UTF_FULLFN})"
+	fi
 	FTP_DIR_HOUR="$(lparentdir ${UTF_FULLFN})"
 	FTP_DIR_HOUR_TZ="$(lparentdir ${UTF_FULLFN_TZ})"
 	#

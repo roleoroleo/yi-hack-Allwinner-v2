@@ -9,6 +9,9 @@ YI_HACK_UPGRADE_PATH="/tmp/sd/.fw_upgrade"
 YI_HACK_VER=$(cat /tmp/sd/yi-hack/version)
 MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
 
+HOMEVER=$(cat /home/homever)
+HV=${HOMEVER:0:2}
+
 get_config()
 {
     key=$1

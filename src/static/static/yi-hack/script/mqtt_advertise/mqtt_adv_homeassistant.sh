@@ -294,9 +294,6 @@ MQTT_RETAIN_SOUND_DETECTION=$(get_config MQTT_RETAIN_SOUND_DETECTION)
 # fi
 CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS', "qos": "'$MQTT_QOS'", '$RETAIN' "device_class":"sound","state_topic":"'$MQTT_PREFIX'/'$TOPIC_SOUND_DETECTION'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","payload_on":"'$SOUND_DETECTION_MSG'","off_delay":60, "platform": "mqtt"}'
 mqtt_publish
-# try to remove baby_crying topic
-hass_topic "binary_sensor" "baby_crying"
-$YI_HACK_PREFIX/bin/mosquitto_pub -h $HOST -t $TOPIC -m ""
 # Motion Detection Image
 hass_topic "camera" "motion_detection_image" "Motion Detection Image"
 MQTT_RETAIN_MOTION_IMAGE=$(get_config MQTT_RETAIN_MOTION_IMAGE)
@@ -325,6 +322,12 @@ if [ "$MQTT_ADV_CAMERA_SETTING_ENABLE" == "yes" ]; then
     # Switch On
     hass_setup_switch "SWITCH_ON" "Switch Status" "video" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
+    # Save video on motion
+    hass_setup_switch "SAVE_VIDEO_ON_MOTION" "Save video on motion" "content-save" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
+    mqtt_publish
+    # Motion detection (generic motion detection)
+    hass_setup_switch "MOTION_DETECTION" "Motion Detection" "motion-sensor" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
+    mqtt_publish
     # Detection sensitivity
     hass_setup_select "SENSITIVITY" "Detection sensitivity" "knob" $MQTT_ADV_CAMERA_SETTING_TOPIC '"low","medium","high"' "config"
     mqtt_publish
@@ -341,7 +344,7 @@ if [ "$MQTT_ADV_CAMERA_SETTING_ENABLE" == "yes" ]; then
     hass_setup_switch "FACE_DETECTION" "Face Detection" "face-recognition" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
     # Motion Tracking sensor
-    hass_setup_switch "MOTION_TRACKING" "Motion Tracking sensor" "motion-sensor" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
+    hass_setup_switch "MOTION_TRACKING" "Motion Tracking sensor" "motion" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
     # Sound Detection
     hass_setup_switch "SOUND_DETECTION" "Sound Detection" "music-note" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
@@ -349,9 +352,6 @@ if [ "$MQTT_ADV_CAMERA_SETTING_ENABLE" == "yes" ]; then
     # Sound detection sensitivity
     hass_setup_number "SOUND_SENSITIVITY" "Sound Detection sensitivity" "account-voice" $MQTT_ADV_CAMERA_SETTING_TOPIC 30 90 5 "slider" "config"
     mqtt_publish
-    # try to remove baby_crying topic
-    hass_topic "switch" "BABY_CRYING_DETECT"
-    $YI_HACK_PREFIX/bin/mosquitto_pub -h $HOST -t $TOPIC -n
     # Led
     hass_setup_switch "LED" "Status Led" "led-on" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
@@ -362,7 +362,7 @@ if [ "$MQTT_ADV_CAMERA_SETTING_ENABLE" == "yes" ]; then
     hass_setup_switch "ROTATE" "Rotate" "rotate-right" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
 else
-    for ITEM in SWITCH_ON SOUND_DETECTION BABY_CRYING_DETECT LED IR ROTATE; do
+    for ITEM in SWITCH_ON SOUND_DETECTION LED IR ROTATE; do
         hass_topic "switch" "$ITEM"
         $YI_HACK_PREFIX/bin/mosquitto_pub $HA_QOS $HA_RETAIN -h $HOST -t $TOPIC -n
     done

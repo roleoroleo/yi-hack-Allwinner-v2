@@ -108,8 +108,8 @@ APP.camera_settings = (function($) {
                 '&led=' + configs["LED"] +
                 '&ir=' + configs["IR"] +
                 '&rotate=' + configs["ROTATE"] +
-                '&switch_on=' + configs["SWITCH_ON"] +
-                '&cruise=' + configs["CRUISE"],
+                '&cruise=' + configs["CRUISE"] +
+                '&switch_on=' + configs["SWITCH_ON"],
             dataType: "json",
             success: function(response) {
                 saveStatusElem.text("Saved");

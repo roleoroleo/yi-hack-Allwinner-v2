@@ -391,6 +391,15 @@ button.icon {
 	border: 0;
 }
 
+/* Div for fw 12 and ptz */
+.fw12 {
+	display: none;
+}
+
+.no_fw12 {
+	display: none;
+}
+
 .ptz {
 	display: none;
 }

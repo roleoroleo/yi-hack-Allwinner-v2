@@ -26,6 +26,9 @@ fbasename()
 
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 
+HOMEVER=$(cat /home/homever)
+HV=${HOMEVER:0:2}
+
 . $YI_HACK_PREFIX/www/cgi-bin/validate.sh
 
 if ! $(validateQueryString $QUERY_STRING); then
@@ -35,6 +38,8 @@ if ! $(validateQueryString $QUERY_STRING); then
     printf "}"
     exit
 fi
+
+DIR="none"
 
 CONF="$(echo $QUERY_STRING | cut -d'=' -f1)"
 VAL="$(echo $QUERY_STRING | cut -d'=' -f2)"
@@ -54,7 +59,11 @@ if [ "$DIR" == "none" ] ; then
 fi
 
 DIRS00="${DIR:0:4}-${DIR:5:2}-${DIR:8:2} ${DIR:11:2}:00"
-DIRS00E=$(date -u -d "$DIRS00" +"%s")
+if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+    DIRS00E=$(date -d "$DIRS00" +"%s")
+else
+    DIRS00E=$(date -u -d "$DIRS00" +"%s")
+fi
 DIRL=$(date +%YY%mM%dD%HH -d "@$DIRS00E")
 
 printf "Content-type: application/json\r\n\r\n"

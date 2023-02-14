@@ -57,11 +57,20 @@ $YI_HACK_PREFIX/bin/mosquitto_sub -v -h $HOST -t $TOPIC | while read -r SUBSCRIB
                 VAL="detect"
             fi
         ;;
+        motion_detection)
+            IPC_OPT="-O"
+        ;;
         sensitivity)
             IPC_OPT="-s"
         ;;
         ai_human_detection)
             IPC_OPT="-a"
+        ;;
+        ai_vehicle_detection)
+            IPC_OPT="-E"
+        ;;
+        ai_animal_detection)
+            IPC_OPT="-N"
         ;;
         sound_detection)
             IPC_OPT="-b"

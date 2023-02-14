@@ -12,6 +12,18 @@ APP.camera_settings = (function($) {
         $(document).on("click", '#button-save', function(e) {
             saveConfigs();
         });
+        $(document).on("change", '#MOTION_DETECTION', function(e) {
+            motionDetection('#MOTION_DETECTION');
+        });
+        $(document).on("change", '#AI_HUMAN_DETECTION', function(e) {
+            aiMotionDetections('#AI_HUMAN_DETECTION');
+        });
+        $(document).on("change", '#AI_VEHICLE_DETECTION', function(e) {
+            aiMotionDetections('#AI_VEHICLE_DETECTION');
+        });
+        $(document).on("change", '#AI_ANIMAL_DETECTION', function(e) {
+            aiMotionDetections('#AI_ANIMAL_DETECTION');
+        });
     }
 
     function fetchConfigs() {
@@ -26,16 +38,42 @@ APP.camera_settings = (function($) {
                 loadingStatusElem.fadeOut(500);
 
                 $.each(response, function(key, state) {
-                    if(key=="SENSITIVITY" || key=="SOUND_SENSITIVITY" || key=="CRUISE")
+                    if(key=="MOTION_DETECTION" || key=="SENSITIVITY" || key=="SOUND_SENSITIVITY" || key=="CRUISE")
                         $('select[data-key="' + key + '"]').prop('value', state);
                     else
                         $('input[type="checkbox"][data-key="' + key + '"]').prop('checked', state === 'yes');
                 });
+                if (response["HOMEVER"].startsWith("11") || response["HOMEVER"].startsWith("12")) {
+                    var objects = document.querySelectorAll(".fw12");
+                    for (var i = 0; i < objects.length; i++) {
+                        objects[i].style.display = "table-row";
+                    }
+                } else {
+                    var objects = document.querySelectorAll(".no_fw12");
+                    for (var i = 0; i < objects.length; i++) {
+                        objects[i].style.display = "table-row";
+                    }
+                }
+                aiMotionDetections();
             },
             error: function(response) {
                 console.log('error', response);
             }
         });
+    }
+
+    function motionDetection(el) {
+        if ($(el).prop('checked')) {
+            $("#AI_HUMAN_DETECTION").prop('checked', false)
+            $("#AI_VEHICLE_DETECTION").prop('checked', false)
+            $("#AI_ANIMAL_DETECTION").prop('checked', false)
+        }
+    }
+
+    function aiMotionDetections(el) {
+        if ($(el).prop('checked')) {
+            $("#MOTION_DETECTION").prop('checked', false)
+        }
     }
 
     function saveConfigs() {
@@ -58,8 +96,11 @@ APP.camera_settings = (function($) {
             type: "GET",
             url: 'cgi-bin/camera_settings.sh?' +
                 'save_video_on_motion=' + configs["SAVE_VIDEO_ON_MOTION"] +
+                '&motion_detection=' + configs["MOTION_DETECTION"] +
                 '&sensitivity=' + configs["SENSITIVITY"] +
                 '&ai_human_detection=' + configs["AI_HUMAN_DETECTION"] +
+                '&ai_vehicle_detection=' + configs["AI_VEHICLE_DETECTION"] +
+                '&ai_animal_detection=' + configs["AI_ANIMAL_DETECTION"] +
                 '&face_detection=' + configs["FACE_DETECTION"] +
                 '&motion_tracking=' + configs["MOTION_TRACKING"] +
                 '&sound_detection=' + configs["SOUND_DETECTION"] +

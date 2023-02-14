@@ -56,7 +56,7 @@ void ipc_stop()
 
 void print_usage(char *progname)
 {
-    fprintf(stderr, "\nUsage: %s [t ON/OFF] [-s SENS] [-l LED] [-v WHEN] [-i IR] [-r ROTATE] [-a AIHUMANDETECTION] [-c FACEDETECTION] [-o MOTIONTRACKING] [-I MIC] [-b SOUNDDETECTION] [-m MOVE] [-p NUM] [-P] [-R NUM] [-C MODE] [-f FILE] [-S] [-T] [-d]\n\n", progname);
+    fprintf(stderr, "\nUsage: %s [t ON/OFF] [-s SENS] [-l LED] [-v WHEN] [-i IR] [-r ROTATE] [-1] [-a AIHUMANDETECTION] [-E AIVEHICLEDETECTION] [-N AIANIMALDETECTION] [-O AIMOTIONDETECTION] [-c FACEDETECTION] [-o MOTIONTRACKING] [-I MIC] [-b SOUNDDETECTION] [-B BABYCRYING] [-n SOUNDSENSITIVITY] [-m MOVE] [-p NUM] [-P] [-R NUM] [-C MODE] [-f FILE] [-S] [-T] [-d]\n\n", progname);
     fprintf(stderr, "\t-t ON/OFF, --switch ON/OFF\n");
     fprintf(stderr, "\t\tswitch ON or OFF the cam\n");
     fprintf(stderr, "\t-s SENS, --sensitivity SENS\n");
@@ -69,8 +69,16 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tset ir led: ON or OFF\n");
     fprintf(stderr, "\t-r ROTATE, --rotate ROTATE\n");
     fprintf(stderr, "\t\tset rotate: ON or OFF\n");
+    fprintf(stderr, "\t-1, --setalertallowstate_human\n");
+    fprintf(stderr, "\t\tset alert allow state to human\n");
     fprintf(stderr, "\t-a AIHUMANDETECTION, --aihumandetection AIHUMANDETECTION\n");
     fprintf(stderr, "\t\tset AI Human Detection: ON or OFF\n");
+    fprintf(stderr, "\t-E AIVEHICLEDETECTION, --aivehicledetection AIVEHICLEDETECTION\n");
+    fprintf(stderr, "\t\tset AI Vehicle Detection: ON or OFF\n");
+    fprintf(stderr, "\t-N AIANIMALDETECTION, --aianimaldetection AIANIMALDETECTION\n");
+    fprintf(stderr, "\t\tset AI Animal Detection: ON or OFF\n");
+    fprintf(stderr, "\t-O AIMOTIONDETECTION, --aimotiondetection AIMOTIONDETECTION\n");
+    fprintf(stderr, "\t\tset AI Motion Detection: ON or OFF (disable all other AI detections)\n");
     fprintf(stderr, "\t-c FACEDETECTION, --facedetection FACEDETECTION\n");
     fprintf(stderr, "\t\tset Face Detection: ON or OFF\n");
     fprintf(stderr, "\t-o MOTIONTRACKING, --motiontracking MOTIONTRACKING\n");
@@ -117,7 +125,11 @@ int main(int argc, char ** argv)
     int save = NONE;
     int ir = NONE;
     int rotate = NONE;
+    int setalertallowstate_human = NONE;
     int aihumandetection = NONE;
+    int aivehicledetection = NONE;
+    int aianimaldetection = NONE;
+    int aimotiondetection = NONE;
     int facedetection = NONE;
     int motiontracking = NONE;
     int mic = NONE;
@@ -151,7 +163,11 @@ int main(int argc, char ** argv)
             {"save",  required_argument, 0, 'v'},
             {"ir",  required_argument, 0, 'i'},
             {"rotate",  required_argument, 0, 'r'},
+            {"setalertallowstate_human",  no_argument, 0, '1'},
             {"aihumandetection",  required_argument, 0, 'a'},
+            {"aivehicledetection",  required_argument, 0, 'E'},
+            {"aianimaldetection",  required_argument, 0, 'N'},
+            {"aimotiondetection",  required_argument, 0, 'O'},
             {"facedetection",  required_argument, 0, 'c'},
             {"motiontracking",  required_argument, 0, 'o'},
             {"mic",  required_argument, 0, 'I'},
@@ -175,7 +191,7 @@ int main(int argc, char ** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:c:o:I:b:n:m:M:p:PR:C:f:S:Txdh",
+        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:E:N:O:c:o:I:b:B:n:m:M:p:PR:C:f:S:TxXdh",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -251,11 +267,51 @@ int main(int argc, char ** argv)
             }
             break;
 
+        case '1':
+            setalertallowstate_human = 1;
+            break;
+
         case 'a':
-            if (strcasecmp("off", optarg) == 0) {
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
                 aihumandetection = AI_HUMAN_DETECTION_OFF;
-            } else if (strcasecmp("on", optarg) == 0) {
+            } else if ((strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
                 aihumandetection = AI_HUMAN_DETECTION_ON;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            break;
+
+        case 'E':
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
+                aivehicledetection = AI_VEHICLE_DETECTION_OFF;
+            } else if ((strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
+                aivehicledetection = AI_VEHICLE_DETECTION_ON;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            break;
+
+        case 'N':
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
+                aianimaldetection = AI_ANIMAL_DETECTION_OFF;
+            } else if ((strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
+                aianimaldetection = AI_ANIMAL_DETECTION_ON;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            break;
+
+        case 'O':
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
+                aimotiondetection = AI_MOTION_DETECTION_OFF;
+            } else if ((strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
+                aimotiondetection = AI_MOTION_DETECTION_ON;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
             }
             break;
 
@@ -533,10 +589,32 @@ int main(int argc, char ** argv)
         mq_send(ipc_mq, IPC_ROTATE_ON, sizeof(IPC_ROTATE_ON) - 1, 0);
     }
 
+    if (setalertallowstate_human == 1) {
+        mq_send(ipc_mq, IPC_SET_ALERT_ALLOW_STATE_HUMAN, sizeof(IPC_SET_ALERT_ALLOW_STATE_HUMAN) - 1, 0);
+    }
+
     if (aihumandetection == AI_HUMAN_DETECTION_OFF) {
         mq_send(ipc_mq, IPC_AI_HUMAN_DETECTION_OFF, sizeof(IPC_AI_HUMAN_DETECTION_OFF) - 1, 0);
     } else if (aihumandetection == AI_HUMAN_DETECTION_ON) {
         mq_send(ipc_mq, IPC_AI_HUMAN_DETECTION_ON, sizeof(IPC_AI_HUMAN_DETECTION_ON) - 1, 0);
+    }
+
+    if (aivehicledetection == AI_VEHICLE_DETECTION_OFF) {
+        mq_send(ipc_mq, IPC_AI_VEHICLE_DETECTION_OFF, sizeof(IPC_AI_VEHICLE_DETECTION_OFF) - 1, 0);
+    } else if (aivehicledetection == AI_VEHICLE_DETECTION_ON) {
+        mq_send(ipc_mq, IPC_AI_VEHICLE_DETECTION_ON, sizeof(IPC_AI_VEHICLE_DETECTION_ON) - 1, 0);
+    }
+
+    if (aianimaldetection == AI_ANIMAL_DETECTION_OFF) {
+        mq_send(ipc_mq, IPC_AI_ANIMAL_DETECTION_OFF, sizeof(IPC_AI_ANIMAL_DETECTION_OFF) - 1, 0);
+    } else if (aianimaldetection == AI_ANIMAL_DETECTION_ON) {
+        mq_send(ipc_mq, IPC_AI_ANIMAL_DETECTION_ON, sizeof(IPC_AI_ANIMAL_DETECTION_ON) - 1, 0);
+    }
+
+    if (aimotiondetection == AI_MOTION_DETECTION_OFF) {
+        mq_send(ipc_mq, IPC_AI_MOTION_DETECTION_OFF, sizeof(IPC_AI_MOTION_DETECTION_OFF) - 1, 0);
+    } else if (aimotiondetection == AI_MOTION_DETECTION_ON) {
+        mq_send(ipc_mq, IPC_AI_MOTION_DETECTION_ON, sizeof(IPC_AI_MOTION_DETECTION_ON) - 1, 0);
     }
 
     if (facedetection == FACE_DETECTION_OFF) {

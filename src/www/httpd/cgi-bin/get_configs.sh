@@ -65,6 +65,9 @@ if [ "$CONF_TYPE" == "system" ] ; then
     printf "\"%s\":\"%s\",\n"  "HOSTNAME" "$(cat $YI_HACK_PREFIX/etc/hostname | sed -r 's/\\/\\\\/g;s/"/\\"/g;')"
 fi
 
+HOMEVER=$(cat /home/homever)
+printf "\"%s\":\"%s\",\n"  "HOMEVER" "$HOMEVER"
+
 # Empty values to "close" the json
 printf "\"%s\":\"%s\"\n"  "NULL" "NULL"
 

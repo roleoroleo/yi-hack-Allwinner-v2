@@ -1,9 +1,17 @@
 #!/bin/sh
 
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
+
+HOMEVER=$(cat /home/homever)
+HV=${HOMEVER:0:2}
 CONF_FILE="$YI_HACK_PREFIX/etc/camera.conf"
 
 . $YI_HACK_PREFIX/www/cgi-bin/validate.sh
+
+MOTION_DETECTION="no"
+AI_HUMAN_DETECTION="no"
+AI_VEHICLE_DETECTION="no"
+AI_ANIMAL_DETECTION="no"
 
 if ! $(validateQueryString $QUERY_STRING); then
     printf "Content-type: application/json\r\n\r\n"
@@ -15,7 +23,7 @@ fi
 
 CONF_LAST="CONF_LAST"
 
-for I in 1 2 3 4 5 6 7 8 9 10 11 12
+for I in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
 do
     CONF="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f1)"
     VAL="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f2)"
@@ -55,15 +63,31 @@ do
         else
             ipc_cmd -v detect
         fi
+    elif [ "$CONF" == "motion_detection" ] ; then
+        if [ "$VAL" == "no" ] || [ "$VAL" == "yes" ] ; then
+            MOTION_DETECTION=$VAL
+        fi
     elif [ "$CONF" == "sensitivity" ] ; then
         if [ "$VAL" == "low" ] || [ "$VAL" == "medium" ] || [ "$VAL" == "high" ]; then
             ipc_cmd -s $VAL
         fi
     elif [ "$CONF" == "ai_human_detection" ] ; then
         if [ "$VAL" == "no" ] ; then
-            ipc_cmd -a off
+            AI_HUMAN_DETECTION="no"
         else
-            ipc_cmd -a on
+            AI_HUMAN_DETECTION="yes"
+        fi
+    elif [ "$CONF" == "ai_vehicle_detection" ] ; then
+        if [ "$VAL" == "no" ] ; then
+            AI_VEHICLE_DETECTION="no"
+        else
+            AI_VEHICLE_DETECTION="yes"
+        fi
+    elif [ "$CONF" == "ai_animal_detection" ] ; then
+        if [ "$VAL" == "no" ] ; then
+            AI_ANIMAL_DETECTION="no"
+        else
+            AI_ANIMAL_DETECTION="yes"
         fi
     elif [ "$CONF" == "face_detection" ] ; then
         if [ "$VAL" == "no" ] ; then
@@ -120,6 +144,36 @@ do
     fi
     sleep 0.5
 done
+
+if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+    if [ "$MOTION_DETECTION" == "no" ]; then
+        ipc_cmd -O off
+
+        if [ "$AI_HUMAN_DETECTION" == "no" ]; then
+            ipc_cmd -a off
+        else
+            ipc_cmd -a on
+        fi
+        if [ "$AI_VEHICLE_DETECTION" == "no" ]; then
+            ipc_cmd -E off
+        else
+            ipc_cmd -E on
+        fi
+        if [ "$AI_ANIMAL_DETECTION" == "no" ]; then
+            ipc_cmd -N off
+        else
+            ipc_cmd -N on
+        fi
+    else
+        ipc_cmd -O on
+    fi
+else
+    if [ "$AI_HUMAN_DETECTION" == "no" ]; then
+        ipc_cmd -a off
+    else
+        ipc_cmd -a on
+    fi
+fi
 
 printf "Content-type: application/json\r\n\r\n"
 

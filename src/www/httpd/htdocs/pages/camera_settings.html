@@ -52,11 +52,24 @@
                             </span>
                         </td>
                     </tr>
-                    <tr class="row">
+                    <tr class="row no_fw12">
                         <td>Motion Detection</td>
                         <td>
                             <span class="switch-description">
                                 You don't need to enable motion detection, it's always enabled.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row fw12">
+                        <td>Motion Detection</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" id="MOTION_DETECTION" data-key="MOTION_DETECTION"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable/disable generic Motion Detection (if you select this option, all AI detections will be disabled).
                             </span>
                         </td>
                     </tr>
@@ -76,16 +89,42 @@
                         <td>AI Human Detection</td>
                         <td>
                             <label class="switch small">
-                                <input type="checkbox" data-key="AI_HUMAN_DETECTION"/>
+                                <input type="checkbox" id="AI_HUMAN_DETECTION" data-key="AI_HUMAN_DETECTION"/>
                                 <span class="slider round"></span>
                                 <span class="switch-text"></span>
                             </label>
                             <span class="switch-description">
-                                Enable/disable AI Human Detection (if enabled you will not receive<br> anymore motion detection messages, only human detection).
+                                Enable/disable AI Human Detection (requires plan).
                             </span>
                         </td>
                     </tr>
-                    <tr class="row">
+                    <tr class="row fw12">
+                        <td>AI Vehicle Detection</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" id="AI_VEHICLE_DETECTION" data-key="AI_VEHICLE_DETECTION"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable/disable AI Vehicle Human Detection (requires plan).
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row fw12">
+                        <td>AI Animal Detection</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" id="AI_ANIMAL_DETECTION" data-key="AI_ANIMAL_DETECTION"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable/disable AI Animal Detection (requires plan).
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row no_fw12">
                         <td>Face Detection</td>
                         <td>
                             <label class="switch small">

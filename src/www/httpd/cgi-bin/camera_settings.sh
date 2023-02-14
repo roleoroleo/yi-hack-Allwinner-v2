@@ -106,7 +106,7 @@ do
             ipc_cmd -r on
         fi
     elif [ "$CONF" == "cruise" ] ; then
-        if [ "$VAL" == "off" ]; then
+        if [ "$VAL" == "no" ]; then
             ipc_cmd -C off
         elif [ "$VAL" == "presets" ]; then
             ipc_cmd -C on

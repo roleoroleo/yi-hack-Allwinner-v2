@@ -90,7 +90,7 @@ void print_usage(char *progname)
     fprintf(stderr, "\t-R NUM, --remove_preset NUM\n");
     fprintf(stderr, "\t\tremove PTZ preset: NUM = [0..7] or \"all\"\n");
     fprintf(stderr, "\t-C MODE, --cruise MODE\n");
-    fprintf(stderr, "\t\tset cruise mode: \"off\", \"on\", \"presets\" or \"360\"\n");
+    fprintf(stderr, "\t\tset cruise mode: \"on\", \"off\", \"presets\" or \"360\"\n");
     fprintf(stderr, "\t-f FILE, --file FILE\n");
     fprintf(stderr, "\t\tread binary command from FILE\n");
     fprintf(stderr, "\t-x, --xxx\n");
@@ -357,9 +357,9 @@ int main(int argc, char ** argv)
             break;
 
         case 'C':
-            if (strcasecmp("off", optarg) == 0) {
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
                 cruise = CRUISE_OFF;
-            } else if (strcasecmp("on", optarg) == 0) {
+            } else if ((strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
                 cruise = CRUISE_ON;
             } else if (strcasecmp("presets", optarg) == 0) {
                 cruise = CRUISE_PRESETS;
@@ -558,8 +558,12 @@ int main(int argc, char ** argv)
         } else if (cruise == CRUISE_ON) {
             mq_send(ipc_mq, IPC_CRUISE_ON, sizeof(IPC_CRUISE_ON) - 1, 0);
         } else if (cruise == CRUISE_PRESETS) {
+            mq_send(ipc_mq, IPC_CRUISE_ON, sizeof(IPC_CRUISE_ON) - 1, 0);
+            usleep(100 * 1000);
             mq_send(ipc_mq, IPC_CRUISE_PRESETS, sizeof(IPC_CRUISE_PRESETS) - 1, 0);
         } else if (cruise == CRUISE_360) {
+            mq_send(ipc_mq, IPC_CRUISE_ON, sizeof(IPC_CRUISE_ON) - 1, 0);
+            usleep(100 * 1000);
             mq_send(ipc_mq, IPC_CRUISE_360, sizeof(IPC_CRUISE_360) - 1, 0);
         }
     }

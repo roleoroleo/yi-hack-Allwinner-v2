@@ -5,6 +5,7 @@ APP.camera_settings = (function($) {
     function init() {
         registerEventHandler();
         fetchConfigs();
+        updatePage();
     }
 
     function registerEventHandler() {
@@ -74,6 +75,32 @@ APP.camera_settings = (function($) {
             },
             error: function(response) {
                 saveStatusElem.text("Error while saving");
+                console.log('error', response);
+            }
+        });
+    }
+
+    function updatePage() {
+        $.ajax({
+            type: "GET",
+            url: 'cgi-bin/status.json',
+            dataType: "json",
+            success: function(data) {
+                ptz_enabled = ["r30gb", "r35gb", "r40ga", "h51ga", "h52ga", "h60ga", "q321br_lsx", "qg311r", "b091qp"];
+                this_model = data["model_suffix"] || "unknown";
+                if (ptz_enabled.includes(this_model)) {
+                    var lst = document.querySelectorAll(".ptz");
+                    for(var i = 0; i < lst.length; ++i) {
+                        lst[i].style.display = 'table-row';
+                    }
+                } else {
+                    var lst = document.querySelectorAll(".ptz");
+                    for(var i = 0; i < lst.length; ++i) {
+                        lst[i].style.display = 'none';
+                    }
+                }
+            },
+            error: function(response) {
                 console.log('error', response);
             }
         });

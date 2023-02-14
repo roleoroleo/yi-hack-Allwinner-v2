@@ -390,3 +390,7 @@ select {
 button.icon {
 	border: 0;
 }
+
+.ptz {
+	display: none;
+}

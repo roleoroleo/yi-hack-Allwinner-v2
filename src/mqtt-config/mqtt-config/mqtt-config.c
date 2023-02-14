@@ -1,8 +1,13 @@
 #include "mqtt-config.h"
 
+struct mosquitto *mosq;
+enum conn_states {CONN_DISCONNECTED, CONN_CONNECTING, CONN_CONNECTED};
+static enum conn_states conn_state;
+
 mqtt_conf_t conf;
 
-int run = 1;
+int run;
+int debug = 1;
 
 /*
  * signal handler to terminate program
@@ -27,6 +32,20 @@ void handle_signal(int s)
 void connect_callback(struct mosquitto *mosq, void *obj, int result)
 {
     printf("Callback, connected with return code rc=%d\n", result);
+
+    if(result==MOSQ_ERR_SUCCESS)
+    {
+        conn_state=CONN_CONNECTED;
+    }
+    else
+    {
+        conn_state=CONN_DISCONNECTED;
+    }
+}
+
+void disconnect_callback(struct mosquitto *mosq, void *obj, int result)
+{
+    conn_state=CONN_DISCONNECTED;
 }
 
 /*
@@ -41,18 +60,18 @@ void connect_callback(struct mosquitto *mosq, void *obj, int result)
 void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message)
 {
     char topic_prefix[MAX_LINE_LENGTH], topic[MAX_LINE_LENGTH], file[MAX_KEY_LENGTH], param[MAX_KEY_LENGTH];
-    char conf_file[256];
     char *slash;
     bool match = 0;
     int len;
+    char ipc_cmd_param[2];
+    char cmd_line[1024];
+    char *s;
 
-    debug = 1;
-
-    if (debug) fprintf(stderr, "Received message '%.*s' for topic '%s'\n", message->payloadlen, (char*) message->payload, message->topic);
+    if (debug) printf("Received message '%.*s' for topic '%s'\n", message->payloadlen, (char*) message->payload, message->topic);
     /*
      * Check if the argument matches the subscription
      */
-    mosquitto_topic_matches_sub(conf.mqtt_prefix_config, message->topic, &match);
+    mosquitto_topic_matches_sub(conf.mqtt_prefix_cmnd, message->topic, &match);
     if (!match) {
         return;
     }
@@ -65,12 +84,13 @@ void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_
     memset(file, '\0', MAX_KEY_LENGTH);
     memset(param, '\0', MAX_KEY_LENGTH);
 
-    len = strlen(conf.mqtt_prefix_config) - 2;
+    // Remove /#
+    len = strlen(conf.mqtt_prefix_cmnd) - 2;
     if (len >= MAX_LINE_LENGTH) {
-        if (debug) fprintf(stderr, "Message topic exceeds buffer size\n");
+        if (debug) printf("Message topic exceeds buffer size\n");
         return;
     }
-    strncpy(topic_prefix, conf.mqtt_prefix_config, len);
+    strncpy(topic_prefix, conf.mqtt_prefix_cmnd, len);
     if (strncasecmp(topic_prefix, message->topic, len) != 0) {
         return;
     }
@@ -86,43 +106,201 @@ void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_
         return;
     }
     if (slash - topic >= MAX_KEY_LENGTH) {
-        if (debug) fprintf(stderr, "Message subtopic exceeds buffer size\n");
+        if (debug) printf("Message subtopic exceeds buffer size\n");
         return;
     }
     strncpy(file, topic, slash - topic);
     if (strlen(slash + 1) >= MAX_KEY_LENGTH) {
-        if (debug) fprintf(stderr, "Message subtopic exceeds buffer size\n");
+        if (debug) printf("Message subtopic exceeds buffer size\n");
         return;
     }
     strcpy(param, slash + 1);
-    if (strlen(message->payload) == 0) {
-        if (debug) fprintf(stderr, "Payload is empty\n");
+    if (strlen(param) == 0) {
+        if (debug) printf("Param is empty\n");
         return;
     }
-    if (debug) fprintf(stderr, "Validating: file \"%s\", parameter \"%s\", value \"%s\"\n", file, param, (char *) message->payload);
-    if (validate_param(file, param, message->payload) == 1) {
-        sprintf(conf_file, "%s/%s.conf", CONF_FILE_PATH, file);
-        if (debug) fprintf(stderr, "Updating file \"%s\", parameter \"%s\" with value \"%s\"\n", file, param, (char *) message->payload);
-        config_replace(conf_file, param, message->payload);
-    } else {
-        fprintf(stderr, "Validation error: file \"%s\", parameter \"%s\", value \"%s\"\n", file, param, (char *) message->payload);
+    if ((message->payload == NULL) || (strlen(message->payload) == 0)) {
+        if (debug) printf("Payload is empty\n");
+        return;
     }
+    // Convert to upper case before validating and saving
+    s = param;
+    while (*s) {
+        *s = toupper((unsigned char) *s);
+        s++;
+    }
+    if (debug) printf("Validating: file \"%s\", parameter \"%s\", value \"%s\"\n", file, param, (char *) message->payload);
+    if (validate_param(file, param, message->payload) == 1) {
+        // Check if we need to run ipc_cmd
+        if (extract_param(ipc_cmd_param, file, param, 8) == 0) {
+            if (ipc_cmd_param[0] != '\0') {
+                sprintf(cmd_line, "ipc_cmd %s %s", ipc_cmd_param, (char *) message->payload);
+                if (debug) printf("Running system command \"%s\"\n", cmd_line);
+                system(cmd_line);
+            }
+        }
+    } else {
+        printf("Validation error: file \"%s\", parameter \"%s\", value \"%s\"\n", file, param, (char *) message->payload);
+    }
+}
+
+void handle_config(const char *key, const char *value)
+{
+    int nvalue;
+
+    if(strcmp(key, "MQTT_IP") == 0) {
+        if (strlen(value) < sizeof(conf.host))
+            strcpy(conf.host, value);
+    } else if(strcmp(key, "MQTT_CLIENT_ID")==0) {
+        conf.client_id = malloc((char) strlen(value) + 1 + 2);
+        sprintf(conf.client_id, "%s_c", value);
+    } else if(strcmp(key, "MQTT_PREFIX")==0) {
+        conf.mqtt_prefix_cmnd = malloc((char) strlen(value) + 1 + 7);
+        sprintf(conf.mqtt_prefix_cmnd, "%s/cmnd/#", value);
+    } else if(strcmp(key, "MQTT_USER") == 0) {
+        conf.user = malloc((char) strlen(value) + 1);
+        strcpy(conf.user, value);
+    } else if(strcmp(key, "MQTT_PASSWORD") == 0) {
+        conf.password = malloc((char) strlen(value) + 1);
+        strcpy(conf.password, value);
+    } else if(strcmp(key, "MQTT_PORT") == 0) {
+        errno = 0;
+        nvalue = strtol(value, NULL, 10);
+        if(errno == 0)
+            conf.port = nvalue;
+    } else {
+        if (debug) {
+            printf("Ignoring key: %s - value: %s\n", key, value);
+        }
+    }
+}
+
+int mqtt_init_conf(mqtt_conf_t *conf)
+{
+    FILE *fp;
+
+    strcpy(conf->host, "127.0.0.1");
+    strcpy(conf->bind_address, "0.0.0.0");
+    conf->user = NULL;
+    conf->password = NULL;
+    conf->port = 1883;
+    conf->mqtt_prefix_cmnd = NULL;
+
+    fp = open_conf_file(MQTT_CONF_FILE);
+    if (fp == NULL)
+        return -1;
+
+    config_set_handler(&handle_config);
+    config_parse(fp);
+
+    close_conf_file(fp);
+
+    return 0;
+}
+
+void mqtt_check_connection()
+{
+    if (conn_state != CONN_CONNECTED) {
+        mqtt_connect();
+    }
+}
+
+int mqtt_connect()
+{
+    int rc = 0;
+
+    /*
+     * Set connection credentials.
+     */
+    if (conf.user!=NULL && strcmp(conf.user, "") != 0) {
+        rc = mosquitto_username_pw_set(mosq, conf.user, conf.password);
+        if(rc != MOSQ_ERR_SUCCESS) {
+            printf("Unable to set the auth parameters (%s).\n", mosquitto_strerror(rc));
+            return -2;
+        }
+    }
+
+    /*
+     * Set connection callback.
+     * It's called when the broker send CONNACK message.
+     */
+    mosquitto_connect_callback_set(mosq, connect_callback);
+    /*
+     * Set disconnection callback.
+     * It's called at the disconnection.
+     */
+    mosquitto_disconnect_callback_set(mosq, disconnect_callback);
+    /*
+     * Set subscription callback.
+     * It's called when the broker send a subscribed message.
+     */
+    mosquitto_message_callback_set(mosq, message_callback);
+    /*
+     * Connect to the broker.
+     */
+    conn_state = CONN_DISCONNECTED;
+
+    while (conn_state != CONN_CONNECTED) {
+
+        if (debug) printf("Connecting to broker %s\n", conf.host);
+        do
+        {
+            rc = mosquitto_connect(mosq, conf.host, conf.port, 15);
+
+            if(rc != MOSQ_ERR_SUCCESS)
+                printf("Unable to connect (%s).\n", mosquitto_strerror(rc));
+
+            usleep(500*1000);
+
+        } while(rc != MOSQ_ERR_SUCCESS);
+
+        if (conn_state == CONN_DISCONNECTED)
+            conn_state = CONN_CONNECTING;
+
+        /*
+         * Subscribe a topic.
+         * mosq   - mosquitto instance
+         * NULL   - optional message id
+         * topic  - topic to subscribe
+         * 0      - QoS Quality of service
+         */
+        if (debug) printf("Subscribing topic %s\n", conf.mqtt_prefix_cmnd);
+        rc = mosquitto_subscribe(mosq, NULL, conf.mqtt_prefix_cmnd, 0);
+        if (rc != MOSQ_ERR_SUCCESS) {
+            printf("Unable to subscribe to the broker\n");
+            break;
+        }
+
+        if (conn_state == CONN_CONNECTING)
+            conn_state = CONN_CONNECTED;
+
+        /*
+         * Infinite loop waiting for incoming messages
+         */
+        do
+        {
+            rc = mosquitto_loop(mosq, -1, 1);
+            if(conn_state != CONN_CONNECTED)
+                usleep(100*1000);
+        } while(conn_state == CONN_CONNECTING);
+    }
+
+    return 0;
+}
+
+void stop_mqtt(void)
+{
+    mosquitto_destroy(mosq);
+    mosquitto_lib_cleanup();
 }
 
 int main(int argc, char *argv[])
 {
-    debug = 1;
-
-    /*
-     * Client instance
-     */
-    struct mosquitto *mosq;
+    run = 1;
 
     if (mqtt_init_conf(&conf) < 0)
-        return -1;
-    stop_config();
+        return -2;
 
-    int rc = 0;
     signal(SIGINT, handle_signal);
     signal(SIGTERM, handle_signal);
     /*
@@ -136,149 +314,18 @@ int main(int argc, char *argv[])
     mosq = mosquitto_new(conf.client_id, true, 0);
 
     if(mosq) {
-        /* 
-         * Set connection credentials.
-         */
-        if (conf.user!=NULL && strcmp(conf.user, "") != 0) {
-            rc = mosquitto_username_pw_set(mosq, conf.user, conf.password);
-
-            if(rc != MOSQ_ERR_SUCCESS) {
-                printf("Unable to set the auth parameters (%s).\n", mosquitto_strerror(rc));
-                return -2;
-            }
-        }
-
-        /* 
-         * Set connection callback.
-         * It's called when the broker send CONNACK message.
-         */
-        mosquitto_connect_callback_set(mosq, connect_callback);
-        /* 
-         * Set subscription callback.
-         * It's called when the broker send a subscribed message.
-         */
-        mosquitto_message_callback_set(mosq, message_callback);
-        /* 
-         * Connect to the broker.
-         */
-        rc = mosquitto_connect(mosq, conf.host, conf.port, 15);
-        if (rc != MOSQ_ERR_SUCCESS) {
-            printf("Unable to connect to the broker\n");
+        if (mqtt_connect() != 0)
             return -3;
-        }
-        if (conf.mqtt_prefix_config == NULL) {
-            printf("Wrong topic prefix, please check configuration.\n");
-            return -4;
-        }
-        /*
-         * Subscribe a topic.
-         * mosq   - mosquitto instance
-         * NULL   - optional message id
-         * topic  - topic to subscribe
-         * 0      - QoS Quality of service
-         */ 
-        rc = mosquitto_subscribe(mosq, NULL, conf.mqtt_prefix_config, 0);
-        if (rc != MOSQ_ERR_SUCCESS) {
-            printf("Unable to subscribe to the broker\n");
-            return -5;
+
+        while(run)
+        {
+            mqtt_check_connection();
+            mosquitto_loop(mosq, -1, 1);
+            usleep(500*1000);
         }
 
-        /*
-         * Infinite loop waiting for incoming messages
-         */
-        while (run) {
-            /*
-             * Main loop for the client.
-             * Mandatory to keep active the communication between the
-             * client and the broker.
-             * mosq - mosquitto instance
-             * -1   - Max wait time for select() call (ms)
-             *        Set = 0 for immediate return
-             *        Set < 0 for default vaule (1000 ms)
-             * 1    - Unused parameter
-             */
-            rc = mosquitto_loop(mosq, -1, 1);
-            /*
-             * If rc != 0 there was an error.
-             * Wait 5 seconds and reconnect to the broker.
-             */
-            if (run && rc) {
-                printf("Connection error! Try again...\n");
-                sleep(5);
-                mosquitto_reconnect(mosq);
-            }
-        }
-        /*
-         * Free memory related to mosquitto instance.
-         */
-        mosquitto_destroy(mosq);
+        stop_mqtt();
     }
-    /*
-     * Free mosquitto library resources.
-     */
-    mosquitto_lib_cleanup();
-
-    return rc;
-}
-
-void handle_config(const char *key, const char *value)
-{
-    int nvalue;
-
-    if(strcmp(key, "MQTT_IP") == 0) {
-        if (strlen(value) < sizeof(conf.host))
-            strcpy(conf.host, value);
-    } else if(strcmp(key, "MQTT_CLIENT_ID")==0) {
-        conf.client_id = malloc((char) strlen(value) + 1 + 2);
-        sprintf(conf.client_id, "%s_c", value);
-    } else if(strcmp(key, "MQTT_USER") == 0) {
-        conf.user = malloc((char) strlen(value) + 1);
-        strcpy(conf.user, value);
-    } else if(strcmp(key, "MQTT_PASSWORD") == 0) {
-        conf.password = malloc((char) strlen(value) + 1);
-        strcpy(conf.password, value);
-    } else if(strcmp(key, "MQTT_PORT") == 0) {
-        errno = 0;
-        nvalue = strtol(value, NULL, 10);
-        if(errno == 0)
-            conf.port = nvalue;
-    } else if(strcmp(key, "MQTT_PREFIX_CONFIG") == 0) {
-        // Reserve space for "/#" at the end
-        conf.mqtt_prefix_config = malloc((char) strlen(value) + 1 + 2);
-        strcpy(conf.mqtt_prefix_config, value);
-        int len = strlen(conf.mqtt_prefix_config);
-        if (conf.mqtt_prefix_config[len - 1] == '/') {
-            conf.mqtt_prefix_config[len] = '#';
-            conf.mqtt_prefix_config[len + 1] = '\0';
-        } else {
-            conf.mqtt_prefix_config[len] = '/';
-            conf.mqtt_prefix_config[len + 1] = '#';
-            conf.mqtt_prefix_config[len + 2] = '\0';
-        }
-    } else {
-        if (debug) {
-            fprintf(stderr, "Ignoring key: %s - value: %s\n", key, value);
-        }
-    }
-}
-
-int mqtt_init_conf(mqtt_conf_t *conf)
-{
-    strcpy(conf->host, "127.0.0.1");
-    strcpy(conf->bind_address, "0.0.0.0");
-    conf->user = NULL;
-    conf->password = NULL;
-    conf->port = 1883;
-    conf->mqtt_prefix_config = NULL;
-
-    if (init_config(MQTT_CONF_FILE) != 0)
-    {
-        printf("Cannot open config file\n");
-        return -1;
-    }
-
-    config_set_handler(&handle_config);
-    config_parse();
 
     return 0;
 }

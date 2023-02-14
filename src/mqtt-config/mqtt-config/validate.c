@@ -1,48 +1,65 @@
 #include "validate.h"
 
 char *config_params[PARAM_NUM][PARAM_OPTIONS] = {
-    { "system", "HTTPD", "bool", "", "", "" , "", "" },
-    { "system", "TELNETD", "bool", "", "", "" , "", "" },
-    { "system", "SSHD", "bool", "", "", "" , "", "" },
-    { "system", "FTPD", "bool", "", "", "" , "", "" },
-    { "system", "BUSYBOX_FTPD", "bool", "", "", "" , "", "" },
-    { "system", "DISABLE_CLOUD", "bool", "", "", "" , "", "" },
-    { "system", "REC_WITHOUT_CLOUD", "bool", "", "", "" , "", "" },
-    { "system", "MQTT", "bool", "", "", "" , "", "" },
-    { "system", "RTSP", "bool", "", "", "" , "", "" },
-    { "system", "RTSP_STREAM", "enum", "high", "low", "both" , "", "" },
-    { "system", "RTSP_AUDIO", "enum", "no", "pcm", "alaw", "ulaw", "aac" },
-    { "system", "RTSP_AUDIO_NR_LEVEL", "int", "0", "30", "" , "", "" },
-    { "system", "ONVIF", "bool", "", "", "" , "", "" },
-    { "system", "ONVIF_WSDD", "bool", "", "", "" , "", "" },
-    { "system", "ONVIF_PROFILE", "enum", "high", "low", "both" , "", "" },
-    { "system", "ONVIF_WM_SNAPSHOT", "bool", "", "", "" , "", "" },
-    { "system", "NTPD", "bool", "", "", "" , "", "" },
-    { "system", "NTP_SERVER", "string" "", "", "" , "", "" },
-    { "system", "PROXYCHAINSNG", "bool", "", "", "" , "", "" },
-    { "system", "RTSP_PORT", "int", "1", "65535", "" , "", "" },
-    { "system", "ONVIF_PORT", "int", "1", "65535", "" , "", "" },
-    { "system", "HTTPD_PORT", "int", "1", "65535", "" , "", "" },
-    { "system", "USERNAME", "string", "", "", "" , "", "" },
-    { "system", "PASSWORD", "string", "", "", "" , "", "" },
-    { "system", "FREE_SPACE", "int", "0", "100", "" , "", "" },
-    { "system", "FTP_UPLOAD", "bool", "", "", "" , "", "" },
-    { "system", "FTP_HOST", "string", "", "", "" , "", "" },
-    { "system", "FTP_DIR", "string", "", "", "" , "", "" },
-    { "system", "FTP_DIR_TREE", "bool", "", "", "" , "", "" },
-    { "system", "FTP_USERNAME", "string" "", "", "" , "", "" },
-    { "system", "FTP_PASSWORD", "string" "", "", "" , "", "" },
-    { "system", "FTP_FILE_DELETE_AFTER_UPLOAD", "bool", "", "", "" , "", "" },
-    { "system", "SSH_PASSWORD", "string", "", "", "" , "", "" },
-    { "system", "CRONTAB", "string", "", "", "" , "", "" },
+    { "system", "HTTPD", "bool", "", "", "" , "", "", "" },
+    { "system", "TELNETD", "bool", "", "", "" , "", "", "" },
+    { "system", "SSHD", "bool", "", "", "" , "", "", "" },
+    { "system", "FTPD", "bool", "", "", "" , "", "", "" },
+    { "system", "BUSYBOX_FTPD", "bool", "", "", "" , "", "", "" },
+    { "system", "DISABLE_CLOUD", "bool", "", "", "" , "", "", "" },
+    { "system", "REC_WITHOUT_CLOUD", "bool", "", "", "" , "", "", "" },
+    { "system", "MQTT", "bool", "", "", "" , "", "", "" },
+    { "system", "RTSP", "bool", "", "", "" , "", "", "" },
+    { "system", "RTSP_ALT", "bool", "", "", "" , "", "", "" },
+    { "system", "RTSP_STREAM", "enum", "high", "low", "both" , "", "", "" },
+    { "system", "RTSP_AUDIO", "enum", "no", "pcm", "alaw", "ulaw", "aac", "" },
+    { "system", "RTSP_AUDIO_NR_LEVEL", "int", "0", "30", "" , "", "", "" },
+    { "system", "SPEAKER_AUDIO", "bool", "", "", "" , "", "", "" },
+    { "system", "SNAPSHOT", "bool", "", "", "" , "", "", "" },
+    { "system", "SNAPSHOT_VIDEO", "bool", "", "", "" , "", "", "" },
+    { "system", "SNAPSHOT_LOW", "bool", "", "", "" , "", "", "" },
+    { "system", "ONVIF", "bool", "", "", "" , "", "", "" },
+    { "system", "ONVIF_WSDD", "bool", "", "", "" , "", "", "" },
+    { "system", "ONVIF_PROFILE", "enum", "high", "low", "both" , "", "", "" },
+    { "system", "ONVIF_WM_SNAPSHOT", "bool", "", "", "" , "", "", "" },
+    { "system", "ONVIF_NETIF", "string", "", "", "" , "", "", "" },
+    { "system", "NTPD", "bool", "", "", "" , "", "", "" },
+    { "system", "NTP_SERVER", "string" "", "", "" , "", "", "" },
+    { "system", "PROXYCHAINSNG", "bool", "", "", "" , "", "", "" },
+    { "system", "SWAP_FILE", "bool", "", "", "" , "", "", "" },
+    { "system", "RTSP_PORT", "int", "1", "65535", "" , "", "", "" },
+    { "system", "ONVIF_PORT", "int", "1", "65535", "" , "", "", "" },
+    { "system", "HTTPD_PORT", "int", "1", "65535", "" , "", "", "" },
+    { "system", "USERNAME", "string", "", "", "" , "", "", "" },
+    { "system", "PASSWORD", "string", "", "", "" , "", "", "" },
+    { "system", "TIMEZONE", "string", "", "", "" , "", "", "" },
+    { "system", "FREE_SPACE", "int", "0", "100", "" , "", "", "" },
+    { "system", "FTP_UPLOAD", "bool", "", "", "" , "", "", "" },
+    { "system", "FTP_HOST", "string", "", "", "" , "", "", "" },
+    { "system", "FTP_DIR", "string", "", "", "" , "", "", "" },
+    { "system", "FTP_DIR_TREE", "bool", "", "", "" , "", "", "" },
+    { "system", "FTP_USERNAME", "string" "", "", "" , "", "", "" },
+    { "system", "FTP_PASSWORD", "string" "", "", "" , "", "", "" },
+    { "system", "FTP_FILE_DELETE_AFTER_UPLOAD", "bool", "", "", "" , "", "", "" },
+    { "system", "SSH_PASSWORD", "string", "", "", "" , "", "", "" },
+    { "system", "CRONTAB", "string", "", "", "" , "", "", "" },
 
-    { "camera", "SWITCH_ON", "bool", "", "", "" , "", "" },
-    { "camera", "SAVE_VIDEO_ON_MOTION", "bool", "", "", "" , "", "" },
-    { "camera", "SENSITIVITY", "enum", "low", "medium", "high" , "", "" },
-    { "camera", "BABY_CRYING_DETECT", "bool", "", "", "" , "", "" },
-    { "camera", "LED", "bool", "", "", "" , "", "" },
-    { "camera", "ROTATE", "bool", "", "", "" , "", "" },
-    { "camera", "IR", "bool", "", "", "", "", "" }
+    { "camera", "SWITCH_ON", "bool", "", "", "" , "", "", "-t" },
+    { "camera", "SAVE_VIDEO_ON_MOTION", "enum", "always", "detect", "" , "", "", "-v" },
+    { "camera", "MOTION_DETECTION", "bool", "", "", "" , "", "", "-O" },
+    { "camera", "SENSITIVITY", "enum", "low", "medium", "high" , "", "", "-s" },
+    { "camera", "AI_HUMAN_DETECTION", "bool", "", "", "" , "", "", "-a" },
+    { "camera", "AI_VEHICLE_DETECTION", "bool", "", "", "" , "", "", "-E" },
+    { "camera", "AI_ANIMAL_DETECTION", "bool", "", "", "" , "", "", "-N" },
+    { "camera", "FACE_DETECTION", "bool", "", "", "" , "", "", "-c" },
+    { "camera", "BABY_CRYING_DETECT", "bool", "", "", "" , "", "", "-B" },
+    { "camera", "LED", "bool", "", "", "" , "", "", "-l" },
+    { "camera", "ROTATE", "bool", "", "", "" , "", "", "-r" },
+    { "camera", "IR", "bool", "", "", "", "", "", "-i" },
+    { "camera", "SOUND_DETECTION", "bool", "", "", "", "", "", "-b" },
+    { "camera", "SOUND_SENSITIVITY", "int", "30", "90", "", "", "", "-n" },
+    { "camera", "MOTION_TRACKING", "bool", "", "", "", "", "", "-o" },
+    { "camera", "CRUISE", "enum", "no", "presets", "360", "", "", "-C" }
 };
 
 int validate_param(char *file, char *key, char *value)
@@ -61,6 +78,9 @@ int validate_param(char *file, char *key, char *value)
             }
             if (strcasecmp("bool", config_params[i][2]) == 0) {
                 if ((strcmp(value, "yes") == 0) || (strcmp(value, "no") == 0)) {
+                    validate = 1;
+                }
+                if ((strcmp(value, "on") == 0) || (strcmp(value, "off") == 0)) {
                     validate = 1;
                 }
             } else if (strcasecmp("int", config_params[i][2]) == 0) {
@@ -118,7 +138,7 @@ int validate_param(char *file, char *key, char *value)
                 }
             } else if (strcasecmp("enum", config_params[i][2]) == 0) {
                 validate = 0;
-                for (j = 3; j < PARAM_OPTIONS; j++) {
+                for (j = 3; j < PARAM_OPTIONS - 1; j++) {
                     if (config_params[i][j][0] == '\0') {
                         break;
                     }
@@ -133,4 +153,23 @@ int validate_param(char *file, char *key, char *value)
     }
 
     return validate;
+}
+
+int extract_param(char *param, char *file, char *key, int index)
+{
+    int i;
+    int ret = -1;
+
+    for (i = 0; i < PARAM_NUM; i++) {
+        if (strcasecmp(key, config_params[i][1]) == 0) {
+            if (strcasecmp(file, config_params[i][0]) != 0) {
+                break;
+            }
+            strcpy(param, config_params[i][index]);
+            ret = 0;
+            break;
+        }
+    }
+
+    return ret;
 }

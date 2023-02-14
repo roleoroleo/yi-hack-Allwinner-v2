@@ -1,4 +1,8 @@
 #!/bin/sh
+
+HOMEVER=$(cat /home/homever)
+HV=${HOMEVER:0:2}
+
 mount -t vfat /dev/mmcblk0 /tmp/sd
 if [ "${SUFFIX}" = "y211ga" ] || [ "${SUFFIX}" = "y211ba" ];then
     echo "need reset gpio198"
@@ -123,6 +127,11 @@ else
     ifconfig eth0 up
 fi
 
+if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+    ln -s /home/model/BodyVehicleAnimal3.model /tmp/BodyVehicleAnimal3.model
+fi
+
+
 echo "============================================= home low_half_init.sh... ========================================="
 echo "============================================= begin to start app... ========================================="
 cd /home/app
@@ -136,14 +145,36 @@ if [ -f "/tmp/sd/Factory/factory_test.sh" ]; then
 	exit
 fi
 
+if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+    export LD_LIBRARY_PATH=/home/app/locallib:$LD_LIBRARY_PATH:/tmp
+    echo $LD_LIBRARY_PATH
+fi
+
 if [ -f "/tmp/sd/factory_aging_test.sh" ]; then
-	 #/tmp/sd/factory_aging_test.sh
+    #/tmp/sd/factory_aging_test.sh
     ./dispatch &
     sleep 2
     ./rmm &
     sleep 2
     ./mp4record &
-	exit
+    exit
+fi
+
+if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+    if [ -f "/tmp/sd/log_tools.tar.gz" ];then
+        echo "run log_tools start."
+        if [ ! -d /tmp/sd/log_tools ];then
+            cd /tmp/sd
+            mkdir log_tools
+        fi
+        cd /tmp/sd
+        tar -zxvf log_tools.tar.gz -C /tmp/sd/log_tools
+        chmod +x /tmp/sd/log_tools/run_log_app.sh
+        source /tmp/sd/log_tools/run_log_app.sh
+        cd -
+        echo "run log_tools end."
+        exit
+    fi
 fi
 
 mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /home/app/script/wifidhcp.sh

@@ -92,7 +92,7 @@ fi
 HOMEVER=$(cat /home/homever)
 HV=${HOMEVER:0:2}
 
-if [ "$HV" == "12" ]; then
+if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
     ln -s /home/model/BodyVehicleAnimal3.model /tmp/BodyVehicleAnimal3.model
 fi
 
@@ -109,7 +109,7 @@ if [ -f "/tmp/sd/Factory/factory_test.sh" ]; then
 	exit
 fi
 
-if [ "$HV" == "12" ]; then
+if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
     if [ -f "/tmp/sd/log_tools.tar.gz" ];then
         echo "run log_tools start."
         if [ ! -d /tmp/sd/log_tools ];then

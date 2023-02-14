@@ -14,23 +14,23 @@ if [ "${enable_4g}" = "y" ];then
     echo "4g is running...."
 else
     if [ -f /home/base/wifi/8188fu.ko ];then
-		insmod /home/base/wifi/8188fu.ko
+        insmod /home/base/wifi/8188fu.ko
     elif [ -f /home/base/wifi/8189fs.ko ];then
         insmod /home/base/wifi/8189fs.ko
     elif [ -f /backup/ko/8188fu.ko ];then
-		insmod /backup/ko/8188fu.ko
+        insmod /backup/ko/8188fu.ko
     elif [ -f /backup/ko/8189fs.ko ];then
         insmod /backup/ko/8189fs.ko
     elif [ -f /backup/ko/hi3881.ko ];then
         insmod /backup/ko/hi3881.ko
     elif [ -f /backup/ko/8192fu.ko ];then
-		insmod /backup/ko/8192fu.ko	    
+        insmod /backup/ko/8192fu.ko
     elif [ -f /backup/ko/atbm603x_wifi_usb.ko ];then
         insmod /backup/ko/atbm603x_wifi_usb.ko
     elif [ -f /backup/ko/rdawfmac.ko ];then
-			insmod /backup/ko/rdawfmac.ko    
+        insmod /backup/ko/rdawfmac.ko    
     fi
-	
+
     if [ -f /backup/ko/ssv6x5x.ko ];then
         if [ "${SUFFIX}" = "d071qp"  ];then
             if [ -f /home/base/firmware/ssv6x5x/ssv6152-wifi.cfg ];then
@@ -116,7 +116,7 @@ fi
 HOMEVER=$(cat /home/homever)
 HV=${HOMEVER:0:2}
 
-if [ "$HV" == "12" ]; then
+if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
     ln -s /home/model/BodyVehicleAnimal3.model /tmp/BodyVehicleAnimal3.model
 fi
 
@@ -136,7 +136,7 @@ fi
 mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /home/app/script/wifidhcp.sh
 mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /backup/tools/wifidhcp.sh
 
-if [ "$HV" == "12" ]; then
+if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
     export LD_LIBRARY_PATH=/home/app/locallib:/home/app/script:$LD_LIBRARY_PATH:/tmp
     echo $LD_LIBRARY_PATH
 fi
@@ -151,7 +151,7 @@ if [ -f "/tmp/sd/factory_aging_test.sh" ]; then
     exit
 fi
 
-if [ "$HV" == "12" ]; then
+if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
     sleep 2
     export DEVICE_MEMORY=8000000
     export CPU_MEMORY=-1

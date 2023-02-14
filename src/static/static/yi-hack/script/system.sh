@@ -219,8 +219,8 @@ if [[ $(get_config NTPD) == "yes" ]] ; then
     sleep 5 && ntpd -p $(get_config NTP_SERVER) &
 fi
 
+mqttv4 &
 if [[ $(get_config MQTT) == "yes" ]] ; then
-    mqttv4 &
     mqtt-config &
     /tmp/sd/yi-hack/script/conf2mqtt.sh &
 fi

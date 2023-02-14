@@ -153,6 +153,16 @@ if [[ $(get_config DISABLE_CLOUD) == "no" ]] ; then
     )
 else
     (
+        while read -r line
+        do
+            echo "127.0.0.1    $line" >> /etc/hosts
+        done < $YI_HACK_PREFIX/script/blacklist/url
+
+        while read -r line
+        do
+            route add -host $line reject
+        done < $YI_HACK_PREFIX/script/blacklist/ip
+
         if [ $(get_config RTSP_AUDIO) == "pcm" ] || [ $(get_config RTSP_AUDIO) == "alaw" ] || [ $(get_config RTSP_AUDIO) == "ulaw" ]; then
             touch /tmp/audio_fifo.requested
         fi
@@ -191,15 +201,6 @@ else
                 fi
             fi
         fi
-        while read -r line
-        do
-            echo "127.0.0.1    $line" >> /etc/hosts
-        done < $YI_HACK_PREFIX/script/blacklist/url
-
-        while read -r line
-        do
-            route add -host $line reject
-        done < $YI_HACK_PREFIX/script/blacklist/ip
     )
 fi
 

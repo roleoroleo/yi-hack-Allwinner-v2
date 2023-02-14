@@ -24,6 +24,8 @@
 #include <sys/mman.h>
 #include <dirent.h>
 #include <libgen.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <getopt.h>
 
 #ifdef HAVE_AV_CONFIG_H
@@ -624,6 +626,9 @@ int main(int argc, char **argv)
     }
 
     if (debug) fprintf(stderr, "Starting program\n");
+
+    // Set low priority
+    setpriority(PRIO_PROCESS, 0, 10);
 
     // Check if snapshot is disabled
     if (access("/tmp/snapshot.disabled", F_OK ) == 0 ) {

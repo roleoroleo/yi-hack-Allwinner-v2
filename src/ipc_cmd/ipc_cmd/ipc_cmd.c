@@ -79,8 +79,10 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tset Microphone: ON or OFF\n");
     fprintf(stderr, "\t-b SOUNDDETECTION, --sounddetection SOUNDDETECTION\n");
     fprintf(stderr, "\t\tset Sound Detection: ON or OFF\n");
-//    fprintf(stderr, "\t-b BABYCRYING, --babycrying BABYCRYING\n");
-//    fprintf(stderr, "\t\tset baby crying detection: ON or OFF\n");
+    fprintf(stderr, "\t-B BABYCRYING, --babycrying BABYCRYING\n");
+    fprintf(stderr, "\t\tset baby crying detection: ON or OFF\n");
+    fprintf(stderr, "\t-n SOUNDSENSITIVITY, --soundsensitivity SOUNDSENSITIVITY\n");
+    fprintf(stderr, "\t\tset Sound Detection Sensitivity: 30 - 90\n");
     fprintf(stderr, "\t-m MOVE, --move MOVE\n");
     fprintf(stderr, "\t\tsend PTZ command: RIGHT, LEFT, DOWN, UP or STOP\n");
     fprintf(stderr, "\t-p NUM, --preset NUM\n");
@@ -93,8 +95,6 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tset cruise mode: \"on\", \"off\", \"presets\" or \"360\"\n");
     fprintf(stderr, "\t-f FILE, --file FILE\n");
     fprintf(stderr, "\t\tread binary command from FILE\n");
-    fprintf(stderr, "\t-x, --xxx\n");
-    fprintf(stderr, "\t\tsend xxx message\n");
     fprintf(stderr, "\t-S TIME, --start_motion TIME\n");
     fprintf(stderr, "\t\tstart a motion detection event that lasts TIME\n");
     fprintf(stderr, "\t\t(0<TIME<=300 seconds)\n");
@@ -122,8 +122,8 @@ int main(int argc, char ** argv)
     int motiontracking = NONE;
     int mic = NONE;
     int sounddetection = NONE;
+    int babycrying = NONE;
     int soundsensitivity = NONE;
-//    int babycrying = NONE;
     int move = NONE;
     int preset = NONE;
     int add_preset = NONE;
@@ -138,7 +138,7 @@ int main(int argc, char ** argv)
     unsigned char msg_file[1024];
     FILE *fIn;
     int nread = 0;
-    int xxx = 0;
+    int xxx_0 = 0;
 
     file[0] = '\0';
 
@@ -156,6 +156,7 @@ int main(int argc, char ** argv)
             {"motiontracking",  required_argument, 0, 'o'},
             {"mic",  required_argument, 0, 'I'},
             {"sounddetection",  required_argument, 0, 'b'},
+            {"babycrying",  required_argument, 0, 'B'},
             {"soundsensitivity",  required_argument, 0, 'n'},
             {"move",  required_argument, 0, 'm'},
             {"move-reverse",  required_argument, 0, 'M'},
@@ -183,10 +184,13 @@ int main(int argc, char ** argv)
 
         switch (c) {
         case 't':
-            if (strcasecmp("on", optarg) == 0) {
-                switch_on = SWITCH_ON;
-            } else if (strcasecmp("off", optarg) == 0) {
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
                 switch_on = SWITCH_OFF;
+            } else if ((strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
+                switch_on = SWITCH_ON;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
             }
             break;
 
@@ -197,14 +201,20 @@ int main(int argc, char ** argv)
                 sensitivity = SENSITIVITY_MEDIUM;
             } else if (strcasecmp("high", optarg) == 0) {
                 sensitivity = SENSITIVITY_HIGH;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
             }
             break;
 
         case 'l':
-            if (strcasecmp("off", optarg) == 0) {
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
                 led = LED_OFF;
-            } else if (strcasecmp("on", optarg) == 0) {
+            } else if ((strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
                 led = LED_ON;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
             }
             break;
 
@@ -213,22 +223,31 @@ int main(int argc, char ** argv)
                 save = SAVE_ALWAYS;
             } else if (strcasecmp("detect", optarg) == 0) {
                 save = SAVE_DETECT;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
             }
             break;
 
         case 'i':
-            if (strcasecmp("off", optarg) == 0) {
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
                 ir = IR_OFF;
-            } else if (strcasecmp("on", optarg) == 0) {
+            } else if ((strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
                 ir = IR_ON;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
             }
             break;
 
         case 'r':
-            if (strcasecmp("off", optarg) == 0) {
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
                 rotate = ROTATE_OFF;
-            } else if (strcasecmp("on", optarg) == 0) {
+            } else if ((strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
                 rotate = ROTATE_ON;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
             }
             break;
 
@@ -241,39 +260,67 @@ int main(int argc, char ** argv)
             break;
 
         case 'c':
-            if (strcasecmp("off", optarg) == 0) {
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
                 facedetection = FACE_DETECTION_OFF;
-            } else if (strcasecmp("on", optarg) == 0) {
+            } else if ((strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
                 facedetection = FACE_DETECTION_ON;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
             }
             break;
 
         case 'o':
-            if (strcasecmp("off", optarg) == 0) {
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
                 motiontracking = MOTION_TRACKING_OFF;
-            } else if (strcasecmp("on", optarg) == 0) {
+            } else if ((strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
                 motiontracking = MOTION_TRACKING_ON;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
             }
             break;
 
         case 'I':
-            if (strcasecmp("off", optarg) == 0) {
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
                 mic = MIC_OFF;
-            } else if (strcasecmp("on", optarg) == 0) {
+            } else if ((strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
                 mic = MIC_ON;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
             }
             break;
 
         case 'b':
-            if (strcasecmp("off", optarg) == 0) {
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
                 sounddetection = SOUND_DETECTION_OFF;
-            } else if (strcasecmp("on", optarg) == 0) {
+            } else if ((strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
                 sounddetection = SOUND_DETECTION_ON;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            break;
+
+        case 'B':
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
+                babycrying = BABYCRYING_OFF;
+            } else if ((strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
+                babycrying = BABYCRYING_ON;
             }
             break;
 
         case 'n':
-            if (strcasecmp("50", optarg) == 0) {
+            if (strcasecmp("30", optarg) == 0) {
+                soundsensitivity = SOUND_SENS_30;
+            } else if (strcasecmp("35", optarg) == 0) {
+                soundsensitivity = SOUND_SENS_35;
+            } else if (strcasecmp("40", optarg) == 0) {
+                soundsensitivity = SOUND_SENS_40;
+            } else if (strcasecmp("45", optarg) == 0) {
+                soundsensitivity = SOUND_SENS_45;
+            } else if (strcasecmp("50", optarg) == 0) {
                 soundsensitivity = SOUND_SENS_50;
             } else if (strcasecmp("60", optarg) == 0) {
                 soundsensitivity = SOUND_SENS_60;
@@ -283,6 +330,9 @@ int main(int argc, char ** argv)
                 soundsensitivity = SOUND_SENS_80;
             } else if (strcasecmp("90", optarg) == 0) {
                 soundsensitivity = SOUND_SENS_90;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
             }
             break;
 
@@ -297,6 +347,9 @@ int main(int argc, char ** argv)
                 move = MOVE_UP;
             } else if (strcasecmp("stop", optarg) == 0) {
                 move = MOVE_STOP;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
             }
             break;
 
@@ -311,6 +364,9 @@ int main(int argc, char ** argv)
                 move = MOVE_DOWN;
             } else if (strcasecmp("stop", optarg) == 0) {
                 move = MOVE_STOP;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
             }
             break;
 
@@ -365,6 +421,9 @@ int main(int argc, char ** argv)
                 cruise = CRUISE_PRESETS;
             } else if (strcasecmp("360", optarg) == 0) {
                 cruise = CRUISE_360;
+            } else {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
             }
             break;
 
@@ -408,7 +467,7 @@ int main(int argc, char ** argv)
             break;
 
         case 'x':
-            xxx = 1;
+            xxx_0 = 1;
             break;
 
         case 'h':
@@ -504,7 +563,12 @@ int main(int argc, char ** argv)
         mq_send(ipc_mq, IPC_SOUND_DETECTION_ON, sizeof(IPC_SOUND_DETECTION_ON) - 1, 0);
     }
 
-    if (soundsensitivity == SOUND_SENS_50) {
+    if (babycrying == BABYCRYING_OFF) {
+        mq_send(ipc_mq, IPC_BABYCRYING_OFF, sizeof(IPC_BABYCRYING_OFF) - 1, 0);
+    } else if (babycrying == BABYCRYING_ON) {
+        mq_send(ipc_mq, IPC_BABYCRYING_ON, sizeof(IPC_BABYCRYING_ON) - 1, 0);
+    }
+
         mq_send(ipc_mq, IPC_SOUND_SENS_50, sizeof(IPC_SOUND_SENS_50) - 1, 0);
     } else if (soundsensitivity == SOUND_SENS_60) {
         mq_send(ipc_mq, IPC_SOUND_SENS_60, sizeof(IPC_SOUND_SENS_60) - 1, 0);
@@ -634,7 +698,7 @@ int main(int argc, char ** argv)
         mq_send(ipc_mq, IPC_MOTION_STOP, sizeof(IPC_MOTION_STOP) - 1, 0);
     }
 
-    if (xxx == 1) {
+    if (xxx_0 == 1) {
         mq_send(ipc_mq, IPC_XXX_0, sizeof(IPC_XXX_0) - 1, 0);
     }
 

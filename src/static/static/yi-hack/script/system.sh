@@ -126,7 +126,7 @@ esac
 if [ ! -f $YI_HACK_PREFIX/bin/cloudAPI_real ]; then
     cp $YI_PREFIX/cloudAPI $YI_HACK_PREFIX/bin/cloudAPI_real
 fi
-mount --bind $YI_HACK_PREFIX/script/cloudAPI $YI_PREFIX/cloudAPI
+mount --bind $YI_HACK_PREFIX/bin/cloudAPI $YI_PREFIX/cloudAPI
 
 if [[ $(get_config DISABLE_CLOUD) == "no" ]] ; then
     (

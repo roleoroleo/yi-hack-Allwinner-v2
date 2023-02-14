@@ -1,0 +1,21 @@
+#!/bin/sh
+
+CONF_FILE="etc/system.conf"
+
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+
+get_config()
+{
+    key=$1
+    grep $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2
+}
+
+if [[ $(get_config DISABLE_CLOUD) == "yes" ]] ; then
+    $YI_HACK_PREFIX/bin/cloudAPI_fake "$@"
+else
+    if [[ $(get_config PROXYCHAINSNG) == "yes" ]] ; then
+        $YI_HACK_PREFIX/bin/proxychains4 $YI_HACK_PREFIX/bin/cloudAPI_real "$@"
+    else
+        $YI_HACK_PREFIX/bin/cloudAPI_real "$@"
+    fi
+fi

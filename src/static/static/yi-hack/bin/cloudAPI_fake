@@ -1,0 +1,105 @@
+#!/bin/sh
+
+CONF_FILE="etc/system.conf"
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+
+get_config()
+{
+    key=$1
+    grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2
+}
+
+while test $# -gt 0
+do
+    case "$1" in
+        '-c' ) shift
+                c=$1 ;;
+        '-url' ) shift
+                url=$1 ;;
+        '-key' ) shift
+                key=$1 ;;
+        '-keySec' ) shift
+                keysec=$1 ;;
+        '-uid' ) shift
+                uid=$1 ;;
+        '-version' ) shift
+                version=$1 ;;
+        '-mac' ) shift
+                mac=$1 ;;
+        '-ssid' ) shift
+                ssid=$1 ;;
+        '-ip' ) shift
+                ip=$1 ;;
+        '-signal_quality' ) shift
+                signal_quality=$1 ;;
+        '-packetloss' ) shift
+                packetloss=$1 ;;
+        '-p2pconnect' ) shift
+                p2pconnect=$1 ;;
+        '-p2pconnect_success' ) shift
+               p2pconnect_success=$1 ;;
+        '-tfstat' ) shift
+                tfst=$1 ;;
+        '-uid' ) shift
+                uid=$1 ;;
+        '-EventTime' ) shift
+                EventTime=$1 ;;
+        '-EventStat' ) shift
+                EventStat=$1 ;;
+        '-pic_url' ) shift
+                pic_url=$1 ;;
+        '-video_url' ) shift
+                video_url=$1 ;;
+        '-pic_pwd' ) shift
+                pic_pwd=$1 ;;
+        '-video_pwd' ) shift
+                video_pwd=$1 ;;
+        '-type' ) shift
+                type=$1 ;;
+        '-sub_type' ) shift
+                sub_type=$1 ;;
+        '-d' ) d=1 ;;
+        * ) echo $1;;
+    esac
+    shift
+done
+
+
+if [ "$c" = "138" ]; then
+    #CMD_do_login_v4
+    echo '{"code":"20000","appParam":"","css_flag":0,"css_mode":0,"codingProtocol":"265","abilityTable":""}'
+    #{"code":"20000","appParam":{"schedule_power":{"schedule_power_on":{"enable":0,"repeater":"","time":"2212220800"},"schedule_power_off":{"enable":0,"repeater":"","time":"2212222200"}}},"css_flag":0,"css_mode":0,"codingProtocol":"265","abilityTable":"","restartTpye":1}
+elif [ "$c" = "136" ]; then
+    #CMD_do_syntime
+    if [[ $(get_config NTPD) == "yes" ]] ; then
+        NTP_SERVER=$(get_config NTP_SERVER)
+    else
+        NTP_SERVER="pool.ntp.org"
+    fi
+    $YI_HACK_PREFIX/usr/sbin/ntpd -p $NTP_SERVER -n -q
+    echo '{"code":"20000","time":'$(date +%s)'000}'
+elif [ "$c" = "141" ]; then
+    #CMD_do_tnp_on_line
+    echo '{"code":"20000"}'
+    #echo '{"code":"20000","data":{"InitString":"ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCD","License":"ABDCDE:","DID":"'$uid'"}}'
+elif [ "$c" = "142" ]; then
+    #CMD_do_get_dev_info
+    TIMEZONE=$(get_config TIMEZONE)
+    TZP=$(TZ="$TIMEZONE" date +%z)
+    TZP_SET=$(echo ${TZP:1:2} ${TZP:3:2} | awk '{ print ($1*3600+$2*60) }')
+    TZP_GMT=$(echo GMT${TZP:0:1}${TZP:1:2}:${TZP:3:2})
+    echo '{"code":"20000","data":{"timezone":"'$TZP_GMT'","language":"en-US","tz_offset":'$TZP_SET'000,"css_flag":0,"css_mode":0,"appParam":"","doorbellCoolingDuration":"0"}}'
+    #echo '{"code":"20000","data":{"timezone":"'$TZP_GMT'","language":"en-US","tz_offset":'$TZP_SET'000,"css_flag":0,"css_mode":0,"appParam":"","doorbellCoolingDuration":"0","allowFeature":{"Vehicle":0,"Animal":0,"Person":1}}}'
+    #{"code":"20000","data":{"timezone":"GMT+01:00","language":"en-US","tz_offset":3600000,"css_flag":0,"css_mode":0,"appParam":{"schedule_power":{"schedule_power_on":{"enable":0,"repeater":"","time":"2212220800"},"schedule_power_off":{"enable":0,"repeater":"","time":"2212222200"}}},"doorbellCoolingDuration":"0","model":"38","allowFeature":{"Vehicle":0,"Animal":0,"Person":1}}}
+elif [ "$c" = "304" ]; then
+    #CMD_do_update_event_v4
+    echo '{"code":"20000"}'
+    #echo '{"code":"20000","data":{"id":"'$EventTime'","ipcSetTime":"180"}}'
+elif [ "$c" = "306" ]; then
+    #CMD_do_gen_presigned_url_v5
+    echo '{"code":"20000"}'
+    #echo '{"code":"20000","data":{"jpg":{"method":"PUT","pwd":"unusedpassword_","url":"http://server/yyyy/mm/dd/xxx/xxx.jpg?Expires=xxx&OSSAccessKeyId=xxx&Signature=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"},"mp4":{"method":"PUT","pwd":"unusedpassword_","url":"http://server/yyyy/mm/dd/xxx/xxx.mp4?Expires=xxx&OSSAccessKeyId=xxx&Signature=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"},"ok":"true"}}'
+elif [ "$c" = "411" ]; then
+    #CMD_do_event_upload
+    echo ''
+fi

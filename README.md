@@ -47,7 +47,7 @@ Otherwise, follow this wiki: https://github.com/roleoroleo/yi-hack-Allwinner-v2/
 ```
 5. Insert the SD Card and reboot the camera
 6. Wait a minute for the camera to update.
-7. Check the hack opening the web interface http://IP-CAM:8080
+7. Check the hack opening the web interface http://IP-CAM:8080 (where IP-CAM is the IP address of the cam assigned by your router).
 8. Don't remove the microSD card (yes this hack requires a dedicated microSD card).
 9. Check the FAQ if you have a problem: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/FAQ
 

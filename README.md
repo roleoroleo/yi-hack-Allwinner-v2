@@ -63,7 +63,7 @@ See [CONTRIBUTING](CONTRIBUTING.md)
 ## Features
 This custom firmware contains features replicated from the [yi-hack-MStar](https://github.com/roleoroleo/yi-hack-MStar) project and similar to the [yi-hack-v4](https://github.com/TheCrypt0/yi-hack-v4) project.
 
-- FEATURES (WORK IN PROGRESS)
+- FEATURES
   - RTSP server - allows a RTSP stream of the video (high and/or low resolution) and audio (thanks to @PieVo for the work on MStar platform).
     - rtsp://IP-CAM/ch0_0.h264             (high res)
     - rtsp://IP-CAM/ch0_1.h264             (low res)
@@ -73,7 +73,7 @@ This custom firmware contains features replicated from the [yi-hack-MStar](https
     - http://IP-CAM:8080/cgi-bin/snapshot.sh?res=low&watermark=yes        (select resolution: low or high, and watermark: yes or no)
     - http://IP-CAM:8080/cgi-bin/snapshot.sh                              (default high without watermark)
   - MQTT - Motion detection and baby crying detection through mqtt protocol.
-  - Web server - web configutation interface (port 8080).
+  - Web server - web configuration interface (port 8080).
   - SSH server - dropbear.
   - Telnet server - busybox.
   - FTP server.
@@ -84,7 +84,7 @@ This custom firmware contains features replicated from the [yi-hack-MStar](https
     - camera on/off
     - video saving mode
     - detection sensitivity
-    - AI human detection (thanks to @BenjaminFaal)
+    - motion detections (it depends on your cam and your plan)
     - baby crying detection
     - status led
     - ir led
@@ -92,6 +92,7 @@ This custom firmware contains features replicated from the [yi-hack-MStar](https
   - Management of motion detect events and videos through a web page.
   - View recorded video through a web page (thanks to @BenjaminFaal).
   - PTZ support through a web page (if the cam supports it).
+  - PTZ presets.
   - The possibility to disable all the cloud features.
   - Swap File on SD.
   - Online firmware upgrade.
@@ -114,14 +115,21 @@ Currently this project supports only the following cameras:
 | Camera | Firmware | File prefix | Remarks |
 | --- | --- | --- | --- |
 | Yi 1080p Home BFUS | 9.0.19* | y21ga | - |
+| Yi 1080p Home BFUS | 12.1.19* | y21ga | - |
 | Yi 1080p Home IFUS | 9.0.19* | y21ga | - |
+| Yi 1080p Home IFUS | 12.1.19* | y21ga | - |
 | Yi 1080p Home IFUS | 9.0.36* | y211ga | - |
+| Yi 1080p Home IFUS | 12.0.37* | y211ga | - |
 | Yi 1080p Home QFUS | 9.0.36* | y211ga | - |
+| Yi 1080p Home QFUS | 12.0.37* | y211ga | - |
 | Yi 1080p Home RFUS | 9.0.36* | y211ga | - |
+| Yi 1080p Home RFUS | 12.0.37* | y211ga | - |
 | Yi 1080p Home RFUS | 9.0.35* | y291ga | - |
-| Yi 1080p Home RFUS | 12.0.35* | y291ga | wip |
+| Yi 1080p Home RFUS | 12.0.35* | y291ga | - |
 | Yi Outdoor 1080p IFUS | 9.0.26* | h30ga | - |
+| Yi Outdoor 1080p IFUS | 11.1.26* | h30ga | - |
 | Yi Outdoor 1080p RFUS | 9.0.26* | h30ga | - |
+| Yi Outdoor 1080p RFUS | 11.1.26* | h30ga | - |
 | Yi 1080p Dome *FUS | 9.0.05* | r30gb | beta version (check this issue https://github.com/roleoroleo/yi-hack-Allwinner-v2/issues/484) |
 | Yi Dome Camera U BFUS (Full HD) | 9.0.22* | h52ga | - |
 | Yi Dome Camera U BFUS (3K) | 9.0.21* | h51ga | - |
@@ -129,7 +137,9 @@ Currently this project supports only the following cameras:
 | Yi Outdoor 1080p QFUS | 9.0.45* | r40ga | - |
 | Yi Home Y4 IFCN | 9.0.09* | y29ga | - |
 | Yi Dome Guard QFUS | 9.0.46* | r35gb | - |
+| Yi Dome Guard QFUS | 12.1.47* | r35gb | - |
 | Yi Dome Guard YRS | 9.0.46* | r35gb | - |
+| Yi Dome Guard YRS | 12.1.47* | r35gb | - |
 | Kami mini home IFUS | 9.0.20* | y28ga | - |
 | MIBAO G1 1296p dome | 9.0.04* | qg311r | - |
 | BLITZWOLF BW-YIC1 | 9.0.41* | b091qp | - |
@@ -207,5 +217,5 @@ If the camera still won't start, try the "Unbrick the cam" procedure https://git
 **NOBODY BUT YOU IS RESPONSIBLE FOR ANY USE OR DAMAGE THIS SOFTWARE MAY CAUSE. THIS IS INTENDED FOR EDUCATIONAL PURPOSES ONLY. USE AT YOUR OWN RISK.**
 
 ## Donation
-If you like this project, you can buy Roleo a beer :) 
+If you like this project, you can buy roleo a beer :) 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=JBYXDMR24FW7U&currency_code=EUR&source=url)

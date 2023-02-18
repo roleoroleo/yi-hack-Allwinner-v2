@@ -4,6 +4,9 @@ CONF_FILE="etc/system.conf"
 
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 
+HOMEVER=$(cat /home/homever)
+HV=${HOMEVER:0:2}
+
 YI_HACK_VER=$(cat /tmp/sd/yi-hack/version)
 MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
 MFG_PART=$(grep  -oE  ".{0,0}mfg@.{0,9}" /sys/firmware/devicetree/base/chosen/bootargs | cut -c 5-14)
@@ -294,8 +297,12 @@ if [ "$ACTION" == "start" ] ; then
     elif [ "$NAME" == "ftpd" ]; then
         start_ftpd $PARAM1
     elif [ "$NAME" == "mqtt" ]; then
-        mqttv4 >/dev/null &
-        mqttv-config >/dev/null &
+        if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+            mqttv4 -t local >/dev/null &
+        else
+            mqttv4 >/dev/null &
+        fi
+        mqtt-config >/dev/null &
     elif [ "$NAME" == "mp4record" ]; then
         cd /home/app
         ./mp4record >/dev/null &
@@ -304,7 +311,11 @@ if [ "$ACTION" == "start" ] ; then
         start_onvif
         start_wsdd
         start_ftpd
-        mqttv4 >/dev/null &
+        if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+            mqttv4 -t local >/dev/null &
+        else
+            mqttv4 >/dev/null &
+        fi
         cd /home/app
         ./mp4record >/dev/null &
     fi

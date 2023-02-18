@@ -243,7 +243,11 @@ if [[ $(get_config NTPD) == "yes" ]] ; then
     sleep 5 && ntpd -p $(get_config NTP_SERVER) &
 fi
 
-mqttv4 &
+if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+    mqttv4 -t local &
+else
+    mqttv4 &
+fi
 if [[ $(get_config MQTT) == "yes" ]] ; then
     mqtt-config &
     /tmp/sd/yi-hack/script/conf2mqtt.sh &

@@ -272,12 +272,14 @@ define build_gsoap
 
     # unzip
     if [ ! -f $(GSOAP_INSTALL_DIR)/README.txt ]; then \
-         unzip ./SDK/gsoap.zip; \
+        unzip ./SDK/gsoap.zip; \
+        patch -p0 < ../yylval.patch; \
     fi
 
     # build
     if [ ! -f $(SOAPCPP2) ] || [ ! -f $(WSDL2H) ]; then \
          cd $(GSOAP_INSTALL_DIR); \
+         sed -i 's/YYSTYPE yylval;/extern YYSTYPE yylval;/g' gsoap/src/soapcpp2_lex.l; \
          unset CXX && ./configure $(GSOAP_CONFIGURE) && \
          make -j1; \
          cd ..;\

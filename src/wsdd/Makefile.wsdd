@@ -224,7 +224,8 @@ define build_gsoap
 
     # unzip
     if [ ! -f gsoap-2.8/README.txt ]; then \
-         unzip ./SDK/gsoap.zip; \
+        unzip ./SDK/gsoap.zip; \
+        patch -p0 < ../yylval.patch; \
     fi
 
     # build

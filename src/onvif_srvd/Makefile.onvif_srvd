@@ -279,7 +279,6 @@ define build_gsoap
     # build
     if [ ! -f $(SOAPCPP2) ] || [ ! -f $(WSDL2H) ]; then \
          cd $(GSOAP_INSTALL_DIR); \
-         sed -i 's/YYSTYPE yylval;/extern YYSTYPE yylval;/g' gsoap/src/soapcpp2_lex.l; \
          unset CXX && ./configure $(GSOAP_CONFIGURE) && \
          make -j1; \
          cd ..;\

@@ -316,6 +316,7 @@ if [ "$ACTION" == "start" ] ; then
         else
             mqttv4 >/dev/null &
         fi
+        mqtt-config >/dev/null &
         cd /home/app
         ./mp4record >/dev/null &
     fi
@@ -338,6 +339,7 @@ elif [ "$ACTION" == "stop" ] ; then
         stop_onvif
         stop_wsdd
         stop_ftpd
+        killall mqtt-config
         killall mqttv4
         killall mp4record
     fi

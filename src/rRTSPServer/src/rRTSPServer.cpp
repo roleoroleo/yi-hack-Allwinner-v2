@@ -514,6 +514,7 @@ void *capture(void *ptr)
 
         if (frame_sync == 0) {
             buf_idx_end_prev = buf_idx_end;
+            usleep(10000);
             continue;
         }
 
@@ -523,6 +524,7 @@ void *capture(void *ptr)
             buf_idx_end_prev = fhs_addr[n - 1];
             n--;
         } else {
+            usleep(10000);
             continue;
         }
 

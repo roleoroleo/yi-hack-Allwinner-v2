@@ -831,6 +831,7 @@ int main(int argc, char **argv) {
 
         if (frame_sync == 0) {
             buf_idx_end_prev = buf_idx_end;
+            usleep(10000);
             continue;
         }
 
@@ -840,6 +841,7 @@ int main(int argc, char **argv) {
             buf_idx_end_prev = fhs_addr[n - 1];
             n--;
         } else {
+            usleep(10000);
             continue;
         }
 

@@ -38,7 +38,7 @@ APP.camera_settings = (function($) {
                 loadingStatusElem.fadeOut(500);
 
                 $.each(response, function(key, state) {
-                    if(key=="MOTION_DETECTION" || key=="SENSITIVITY" || key=="SOUND_SENSITIVITY" || key=="CRUISE")
+                    if(key=="SENSITIVITY" || key=="SOUND_SENSITIVITY" || key=="CRUISE")
                         $('select[data-key="' + key + '"]').prop('value', state);
                     else
                         $('input[type="checkbox"][data-key="' + key + '"]').prop('checked', state === 'yes');

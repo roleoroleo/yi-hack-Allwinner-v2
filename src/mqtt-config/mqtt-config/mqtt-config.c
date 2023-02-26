@@ -103,6 +103,17 @@ void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_
     strcpy(topic, &(message->topic)[len + 1]);
     slash = strchr(topic, '/');
     if (slash == NULL) {
+        strcpy(file, topic);
+        if (strlen(file) == 0) {
+            if (debug) printf("Wrong message subtopic\n");
+            return;
+        }
+        if ((message->payload == NULL) || (strlen(message->payload) == 0)) {
+            // Send response with a dump of the configuration
+            sprintf(cmd_line, "%s %s", CONF2MQTT_SCRIPT, file);
+            if (debug) printf("Running system command \"%s\"\n", cmd_line);
+            system(cmd_line);
+        }
         return;
     }
     if (slash - topic >= MAX_KEY_LENGTH) {

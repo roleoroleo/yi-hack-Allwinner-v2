@@ -92,20 +92,25 @@ checkFiles ()
 			if [ $? -ne 0 ]; then
 				logAdd "[ERROR] checkFiles: demux mp4 FAILED - [${file}]."
 				rm -f $BASE_NAME.h26x
-				return 0
 			fi
 			imggrabber -f $BASE_NAME.h26x -r low -w > $BASE_NAME.jpg
 			if [ $? -ne 0 ]; then
-				logAdd "[ERROR] checkFiles: create jpg FAILED - [${file}]."
+				logAdd "[ERROR] checkFiles: create jpg FAILED - [${file}]. Using fallback.jpg."
 				rm -f $BASE_NAME.h26x
 				rm -f $BASE_NAME.jpg
-				return 0
+				cp /tmp/sd/yi-hack/etc/fallback.jpg $BASE_NAME.jpg
 			fi
 			rm -f $BASE_NAME.h26x
 			logAdd "[INFO] checkFiles: createThumb SUCCEEDED - [${file}]."
 			sync
 		else
-			logAdd "[INFO] checkFiles: ignore file [${file}] - already present."
+			#logAdd "[INFO] checkFiles: ignore file [${file}] - already present."
+			if [ -s $BASE_NAME.jpg ]; then
+	 			logAdd "[INFO] checkFiles: ignore file [${file}] - already present."
+			else
+				rm -f $BASE_NAME.jpg
+				logAdd "[DEBUG] checkFiles: ignore file [${file}] - already present but ZERO, deleted for next try"
+			fi
 		fi
 		#
 	done
@@ -124,10 +129,10 @@ serviceMain ()
 	# sleep 10
 	while (true); do
 		# Check if folder exists.
-		if [ ! -d "${FOLDER_TO_WATCH}" ]; then 
+		if [ ! -d "${FOLDER_TO_WATCH}" ]; then
 			mkdir -p "${FOLDER_TO_WATCH}"
 		fi
-		# 
+		#
 		# Ensure correct file permissions.
 		if ( ! lstat "${FOLDER_TO_WATCH}/" | grep -q "^755$" ); then
 			logAdd "[WARN] Adjusting folder permissions to 0755 ..."

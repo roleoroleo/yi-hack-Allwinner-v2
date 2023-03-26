@@ -103,9 +103,8 @@ This custom firmware contains features replicated from the [yi-hack-MStar](https
 
 The performance of the cam is not so good (CPU, RAM, etc...). Low ram is the bigger problem.
 If you enable all the services you may have some problems.
-For example, enabling both rtsp streams is not recommended.
-Disable cloud is recommended to save resources.
-If you notice problems and you have a SD to waste, try to enable swap file.
+For example, enabling snapshots may cause frequent reboots.
+So, **enable swap file** even if this will waste the sd
 
 
 ## Supported cameras

@@ -145,6 +145,7 @@ Currently this project supports only the following cameras:
 | ESCAM PT202 | 9.0.41* | b091qp | - |
 | YS-QC-02 | 9.0.41* | b091qp | https://github.com/roleoroleo/yi-hack_ha_integration/issues/84 |
 | Flood Light Camera Outdoor L850Y-US | 9.0.41* | b091qp | - |
+| Tovendor Mini Smart Home Camera | 9.0.41* | b091qp | - |
 
 USE AT YOUR OWN RISK.
 

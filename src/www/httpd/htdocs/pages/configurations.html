@@ -121,45 +121,6 @@
                         </td>
                     </tr>
                     <tr class="row">
-                        <td>Snapshot</td>
-                        <td>
-                            <label class="switch small">
-                                <input type="checkbox" data-key="SNAPSHOT"/>
-                                <span class="slider round"></span>
-                                <span class="switch-text"></span>
-                            </label>
-                            <span class="switch-description">
-                                Enable snapshot feature.
-                            </span>
-                        </td>
-                    </tr>
-                    <tr class="row">
-                        <td>Snapshot for recorded video</td>
-                        <td>
-                            <label class="switch small">
-                                <input type="checkbox" data-key="SNAPSHOT_VIDEO"/>
-                                <span class="slider round"></span>
-                                <span class="switch-text"></span>
-                            </label>
-                            <span class="switch-description">
-                                Create snapshot for recorded video (CPU expensive).
-                            </span>
-                        </td>
-                    </tr>
-                    <tr class="row">
-                        <td>Force low resolution snapshot</td>
-                        <td>
-                            <label class="switch small">
-                                <input type="checkbox" data-key="SNAPSHOT_LOW"/>
-                                <span class="slider round"></span>
-                                <span class="switch-text"></span>
-                            </label>
-                            <span class="switch-description">
-                                Take low resolution snapshots only (useful for avoiding memory problems).
-                            </span>
-                        </td>
-                    </tr>
-                    <tr class="row">
                         <td>ONVIF</td>
                         <td>
                             <label class="switch small">
@@ -231,6 +192,119 @@
                             </label>
                             <span class="switch-description">
                                 Enable/disable time OSD in the upper left corner.
+                            </span>
+                                <br/>
+                            <span class="italic">
+                                It works only if the cam doesn't show osd natively.
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <h4 class="no-margin">Snapshot</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>Snapshot</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="SNAPSHOT"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable snapshot feature.
+                                <br/>
+                                If you want to use this feature, enable swap file to avoid memory problems.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Snapshot for recorded video</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="SNAPSHOT_VIDEO"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Create snapshot for recorded video (CPU expensive).
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Force low resolution snapshot</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="SNAPSHOT_LOW"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Take low resolution snapshots only (useful for avoiding memory problems).
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Time-lapse</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="TIMELAPSE"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable time-lapse snapshots.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Time-lapse interval</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="TIMELAPSE_DT" id="TIMELAPSE_DT"/>
+                            <span class="switch-description">
+                                Interval between frames (minutes: 1-6, 10, 15, 20, 30, 60, 120, 180, 240, 360, 1440).
+                                <br/>
+                                If you use 1440, please specify offset from midnight with the syntax 1440+offset (example to take snapshot at noon: 1440+720).
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Time-lapse video creation interval</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="TIMELAPSE_VDT" id="TIMELAPSE_VDT"/>
+                            <span class="switch-description">
+                                Interval between video creation: too difficult to make a gui, use crontab syntax.
+                                <br/>
+                                For example: "0 0 * * *" to make a video every day at midnight.
+                                <br/>
+                                Disabled if you leave the field empty or if you enable "Time-lapse ftp push".
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Time-lapse video</td>
+                        <td>
+                            <span class="switch-description">
+                                Go to <a href="?page=timelapse">this page</a> to see time-lapse video
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Time-lapse ftp push</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="TIMELAPSE_FTP"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Send time-lapse snapshots to the ftp server (see Events page for ftp options) and remove local file.
                             </span>
                         </td>
                     </tr>
@@ -474,6 +548,19 @@
                                 Insert here your scheduled process using crontab syntax.
                                 <br/>
                                 Allowed special chars: \ | ! &quot; $ % &amp; / ( ) &apos; ? ^ [ ] @ &lt; &gt; , ; . : - _ *
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Debug log</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="DEBUG_LOG"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable debug of the init script. This option will create the file /tmp/sd/hack_debug.log during the boot process.
                             </span>
                         </td>
                     </tr>

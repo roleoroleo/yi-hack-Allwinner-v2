@@ -33,7 +33,7 @@
         </div>
         <hr class="tiny-margin">
 
-        <h4 class="no-margin">FTP Upload</h4>
+        <h4 class="no-margin">Events FTP Upload</h4>
         <hr class="tiny-margin">
         <div class="row">
             <div class="twelve columns configs-switch">
@@ -70,6 +70,30 @@
                         </td>
                     </tr>
                     <tr class="row">
+                        <td>Create directory tree</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="FTP_DIR_TREE"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Uploaded files will be placed into a directory tree. A tree equal to the one present in the cam will be made.
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <h4 class="no-margin">FTP Options</h4>
+        <hr class="tiny-margin">
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
                         <td>FTP Host</td>
                         <td>
                             <input class="u-full-width" type="text" placeholder="" data-key="FTP_HOST" id="FTP_HOST">
@@ -84,19 +108,6 @@
                             <input class="u-full-width" type="text" placeholder="" data-key="FTP_DIR" id="FTP_DIR">
                             <span class="switch-description">
                                 Uploaded files will be placed into the specified directory. If it does not exist, it will be created. Leave empty to save files to the root directory of the FTP service.
-                            </span>
-                        </td>
-                    </tr>
-                    <tr class="row">
-                        <td>Create directory tree</td>
-                        <td>
-                            <label class="switch small">
-                                <input type="checkbox" data-key="FTP_DIR_TREE"/>
-                                <span class="slider round"></span>
-                                <span class="switch-text"></span>
-                            </label>
-                            <span class="switch-description">
-                                Uploaded files will be placed into a directory tree. A tree equal to the one present in the cam will be made.
                             </span>
                         </td>
                     </tr>

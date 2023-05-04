@@ -1,0 +1,22 @@
+--- makefile.ori	2023-03-16 14:31:20.000000000 +0100
++++ makefile	2023-03-17 09:53:26.384909022 +0100
+@@ -1,4 +1,4 @@
+-CC := gcc
++#CC := gcc
+ 
+ SRCS := src/avi.c src/main.c
+ OBJS := $(SRCS:.c=.o)
+@@ -7,7 +7,7 @@
+ NO_WARNINGS := multichar
+ FLAGS := $(addprefix -Wno-, $(NO_WARNINGS))
+ 
+-OUTDIR := bin
++OUTDIR := .
+ 
+ all: avimake
+ 
+@@ -24,3 +24,4 @@
+ 
+ clean:
+ 	rm -rf src/*.o src/*.d
++	rm -f avimake

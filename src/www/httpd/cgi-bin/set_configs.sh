@@ -11,6 +11,31 @@ removedoublequotes(){
   echo "$(sed 's/^"//g;s/"$//g')"
 }
 
+validateDT()
+{
+    for x in 1 2 3 4 5 6 10 15 20 30 60 120 180 240 360 1440; do
+        if [ "$x" == "$1" ]; then
+            return 0
+        fi
+    done
+    if [ "${1:0:5}" == "1440+" ]; then
+        OFF="${1:5:10}"
+        if [ ! -z $OFF ]; then
+            case $OFF in
+                ''|*[!0-9]* )
+                    OFF_OK=0;;
+                * )
+                    OFF_OK=1;;
+            esac
+            if [ "$OFF_OK" == "1" ] && [ $OFF -le 1440 ]; then
+                return 0
+            fi
+        fi
+    fi
+
+    return 1
+}
+
 get_conf_type()
 {
     CONF="$(echo $QUERY_STRING | cut -d'=' -f1)"
@@ -89,6 +114,10 @@ for ROW in $ROWS; do
         VALUE=$(echo $VALUE | sed 's/;/\\n/g')
         cat $CONF_FILE.template > $CONF_FILE
         echo -e $VALUE >> $CONF_FILE
+    elif [ "$KEY" == "TIMELAPSE_DT" ] ; then
+        if $(validateDT $VALUE); then
+            sed -i "s/^\(${KEY}\s*=\s*\).*$/\1${VALUE}/" $CONF_FILE
+        fi
     else
         VALUE=$(echo "$VALUE" | sedencode)
         sed -i "s/^\(${KEY}\s*=\s*\).*$/\1${VALUE}/" $CONF_FILE

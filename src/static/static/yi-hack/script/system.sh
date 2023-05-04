@@ -427,6 +427,51 @@ fi
 if [[ $(get_config FTP_UPLOAD) == "yes" ]] ; then
     echo "* * * * * sleep 40; /tmp/sd/yi-hack/script/ftppush.sh cron" >> /var/spool/cron/crontabs/root
 fi
+if [[ $(get_config TIMELAPSE) == "yes" ]] ; then
+    DT=$(get_config TIMELAPSE_DT)
+    OFF=""
+    CRDT=""
+    if [ "$DT" == "1" ]; then
+        CRDT="* * * * *"
+    elif [ "$DT" == "2" ] || [ "$DT" == "3" ] || [ "$DT" == "4" ] || [ "$DT" == "5" ] || [ "$DT" == "6" ] || [ "$DT" == "10" ] || [ "$DT" == "15" ] || [ "$DT" == "20" ] || [ "$DT" == "30" ]; then
+        CRDT="*/$DT * * * *"
+    elif [ "$DT" == "60" ]; then
+        CRDT="0 * * * *"
+    elif [ "$DT" == "120" ] || [ "$DT" == "180" ] || [ "$DT" == "240" ] || [ "$DT" == "360" ]; then
+        DTF=$(($DT/60))
+        CRDT="* */$DTF * * *"
+    elif [ "$DT" == "1440" ]; then
+        CRDT="0 0 * * *"
+    elif [ "${DT:0:4}" == "1440" ]; then
+        if [ "${DT:4:1}" == "+" ]; then
+            OFF="${DT:5:10}"
+            if [ ! -z $OFF ]; then
+                case $OFF in
+                    ''|*[!0-9]* )
+                        OFF_OK=0;;
+                    * )
+                        OFF_OK=1;;
+                esac
+                if [ "$OFF_OK" == "1" ] && [ $OFF -le 1440 ]; then
+                    OFF_H=$(($OFF/60))
+                    OFF_M=$(($OFF%60))
+                    CRDT="$OFF_M $OFF_H * * *"
+                fi
+            fi
+        fi
+    fi
+    if [[ $(get_config TIMELAPSE_FTP) == "yes" ]] ; then
+        echo "$CRDT sleep 30; /tmp/sd/yi-hack/script/time_lapse.sh yes" >> /var/spool/cron/crontabs/root
+    else
+        if [ ! -z "$CRDT" ]; then
+            echo "$CRDT sleep 30; /tmp/sd/yi-hack/script/time_lapse.sh no" >> /var/spool/cron/crontabs/root
+        fi
+        VDT=$(get_config TIMELAPSE_VDT)
+        if [ ! -z "$VDT" ]; then
+            echo "$(get_config TIMELAPSE_VDT) /tmp/sd/yi-hack/script/create_avi.sh /tmp/sd/record/timelapse 1920x1080 5" >> /var/spool/cron/crontabs/root
+        fi
+    fi
+fi
 $YI_HACK_PREFIX/usr/sbin/crond -c /var/spool/cron/crontabs/
 
 # Add MQTT Advertise

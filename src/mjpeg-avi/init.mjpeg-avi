@@ -1,0 +1,12 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+rm -rf ./_install
+
+cd mjpeg-avi || exit 1
+git reset --hard || exit 1
+
+cp ../create_avi.sh .
+patch -p0 < ../makefile.patch

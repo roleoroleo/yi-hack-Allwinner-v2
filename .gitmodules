@@ -31,3 +31,6 @@
 [submodule "src/sftp-server/openssh-portable"]
 	path = src/sftp-server/openssh-portable
 	url = https://github.com/openssh/openssh-portable
+[submodule "src/mjpeg-avi/mjpeg-avi"]
+	path = src/mjpeg-avi/mjpeg-avi
+	url = https://github.com/Ricardicus/mjpeg-avi

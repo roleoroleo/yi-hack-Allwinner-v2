@@ -25,7 +25,7 @@ APP.configurations = (function($) {
                 loadingStatusElem.fadeOut(500);
 
                 $.each(response, function(key, state) {
-                    if (key == "HOSTNAME" || key == "TIMEZONE" || key == "NTP_SERVER" || key == "HTTPD_PORT" || key == "RTSP_PORT" || key == "ONVIF_PORT" || key == "USERNAME")
+                    if (key == "HOSTNAME" || key == "TIMEZONE" || key == "TIMELAPSE_DT" || key == "TIMELAPSE_VDT" || key == "NTP_SERVER" || key == "HTTPD_PORT" || key == "RTSP_PORT" || key == "ONVIF_PORT" || key == "USERNAME")
                         $('input[type="text"][data-key="' + key + '"]').prop('value', state);
                     else if (key == "RTSP_STREAM" || key == "RTSP_AUDIO" || key == "ONVIF_PROFILE" || key == "ONVIF_NETIF")
                         $('select[data-key="' + key + '"]').prop('value', state);
@@ -65,6 +65,8 @@ APP.configurations = (function($) {
         //        }
 
         configs["TIMEZONE"] = $('input[type="text"][data-key="TIMEZONE"]').prop('value');
+        configs["TIMELAPSE_DT"] = $('input[type="text"][data-key="TIMELAPSE_DT"]').prop('value');
+        configs["TIMELAPSE_VDT"] = $('input[type="text"][data-key="TIMELAPSE_VDT"]').prop('value');
         configs["NTP_SERVER"] = $('input[type="text"][data-key="NTP_SERVER"]').prop('value');
         configs["HTTPD_PORT"] = $('input[type="text"][data-key="HTTPD_PORT"]').prop('value');
         configs["RTSP_STREAM"] = $('select[data-key="RTSP_STREAM"]').prop('value');

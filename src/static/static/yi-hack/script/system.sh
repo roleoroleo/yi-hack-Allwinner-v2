@@ -456,7 +456,7 @@ mkdir -p /var/spool/cron/crontabs/
 if [ ! -z "$CRONTAB" ]; then
     echo -e "$CRONTAB" > /var/spool/cron/crontabs/root
 fi
-if [[ $(get_config SNAPSHOT_VIDEO) == "yes" ]] ; then
+if [[ $(get_config SNAPSHOT) == "yes" ]] && [[ $(get_config SNAPSHOT_VIDEO) == "yes" ]] ; then
     echo "* * * * * /tmp/sd/yi-hack/script/thumb.sh cron" >> /var/spool/cron/crontabs/root
 fi
 if [ "$FREE_SPACE" != "0" ]; then

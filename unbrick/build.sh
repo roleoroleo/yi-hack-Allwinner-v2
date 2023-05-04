@@ -21,6 +21,7 @@ update_init()
 
     cp $DIR/backup/tmp_init.sh $DIR/backup/init.sh
     rm $DIR/backup/tmp_init.sh
+    echo $RANDOM | md5sum | cut -d ' ' -f 1 > $DIR/backup/.random
 }
 
 TYPE=$1

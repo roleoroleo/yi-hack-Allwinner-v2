@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 roleo.
+ * Copyright (c) 2023 roleo.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -302,6 +302,7 @@ unsigned char VPS5_2_1920X1080_TI[] = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C,
 
 unsigned char *addr;                      /* Pointer to shared memory region (header) */
 int resolution;
+int audio;
 int sps_timing_info;
 int fifo;
 int debug;
@@ -499,7 +500,9 @@ void print_usage(char *progname)
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
     fprintf(stderr, "\t\tset model: y21ga, y211ga, y291ga, h30ga, r30gb, r35gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
     fprintf(stderr, "\t-r RES, --resolution RES\n");
-    fprintf(stderr, "\t\tset resolution: LOW or HIGH (default HIGH)\n");
+    fprintf(stderr, "\t\tset resolution: LOW, HIGH, BOTH or NONE (default HIGH)\n");
+    fprintf(stderr, "\t-a, --audio\n");
+    fprintf(stderr, "\t\tenable audio\n");
     fprintf(stderr, "\t-s, --sti\n");
     fprintf(stderr, "\t\tdon't overwrite SPS timing info (default overwrite)\n");
     fprintf(stderr, "\t-f, --fifo\n");
@@ -531,6 +534,7 @@ int main(int argc, char **argv) {
     uint32_t last_counter;
 
     resolution = RESOLUTION_HIGH;
+    audio = 0;
     sps_timing_info = 1;
     fifo = 0;
     debug = 0;
@@ -543,6 +547,7 @@ int main(int argc, char **argv) {
         {
             {"model",  required_argument, 0, 'm'},
             {"resolution",  required_argument, 0, 'r'},
+            {"audio",  no_argument, 0, 'a'},
             {"sti",  no_argument, 0, 's'},
             {"fifo",  no_argument, 0, 'f'},
             {"debug",  no_argument, 0, 'd'},
@@ -552,7 +557,7 @@ int main(int argc, char **argv) {
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "m:r:fsdh",
+        c = getopt_long (argc, argv, "m:r:afsdh",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -616,7 +621,13 @@ int main(int argc, char **argv) {
                 resolution = RESOLUTION_HIGH;
             } else if (strcasecmp("both", optarg) == 0) {
                 resolution = RESOLUTION_BOTH;
+            } else if (strcasecmp("none", optarg) == 0) {
+                resolution = RESOLUTION_NONE;
             }
+            break;
+
+        case 'a':
+            audio = 1;
             break;
 
         case 's':
@@ -648,47 +659,53 @@ int main(int argc, char **argv) {
         }
     }
 
-    if ((fifo == 0) && (resolution == RESOLUTION_BOTH)) {
-        fprintf(stderr, "Both resolution are not supported with output to stdout\n");
-        fprintf(stderr, "Use fifo or run two processes\n");
-        return -1;
+    if (fifo == 0) {
+        if (resolution == RESOLUTION_BOTH) {
+            fprintf(stderr, "Both resolution are not supported with output to stdout\n");
+            fprintf(stderr, "Use fifo or run two processes\n");
+            return -2;
+        } else if ((resolution != RESOLUTION_NONE) && (audio == 1)) {
+            fprintf(stderr, "Both video and audio are not supported with output to stdout\n");
+            fprintf(stderr, "Use fifo or run two processes\n");
+            return -2;
+        }
     }
 
     fFS = fopen(BUFFER_FILE, "r");
     if ( fFS == NULL ) {
-        fprintf(stderr, "could not get size of %s\n", BUFFER_FILE);
-        return -1;
+        fprintf(stderr, "Could not get size of %s\n", BUFFER_FILE);
+        return -3;
     }
     fseek(fFS, 0, SEEK_END);
     buf_size = ftell(fFS);
     fclose(fFS);
-    if (debug) fprintf(stderr, "the size of the buffer is %d\n", buf_size);
+    if (debug) fprintf(stderr, "The size of the buffer is %d\n", buf_size);
 
 #ifdef USE_SEMAPHORE
     if (sem_fshare_open() != 0) {
-        fprintf(stderr, "error - could not open semaphores\n") ;
-        return -2;
+        fprintf(stderr, "Error - could not open semaphores\n") ;
+        return -4;
     }
 #endif
 
     // Opening an existing file
     fshm = shm_open(BUFFER_SHM, O_RDWR, 0);
     if ( fshm == -1 ) {
-        fprintf(stderr, "error - could not open file %s\n", BUFFER_FILE) ;
-        return -2;
+        fprintf(stderr, "Error - could not open file %s\n", BUFFER_FILE) ;
+        return -5;
     }
 
     // Map file to memory
     addr = (unsigned char*) mmap(NULL, buf_size, PROT_READ | PROT_WRITE, MAP_SHARED, fshm, 0);
     if (addr == MAP_FAILED) {
-        fprintf(stderr, "error - mapping file %s\n", BUFFER_FILE);
+        fprintf(stderr, "Error - mapping file %s\n", BUFFER_FILE);
         close(fshm);
-        return -3;
+        return -5;
     }
-    if (debug) fprintf(stderr, "mapping file %s, size %d, to %08x\n", BUFFER_FILE, buf_size, (unsigned int) addr);
+    if (debug) fprintf(stderr, "Mapping file %s, size %d, to %08x\n", BUFFER_FILE, buf_size, (unsigned int) addr);
 
     // Closing the file
-    if (debug) fprintf(stderr, "closing the file %s\n", BUFFER_FILE) ;
+    if (debug) fprintf(stderr, "Closing the file %s\n", BUFFER_FILE) ;
     close(fshm);
 
     // Opening/setting output file
@@ -712,51 +729,53 @@ int main(int argc, char **argv) {
             unlink(FIFO_NAME_LOW);
             if (mkfifo(FIFO_NAME_LOW, mode) < 0) {
                 fprintf(stderr, "mkfifo failed for file %s\n", FIFO_NAME_LOW);
-                return -4;
+                return -6;
             }
             if(pthread_create(&unlock_low_thread, NULL, unlock_fifo_thread, (void *) FIFO_NAME_LOW)) {
                 fprintf(stderr, "Error creating thread\n");
-                return -4;
+                return -6;
             }
             pthread_detach(unlock_low_thread);
             fOutLow = fopen(FIFO_NAME_LOW, "w");
             if (fOutLow == NULL) {
                 fprintf(stderr, "Error opening fifo %s\n", FIFO_NAME_LOW);
-                return -4;
+                return -6;
             }
         }
         if ((resolution == RESOLUTION_HIGH) || (resolution == RESOLUTION_BOTH)) {
             unlink(FIFO_NAME_HIGH);
             if (mkfifo(FIFO_NAME_HIGH, mode) < 0) {
                 fprintf(stderr, "mkfifo failed for file %s\n", FIFO_NAME_HIGH);
-                return -4;
+                return -6;
             }
             if(pthread_create(&unlock_high_thread, NULL, unlock_fifo_thread, (void *) FIFO_NAME_HIGH)) {
                 fprintf(stderr, "Error creating thread\n");
-                return -4;
+                return -6;
             }
             pthread_detach(unlock_high_thread);
             fOutHigh = fopen(FIFO_NAME_HIGH, "w");
             if (fOutHigh == NULL) {
                 fprintf(stderr, "Error opening fifo %s\n", FIFO_NAME_HIGH);
-                return -4;
+                return -6;
             }
         }
 
-        unlink(FIFO_NAME_AAC);
-        if (mkfifo(FIFO_NAME_AAC, mode) < 0) {
-            fprintf(stderr, "mkfifo failed for file %s\n", FIFO_NAME_AAC);
-            return -4;
-        }
-        if(pthread_create(&unlock_aac_thread, NULL, unlock_fifo_thread, (void *) FIFO_NAME_AAC)) {
-            fprintf(stderr, "Error creating thread\n");
-            return -4;
-        }
-        pthread_detach(unlock_aac_thread);
-        fOutAac = fopen(FIFO_NAME_AAC, "w");
-        if (fOutAac == NULL) {
-            fprintf(stderr, "Error opening fifo %s\n", FIFO_NAME_AAC);
-            return -4;
+        if (audio == 1) {
+            unlink(FIFO_NAME_AAC);
+            if (mkfifo(FIFO_NAME_AAC, mode) < 0) {
+                fprintf(stderr, "mkfifo failed for file %s\n", FIFO_NAME_AAC);
+                return -6;
+            }
+            if(pthread_create(&unlock_aac_thread, NULL, unlock_fifo_thread, (void *) FIFO_NAME_AAC)) {
+                fprintf(stderr, "Error creating thread\n");
+                return -6;
+            }
+            pthread_detach(unlock_aac_thread);
+            fOutAac = fopen(FIFO_NAME_AAC, "w");
+            if (fOutAac == NULL) {
+                fprintf(stderr, "Error opening fifo %s\n", FIFO_NAME_AAC);
+                return -6;
+            }
         }
 
         fprintf(stderr, "fifo started\n");
@@ -930,7 +949,7 @@ int main(int argc, char **argv) {
             } else {
                 frame_type = TYPE_NONE;
             }
-            if ((frame_type == TYPE_LOW) && (resolution != RESOLUTION_HIGH)) {
+            if ((frame_type == TYPE_LOW) && ((resolution == RESOLUTION_LOW) || (resolution == RESOLUTION_BOTH))) {
                 if ((65536 + frame_counter - frame_counter_last_valid_low) % 65536 > 1) {
 
                     if (debug) fprintf(stderr, "%lld: warning - %d low res frame(s) lost - frame_counter: %d - frame_counter_last_valid: %d\n",
@@ -952,7 +971,7 @@ int main(int argc, char **argv) {
                 }
 
                 buf_idx_start = buf_idx_cur;
-            } else if ((frame_type == TYPE_HIGH) && (resolution != RESOLUTION_LOW)) {
+            } else if ((frame_type == TYPE_HIGH) && ((resolution == RESOLUTION_HIGH) || (resolution == RESOLUTION_BOTH))) {
                 if ((65536 + frame_counter - frame_counter_last_valid_high) % 65536 > 1) {
 
                     if (debug) fprintf(stderr, "%lld: warning - %d high res frame(s) lost - frame_counter: %d - frame_counter_last_valid: %d\n",
@@ -974,7 +993,7 @@ int main(int argc, char **argv) {
                 }
 
                 buf_idx_start = buf_idx_cur;
-            } else if (frame_type == TYPE_AAC) {
+            } else if ((frame_type == TYPE_AAC) && (audio == 1)) {
                 if ((65536 + frame_counter - frame_counter_last_valid_audio) % 65536 > 1) {
                     if (debug) fprintf(stderr, "%lld: warning - %d AAC frame(s) lost - frame_counter: %d - frame_counter_last_valid: %d\n",
                                 current_timestamp(), (65536 + frame_counter - frame_counter_last_valid_audio - 1) % 65536, frame_counter, frame_counter_last_valid_audio);
@@ -992,11 +1011,11 @@ int main(int argc, char **argv) {
 
             // Send the frame to the ouput buffer
             if (write_enable) {
-                if ((frame_type == TYPE_LOW) && (resolution != RESOLUTION_HIGH) && (stream_type.codec_low != CODEC_NONE)) {
+                if ((frame_type == TYPE_LOW) && ((resolution == RESOLUTION_LOW) || (resolution == RESOLUTION_BOTH)) && (stream_type.codec_low != CODEC_NONE)) {
                     fOut = fOutLow;
-                } else if ((frame_type == TYPE_HIGH) && (resolution != RESOLUTION_LOW) && (stream_type.codec_high != CODEC_NONE)) {
+                } else if ((frame_type == TYPE_HIGH) && ((resolution == RESOLUTION_HIGH) || (resolution == RESOLUTION_BOTH)) && (stream_type.codec_high != CODEC_NONE)) {
                     fOut = fOutHigh;
-                } else if (frame_type == TYPE_AAC) {
+                } else if ((frame_type == TYPE_AAC) && (audio == 1)) {
                     fOut = fOutAac;
                 } else {
                     fOut = NULL;
@@ -1127,8 +1146,10 @@ int main(int argc, char **argv) {
             unlink(FIFO_NAME_HIGH);
         }
 
-        fclose(fOutAac);
-        unlink(FIFO_NAME_AAC);
+        if (audio == 1) {
+            fclose(fOutAac);
+            unlink(FIFO_NAME_AAC);
+        }
     }
 
     return 0;

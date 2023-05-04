@@ -110,7 +110,6 @@ int cloud_send_msg(mqd_t mqfd, MSG_TYPE msg_type, char *payload, int payload_len
     return fsMsgRet;
 }
 
-/* Only positive numbers */
 int str2int(char *value)
 {
     char *endptr;
@@ -196,7 +195,10 @@ int set_tz_offset_osd(int enable, int addr, int val)
 
     if (addr > 0) {
         mmap_info_ptri = (int *) &mmap_info_ptr[addr];
-        *mmap_info_ptri = val;
+        if (*mmap_info_ptri != val)
+            *mmap_info_ptri = val;
+        else
+            if (debug & 1) fprintf(stderr, "Value already set\n");
     }
 
     if (munmap(mmap_info_ptr, mmap_info_size) == -1) {
@@ -214,7 +216,7 @@ void print_usage(char *progname)
     fprintf(stderr, "\t-c COMMAND, --cmd COMMAND\n");
     fprintf(stderr, "\t\tcommand to run: \"tz_offset\", \"tz_offset_osd\" or \"osd\"\n");
     fprintf(stderr, "\t\t\"tz_offset\" - set timezone offset for yi processes\n");
-    fprintf(stderr, "\t\t\"tz_offset_osd\" - set timezone offset for osd (requires -m and -f options)\n");
+    fprintf(stderr, "\t\t\"tz_offset_osd\" - set timezone offset for osd, if different (requires -m and -f options)\n");
     fprintf(stderr, "\t\t\"osd\" - enable/disable osd (requires -o option)\n");
     fprintf(stderr, "\t-v VALUE, --value VALUE\n");
     fprintf(stderr, "\t\ttimezone offset value to set (s)\n");

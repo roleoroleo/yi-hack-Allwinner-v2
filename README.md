@@ -142,7 +142,7 @@ Currently this project supports only the following cameras:
 | Kami mini home IFUS | 9.0.20* | y28ga | - |
 | MIBAO G1 1296p dome | 9.0.04* | qg311r | - |
 | BLITZWOLF BW-YIC1 | 9.0.41* | b091qp | - |
-| ESCAM PT202 | 9.0.41* | b091qp | - |
+| ESCAM PT202 | 9.0.41* | b091qp | https://github.com/roleoroleo/yi-hack-Allwinner-v2/discussions/624#discussioncomment-5816561 |
 | YS-QC-02 | 9.0.41* | b091qp | https://github.com/roleoroleo/yi-hack_ha_integration/issues/84 |
 | Flood Light Camera Outdoor L850Y-US | 9.0.41* | b091qp | - |
 | Tovendor Mini Smart Home Camera | 9.0.41* | b091qp | - |

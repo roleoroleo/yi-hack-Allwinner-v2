@@ -280,7 +280,11 @@ fi
 
 log "Starting mqtt services"
 if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
-    mqttv4 -t local &
+    if [ "$MODEL_SUFFIX" != "y291ga" ]; then
+        mqttv4 -t local &
+    else
+        mqttv4 &
+    fi
 else
     mqttv4 &
 fi

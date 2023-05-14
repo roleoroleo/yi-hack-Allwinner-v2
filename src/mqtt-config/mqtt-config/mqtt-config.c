@@ -186,6 +186,16 @@ void handle_config(const char *key, const char *value)
     }
 }
 
+int mqtt_free_conf(mqtt_conf_t *conf){
+    if (conf != NULL) {
+        if (conf->client_id != NULL) free(conf->client_id);
+        if (conf->mqtt_prefix_cmnd != NULL) free(conf->mqtt_prefix_cmnd);
+        if (conf->user != NULL) free(conf->user);
+        if (conf->password != NULL) free(conf->password);
+    }
+    return 0;
+}
+
 int mqtt_init_conf(mqtt_conf_t *conf)
 {
     FILE *fp;
@@ -310,7 +320,11 @@ int main(int argc, char *argv[])
     run = 1;
 
     if (mqtt_init_conf(&conf) < 0)
+    {
+        mqtt_free_conf(&conf);
         return -2;
+    }
+
 
     signal(SIGINT, handle_signal);
     signal(SIGTERM, handle_signal);
@@ -326,7 +340,10 @@ int main(int argc, char *argv[])
 
     if(mosq) {
         if (mqtt_connect() != 0)
+        {
+            mqtt_free_conf(&conf);
             return -3;
+        }
 
         while(run)
         {
@@ -337,6 +354,6 @@ int main(int argc, char *argv[])
 
         stop_mqtt();
     }
-
+    mqtt_free_conf(&conf);
     return 0;
 }

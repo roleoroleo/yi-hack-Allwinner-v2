@@ -7,4 +7,5 @@ cd snapshot
 
 make clean
 rm -rf SDK
-rm -rf jpeg-9c
+rm -rf jpeg-*
+rm -rf ffmpeg-*

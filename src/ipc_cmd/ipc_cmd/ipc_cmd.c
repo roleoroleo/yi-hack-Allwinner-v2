@@ -733,6 +733,7 @@ int main(int argc, char ** argv)
 
         if (fread(msg_file, 1, nread, fIn) != nread) {
             fprintf(stderr, "Error reading file %s\n", file);
+            fclose(fIn);
             exit(EXIT_FAILURE);
         }
         fclose(fIn);

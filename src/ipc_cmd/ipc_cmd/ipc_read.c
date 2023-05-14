@@ -168,8 +168,10 @@ void main(int argc, char ** argv)
 
     ret = ipc_init();
     if(ret != 0)
+    {
+        ipc_stop();
         exit(EXIT_FAILURE);
-
+    }
     while(1) {
         bytes_read = mq_receive(ipc_mq, buffer, IPC_MESSAGE_MAX_SIZE, NULL);
 

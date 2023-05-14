@@ -183,6 +183,7 @@ void main(int argc, char ** argv)
 
     // Initiliaze message queue
     if(ipc_init(queue_number) != 0) {
+        ipc_stop();
         exit(EXIT_FAILURE);
     }
 

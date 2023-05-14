@@ -19,7 +19,7 @@ make || exit 1
 cd "${SCRIPT_DIR}/${PACKAGE}/${PORT}" || exit 1
 
 export CROSS_COMPILE="${CROSSPREFIX}"
-export CFLAGS_MOD="-I${SCRIPT_DIR}/libffi/_include"
+export CFLAGS_EXTRA="-I${SCRIPT_DIR}/libffi/_include"
 export LDFLAGS_MOD="-L${SCRIPT_DIR}/libffi/_install/lib -lffi"
 
 # Set the standard variant and the build output folder name
@@ -31,11 +31,10 @@ make || exit 1
 
 # Copy micropython binary to install dir
 mkdir -p "${SCRIPT_DIR}/_install/bin" || exit 1
-cp "${SCRIPT_DIR}/${PACKAGE}/${PORT}/micropython" "${SCRIPT_DIR}/_install/bin/python3" || exit 1
+cp "${SCRIPT_DIR}/${PACKAGE}/${PORT}/${BUILD}/micropython" "${SCRIPT_DIR}/_install/bin/python3" || exit 1
 $STRIP "${SCRIPT_DIR}/_install/bin/python3" || exit 1
 
-# Copy upip package manager for micropython
+# Copy mip package manager for micropython
 mkdir -p "${SCRIPT_DIR}/_install/.micropython/lib" || exit 1
-cp "${SCRIPT_DIR}/${PACKAGE}/${PORT}/${BUILD}/frozen_mpy/upip.mpy" "${SCRIPT_DIR}/_install/.micropython/lib" || exit 1
-cp "${SCRIPT_DIR}/${PACKAGE}/${PORT}/${BUILD}/frozen_mpy/upip_utarfile.mpy" "${SCRIPT_DIR}/_install/.micropython/lib" || exit 1
+cp -r "${SCRIPT_DIR}/${PACKAGE}/${PORT}/${BUILD}/frozen_mpy/mip" "${SCRIPT_DIR}/_install/.micropython/lib" || exit 1
 

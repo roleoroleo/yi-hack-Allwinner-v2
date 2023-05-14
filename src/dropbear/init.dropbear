@@ -3,10 +3,17 @@
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
+source config.dropbear
+
 rm -rf ./_install
 
-cd dropbear
-git reset --hard 
+if [ ! -f "${ARCHIVE}" ]; then
+    wget "${MAIN_URL}"
+fi
+
+tar xvf "${ARCHIVE}"
+
+cd "${BUILD_FOLDER}"
 
 autoconf; autoheader || exit 1
 
@@ -18,6 +25,7 @@ autoconf; autoheader || exit 1
     --host=arm \
     --disable-zlib \
     --disable-harden \
+    --disable-syslog \
     || exit 1
 
 cp ../localoptions.h ./ || exit 1

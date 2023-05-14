@@ -5,8 +5,17 @@ cd $SCRIPT_DIR
 
 rm -rf ./_install
 
-cd busybox 
-git reset --hard || exit 1
+source config.busybox
+
+rm -rf ./_install
+
+if [ ! -f "${ARCHIVE}" ]; then
+    wget "${MAIN_URL}"
+fi
+
+tar xvf "${ARCHIVE}"
+
+cd "${BUILD_FOLDER}"
 
 cp ../.config ./ || exit 1
 

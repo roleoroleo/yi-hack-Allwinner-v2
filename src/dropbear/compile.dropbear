@@ -3,8 +3,9 @@
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
+source config.dropbear
 
-cd dropbear
+cd "${BUILD_FOLDER}"
 
 make clean
 make -j$(nproc) \

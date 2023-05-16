@@ -281,7 +281,7 @@ serviceMain ()
 trap "" SIGHUP
 #
 if [ "${1}" = "cron" ]; then
-	RUNNING=$(ps | grep $SCRIPT_FULLFN | grep -v grep | grep /bin/sh | awk 'END { print NR }')
+	RUNNING=$(ps ww | grep $SCRIPT_FULLFN | grep -v grep | grep /bin/sh | awk 'END { print NR }')
 	if [ $RUNNING -gt 1 ]; then
 		logAdd "[INFO] === SERVICE ALREADY RUNNING ==="
 		exit 0
@@ -290,7 +290,7 @@ if [ "${1}" = "cron" ]; then
 	logAdd "[INFO] === SERVICE STOPPED ==="
 	exit 0
 elif [ "${1}" = "start" ]; then
-	RUNNING=$(ps | grep $SCRIPT_FULLFN | grep -v grep | grep /bin/sh | awk 'END { print NR }')
+	RUNNING=$(ps ww | grep $SCRIPT_FULLFN | grep -v grep | grep /bin/sh | awk 'END { print NR }')
 	if [ $RUNNING -gt 1 ]; then
 		logAdd "[INFO] === SERVICE ALREADY RUNNING ==="
 		exit 0
@@ -301,13 +301,13 @@ elif [ "${1}" = "start" ]; then
 	wait
 	exit 0
 elif [ "${1}" = "stop" ]; then
-	ps w | grep -v grep | grep "ash ${0}" | sed 's/ \+/|/g' | sed 's/^|//' | cut -d '|' -f 1 | grep -v "^$$" | while read pidhandle; do
+	ps ww | grep -v grep | grep "ash ${0}" | sed 's/ \+/|/g' | sed 's/^|//' | cut -d '|' -f 1 | grep -v "^$$" | while read pidhandle; do
 		echo "[INFO] Terminating old service instance [${pidhandle}] ..."
 		kill -9 "${pidhandle}"
 	done
 	#
 	# Check if parts of the service are still running.
-	if [ "$(ps w | grep -v grep | grep "ash ${0}" | sed 's/ \+/|/g' | sed 's/^|//' | cut -d '|' -f 1 | grep -v "^$$" | grep -c "^")" -gt 1 ]; then
+	if [ "$(ps ww | grep -v grep | grep "ash ${0}" | sed 's/ \+/|/g' | sed 's/^|//' | cut -d '|' -f 1 | grep -v "^$$" | grep -c "^")" -gt 1 ]; then
 		logAdd "[ERROR] === SERVICE FAILED TO STOP ==="
 		exit 99
 	fi

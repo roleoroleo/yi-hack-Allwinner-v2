@@ -109,7 +109,7 @@ check_rtsp_alt()
 check_rmm()
 {
 #  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking rmm process..." >> $LOG_FILE
-    PS=`ps | grep rmm | grep -v grep | grep -c ^`
+    PS=`ps ww| grep rmm | grep -v grep | grep -c ^`
 
     if [ $PS -eq 0 ]; then
         reboot

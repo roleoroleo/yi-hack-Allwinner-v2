@@ -3,6 +3,6 @@
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
-cd dropbear
+source config.dropbear
 
-make clean
+rm -rf "${BUILD_FOLDER}"

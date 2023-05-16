@@ -3,7 +3,9 @@
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
-cd busybox
+source config.busybox
+
+cd "${BUILD_FOLDER}"
 
 make -j$(nproc) ARCH=arm || exit 1
 make install || exit 1

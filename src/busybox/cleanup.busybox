@@ -3,6 +3,8 @@
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
-cd busybox
+source config.busybox
+
+rm -rf "${BUILD_FOLDER}"
 
 make clean

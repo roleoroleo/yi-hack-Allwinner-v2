@@ -1,3 +1,4 @@
 # Ignore the install dir
 _install/
-
+busybox-1_34_1/
+*.tar.gz

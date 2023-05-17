@@ -22,7 +22,7 @@ LOAD_AVG=$(cat /proc/loadavg | cut -d ' ' -f1-3)
 TOTAL_MEMORY=$(free -k | awk 'NR==2{print $2}')
 FREE_MEMORY=$(free -k | awk 'NR==2{print $4+$6+$7}')
 FREE_SD=$(df | grep -m1 '/tmp/sd' |  grep mmc | awk '{print $5}' | tr -d '%')
-WLAN_STRENGTH=$(cat /proc/net/wireless | awk 'END { print $3 }' | sed 's/\.$//')
+WLAN_STRENGTH=$(cat /proc/net/wireless | grep wlan0 | awk '{ print $3 }' | sed 's/\.$//')
 
 # MQTT configuration
 

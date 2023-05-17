@@ -1,14 +1,24 @@
 #!/bin/sh
 
 ### wifi 8188 ###
-if [ -f /home/base/wifi/8188fu.ko ];then
-    insmod /home/base/wifi/8188fu.ko
-elif [ -f /home/base/wifi/8189fs.ko ];then
-    insmod /home/base/wifi/8188fs.ko
-elif [ -f /backup/ko/8188fu.ko ];then
-    insmod /backup/ko/8188fu.ko
-elif [ -f /backup/ko/8189fs.ko ];then
-    insmod /backup/ko/8189fs.ko
+if [ "${enable_4g}" = "y" ];then
+    echo "4g is running...."
+else
+    if [ -f /home/base/wifi/8188fu.ko ];then
+        insmod /home/base/wifi/8188fu.ko
+    elif [ -f /home/base/wifi/8189fs.ko ];then
+        insmod /home/base/wifi/8188fs.ko
+    elif [ -f /backup/ko/8188fu.ko ];then
+        insmod /backup/ko/8188fu.ko
+    elif [ -f /backup/ko/8189fs.ko ];then
+        insmod /backup/ko/8189fs.ko
+    elif [ -f /backup/ko/ssv6x5x.ko ];then
+        if [ -f /home/base/firmware/ssv6x5x/ssv6x5x-wifi.cfg ];then
+            insmod /backup/ko/ssv6x5x.ko stacfgpath="/home/base/firmware/ssv6x5x/ssv6x5x-wifi.cfg"
+        else
+            echo "not found ssv6x5x-wifi.cfg"
+        fi
+    fi
 fi
 
 echo "--------------------------insmod sensor--------------------------"
@@ -37,11 +47,33 @@ fi
 
 sleep 1
 ifconfig lo up
-ifconfig wlan0 up
-ethmac=d2:`ifconfig wlan0 |grep HWaddr|cut -d' ' -f10|cut -d: -f2-`
+
+HOMEVER=$(cat /home/homever)
+HV=${HOMEVER:0:2}
+
+if [ "$HV" == "12" ]; then
+    ifconfig ${NETWORK_IFACE} up
+    ethmac=d2:`ifconfig ${NETWORK_IFACE} |grep HWaddr|cut -d' ' -f10|cut -d: -f2-`
+    #if [ "${enable_4g}" = "y" ];then
+    #    ifconfig usb0 up
+    #    ethmac=d2:`ifconfig usb0 |grep HWaddr|cut -d' ' -f10|cut -d: -f2-`
+    #else
+    #    ifconfig wlan0 up
+    #    ethmac=d2:`ifconfig wlan0 |grep HWaddr|cut -d' ' -f10|cut -d: -f2-`
+    #fi
+else
+    ifconfig wlan0 up
+    ethmac=d2:`ifconfig wlan0 |grep HWaddr|cut -d' ' -f10|cut -d: -f2-`
+fi
+
 ifconfig eth0 hw ether $ethmac
 ifconfig eth0 up
 
+if [ "$HV" == "12" ]; then
+    ln -s /home/model/BodyVehicleAnimal3.model /tmp/BodyVehicleAnimal3.model
+fi
+
+echo "============================================= home low_half_init.sh... ========================================="
 echo "============================================= begin to start app... ========================================="
 cd /home/app
 if [ -f /home/app/property ];then
@@ -50,12 +82,32 @@ fi
 #./log_server &
 
 if [ -f "/tmp/sd/Factory/factory_test.sh" ]; then
-	/tmp/sd/Factory/config.sh
-	exit
+    /tmp/sd/Factory/config.sh
+    exit
 fi
 
 mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /home/app/script/wifidhcp.sh
 mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /backup/tools/wifidhcp.sh
+
+if [ "$HV" == "12" ]; then
+    export LD_LIBRARY_PATH=/home/app/locallib:/home/app/script:$LD_LIBRARY_PATH:/tmp
+    echo $LD_LIBRARY_PATH
+
+    if [ -f "/tmp/sd/log_tools.tar.gz" ];then
+        echo "run log_tools start."
+        if [ ! -d /tmp/sd/log_tools ];then
+            cd /tmp/sd
+            mkdir log_tools
+        fi
+        cd /tmp/sd
+        tar -zxvf log_tools.tar.gz -C /tmp/sd/log_tools
+        chmod +x /tmp/sd/log_tools/run_log_app.sh
+        source /tmp/sd/log_tools/run_log_app.sh
+        cd -
+        echo "run log_tools end."
+        #exit
+    fi
+fi
 
 LD_PRELOAD=/tmp/sd/yi-hack/lib/ipc_multiplex.so ./dispatch &
 #sleep 2
@@ -65,7 +117,16 @@ LD_PRELOAD=/tmp/sd/yi-hack/lib/ipc_multiplex.so ./dispatch &
 #./cloud &
 #./p2p_tnp &
 #./oss &
+#./rtmp &
 #./watch_process &
+
+if [ "$HV" == "12" ]; then
+    chmod 777 /tmp/sd/debug.sh
+    if [ -f "/tmp/sd/debug.sh" ]; then
+        echo "calling /tmp/sd/debug.sh"
+        sh /tmp/sd/debug.sh &
+    fi
+fi
 
 chmod 755 /tmp/sd/yi-hack/script/system.sh
 sh /tmp/sd/yi-hack/script/system.sh &

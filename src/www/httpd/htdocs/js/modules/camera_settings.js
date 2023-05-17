@@ -46,13 +46,13 @@ APP.camera_settings = (function($) {
                 if (response["HOMEVER"].startsWith("11") || response["HOMEVER"].startsWith("12")) {
                     var objects = document.querySelectorAll(".fw12");
                     for (var i = 0; i < objects.length; i++) {
-                        objects[i].style.display = "table-row";
-                    }
+                    objects[i].style.display = "table-row";
+                }
                 } else {
                     var objects = document.querySelectorAll(".no_fw12");
                     for (var i = 0; i < objects.length; i++) {
-                        objects[i].style.display = "table-row";
-                    }
+                    objects[i].style.display = "table-row";
+                    }
                 }
                 aiMotionDetections();
             },

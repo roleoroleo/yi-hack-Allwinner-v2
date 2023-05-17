@@ -793,6 +793,7 @@ int main(int argc, char **argv)
 
         if (nread != h26x_file_size) {
             fprintf(stderr, "Read error %s\n", file);
+            if (h26x_file_buffer != NULL) free(h26x_file_buffer);
             exit(-7);
         }
 
@@ -864,6 +865,7 @@ int main(int argc, char **argv)
             }
         } else {
             if (debug) fprintf(stderr, "No frame found\n");
+            if (h26x_file_buffer != NULL) free(h26x_file_buffer);
             exit(-8);
         }
     }
@@ -872,12 +874,39 @@ int main(int argc, char **argv)
     bufferh26x = (unsigned char *) malloc(fhv.len + fhs.len + fhp.len + fhi.len + FF_INPUT_BUFFER_PADDING_SIZE);
     if (bufferh26x == NULL) {
         fprintf(stderr, "Unable to allocate memory\n");
+        if (h26x_file_buffer != NULL) free(h26x_file_buffer);
+        if (file[0] == '\0') {
+            // Unmap file from memory
+            if (munmap(addr, buf_size) == -1) {
+                fprintf(stderr, "Error munmapping file\n");
+            } else {
+                if (debug) fprintf(stderr, "Unmapping file %s, size %d, from %08x\n", BUFFER_FILE, buf_size, addr);
+            }
+
+#ifdef USE_SEMAPHORE
+            sem_fshare_close();
+#endif
+        }
         exit(-9);
     }
 
     bufferyuv = (unsigned char *) malloc(width * height * 3 / 2);
     if (bufferyuv == NULL) {
         fprintf(stderr, "Unable to allocate memory\n");
+        if (h26x_file_buffer != NULL) free(h26x_file_buffer);
+        if (bufferh26x != NULL) free(bufferh26x);
+        if (file[0] == '\0') {
+            // Unmap file from memory
+            if (munmap(addr, buf_size) == -1) {
+                fprintf(stderr, "Error munmapping file\n");
+            } else {
+                if (debug) fprintf(stderr, "Unmapping file %s, size %d, from %08x\n", BUFFER_FILE, buf_size, addr);
+            }
+
+#ifdef USE_SEMAPHORE
+            sem_fshare_close();
+#endif
+        }
         exit(-10);
     }
 
@@ -895,29 +924,70 @@ int main(int argc, char **argv)
         memcpy(bufferh26x + fhv.len, fhs_addr, fhs.len);
         memcpy(bufferh26x + fhv.len + fhs.len, fhp_addr, fhp.len);
         memcpy(bufferh26x + fhv.len + fhs.len + fhp.len, fhi_addr, fhi.len);
-
-        free(h26x_file_buffer);
     }
+
+    if (h26x_file_buffer != NULL) free(h26x_file_buffer);
 
     if (fhv_addr == NULL) {
         if (debug) fprintf(stderr, "Decoding h264 frame\n");
         if(frame_decode(bufferyuv, bufferh26x, fhs.len + fhp.len + fhi.len, 4) < 0) {
             fprintf(stderr, "Error decoding h264 frame\n");
+            if (bufferh26x != NULL) free(bufferh26x);
+            if (bufferyuv != NULL) free(bufferyuv);
+            if (file[0] == '\0') {
+                // Unmap file from memory
+                if (munmap(addr, buf_size) == -1) {
+                    fprintf(stderr, "Error munmapping file\n");
+                } else {
+                    if (debug) fprintf(stderr, "Unmapping file %s, size %d, from %08x\n", BUFFER_FILE, buf_size, addr);
+                }
+
+#ifdef USE_SEMAPHORE
+                sem_fshare_close();
+#endif
+            }
             exit(-11);
         }
     } else {
         if (debug) fprintf(stderr, "Decoding h265 frame\n");
         if(frame_decode(bufferyuv, bufferh26x, fhv.len + fhs.len + fhp.len + fhi.len, 5) < 0) {
             fprintf(stderr, "Error decoding h265 frame\n");
+            if (bufferh26x != NULL) free(bufferh26x);
+            if (bufferyuv != NULL) free(bufferyuv);
+            if (file[0] == '\0') {
+                // Unmap file from memory
+                if (munmap(addr, buf_size) == -1) {
+                    fprintf(stderr, "Error munmapping file\n");
+                } else {
+                    if (debug) fprintf(stderr, "Unmapping file %s, size %d, from %08x\n", BUFFER_FILE, buf_size, addr);
+                }
+
+#ifdef USE_SEMAPHORE
+                sem_fshare_close();
+#endif
+            }
             exit(-11);
         }
     }
-    free(bufferh26x);
+    if (bufferh26x != NULL) free(bufferh26x);
 
     if (watermark) {
         if (debug) fprintf(stderr, "Adding watermark\n");
         if (add_watermark(bufferyuv, width, height) < 0) {
             fprintf(stderr, "Error adding watermark\n");
+            if (bufferyuv != NULL) free(bufferyuv);
+            if (file[0] == '\0') { 
+                // Unmap file from memory
+                if (munmap(addr, buf_size) == -1) {
+                    fprintf(stderr, "Error munmapping file\n");
+                } else {
+                    if (debug) fprintf(stderr, "Unmapping file %s, size %d, from %08x\n", BUFFER_FILE, buf_size, addr);
+                }
+
+#ifdef USE_SEMAPHORE
+                sem_fshare_close();
+#endif
+            }
             exit(-12);
         }
     }
@@ -925,10 +995,23 @@ int main(int argc, char **argv)
     if (debug) fprintf(stderr, "Encoding jpeg image\n");
     if(YUVtoJPG("stdout", bufferyuv, width, height, width, height) < 0) {
         fprintf(stderr, "Error encoding jpeg file\n");
+        if (bufferyuv != NULL) free(bufferyuv);
+        if (file[0] == '\0') {
+            // Unmap file from memory
+            if (munmap(addr, buf_size) == -1) {
+                fprintf(stderr, "Error munmapping file\n");
+            } else {
+                if (debug) fprintf(stderr, "Unmapping file %s, size %d, from %08x\n", BUFFER_FILE, buf_size, addr);
+            }
+
+#ifdef USE_SEMAPHORE
+            sem_fshare_close();
+#endif
+        }
         exit(-13);
     }
 
-    free(bufferyuv);
+    if (bufferyuv != NULL) free(bufferyuv);
 
     if (file[0] == '\0') {
         // Unmap file from memory

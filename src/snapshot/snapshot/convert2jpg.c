@@ -36,7 +36,7 @@ int YUVtoJPG(char *output_file, unsigned char *input, const int width, const int
     FILE *fp;
 
     uint8_t* outbuffer = NULL;
-    unsigned long outlen = 0;
+    size_t outlen = 0;
 
     unsigned int wsl, hsl, i, j;
     unsigned int offset;

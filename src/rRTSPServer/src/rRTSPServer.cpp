@@ -1276,6 +1276,7 @@ int main(int argc, char** argv)
     output_buffer_high.output_frame_size = sizeof(output_buffer_high.output_frame) / sizeof(output_buffer_high.output_frame[0]);
     if (output_buffer_high.buffer == NULL) {
         fprintf(stderr, "could not alloc memory\n");
+        if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
         exit(EXIT_FAILURE);
     }
     output_buffer_high.output_frame[0].ptr = output_buffer_high.buffer;
@@ -1292,6 +1293,8 @@ int main(int argc, char** argv)
     output_buffer_audio.output_frame_size = sizeof(output_buffer_audio.output_frame) / sizeof(output_buffer_audio.output_frame[0]);
     if (output_buffer_audio.buffer == NULL) {
         fprintf(stderr, "could not alloc memory\n");
+        if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
+        if(output_buffer_high.buffer != NULL) free(output_buffer_high.buffer);
         exit(EXIT_FAILURE);
     }
     output_buffer_audio.output_frame[0].ptr = output_buffer_audio.buffer;
@@ -1305,15 +1308,24 @@ int main(int argc, char** argv)
     // Start capture thread
     if (pthread_mutex_init(&(output_buffer_low.mutex), NULL) != 0) { 
         *env << "Failed to create mutex\n";
+        if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
+        if(output_buffer_high.buffer != NULL) free(output_buffer_high.buffer);
+        if(output_buffer_audio.buffer != NULL) free(output_buffer_audio.buffer);
         exit(EXIT_FAILURE);
     }
     if (pthread_mutex_init(&(output_buffer_high.mutex), NULL) != 0) { 
         *env << "Failed to create mutex\n";
+        if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
+        if(output_buffer_high.buffer != NULL) free(output_buffer_high.buffer);
+        if(output_buffer_audio.buffer != NULL) free(output_buffer_audio.buffer);
         exit(EXIT_FAILURE);
     }
     pth_ret = pthread_create(&capture_thread, NULL, capture, (void*) NULL);
     if (pth_ret != 0) {
         *env << "Failed to create capture thread\n";
+        if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
+        if(output_buffer_high.buffer != NULL) free(output_buffer_high.buffer);
+        if(output_buffer_audio.buffer != NULL) free(output_buffer_audio.buffer);
         exit(EXIT_FAILURE);
     }
     pthread_detach(capture_thread);
@@ -1349,6 +1361,9 @@ int main(int argc, char** argv)
     RTSPServer* rtspServer = RTSPServer::createNew(*env, port, authDB);
     if (rtspServer == NULL) {
         *env << "Failed to create RTSP server: " << env->getResultMsg() << "\n";
+        if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
+        if(output_buffer_high.buffer != NULL) free(output_buffer_high.buffer);
+        if(output_buffer_audio.buffer != NULL) free(output_buffer_audio.buffer);
         exit(1);
     }
 
@@ -1455,6 +1470,7 @@ int main(int argc, char** argv)
     // Free buffers
     free(output_buffer_low.buffer);
     free(output_buffer_high.buffer);
+    free(output_buffer_audio.buffer);
 
     return 0; // only to prevent compiler warning
 }

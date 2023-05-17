@@ -17,5 +17,7 @@ tar xvf "${ARCHIVE}"
 
 cd "${BUILD_FOLDER}"
 
+patch -p1 < ../gzdef.patch
+
 cp ../.config ./ || exit 1
 

@@ -96,9 +96,7 @@ elif [ "$ACTION" == "delete" ]; then
         printf "}\n"
         return
     fi
-    echo "Validate $FILE"
     validateTLFile $FILE
-    echo "Validated $FILE"
     if [ "$FILE" == "none" ]; then
         printf "Content-type: application/json\r\n\r\n"
         printf "{\n"
@@ -108,7 +106,7 @@ elif [ "$ACTION" == "delete" ]; then
     fi
 
     BASE_NAME=$(fbasename "$FILE")
-echo $BASE_NAME
+
     rm -f /tmp/sd/record/timelapse/$BASE_NAME.avi
 
     printf "Content-type: application/json\r\n\r\n"

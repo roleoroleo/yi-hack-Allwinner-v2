@@ -55,6 +55,7 @@ elif [ $ACTION == "save" ]; then
         printf "{\n"
         printf "\"%s\":\"%s\"\\n" "error" "true"
         printf "}"
+        exit
     fi
     KEYS=$(echo "$POST_DATA" | jq keys_unsorted[])
     for KEY in $KEYS; do

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+rm -rf ./_install
+
+if [ ! -f crypt-1.18.2.tar.xz ]; then
+    wget https://github.com/libtom/libtomcrypt/releases/download/v1.18.2/crypt-1.18.2.tar.xz
+fi
+tar Jxvf ./crypt-1.18.2.tar.xz
+if [ ! -L libtomcrypt ]; then
+    ln -s libtomcrypt-1.18.2 libtomcrypt
+fi
+
+cd onvif_simple_server
+
+git reset --hard
+
+patch -p1 < ../path.patch

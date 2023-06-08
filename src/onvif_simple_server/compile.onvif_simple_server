@@ -1,0 +1,55 @@
+#!/bin/bash
+
+export CROSSPATH=/opt/yi/toolchain-sunxi-musl/toolchain/bin
+export PATH=${PATH}:${CROSSPATH}
+
+export TARGET=arm-openwrt-linux
+export CROSS=arm-openwrt-linux
+export BUILD=x86_64-pc-linux-gnu
+
+export CROSSPREFIX=${CROSS}-
+
+export STRIP=${CROSSPREFIX}strip
+export CXX=${CROSSPREFIX}g++
+export CC=${CROSSPREFIX}gcc
+export LD=${CROSSPREFIX}ld
+export AS=${CROSSPREFIX}as
+export AR=${CROSSPREFIX}ar
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+cd libtomcrypt-1.18.2
+make clean
+CFLAGS="-DLTC_NOTHING -DLTC_SHA1 -DLTC_BASE64 -ffunction-sections -fdata-sections" LDFLAGS="-Wl,--gc-sections" make
+cd ..
+
+cd onvif_simple_server || exit 1
+
+make clean
+make || exit 1
+
+mkdir -p ../_install/www/onvif || exit 1
+mkdir -p ../_install/bin || exit 1
+mkdir -p ../_install/etc/wsd_simple_server || exit 1
+
+cp ./onvif_simple_server ../_install/www/onvif || exit 1
+echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/device_service || exit 1
+chmod 0755 ../_install/www/onvif/device_service
+echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/media_service || exit 1
+chmod 0755 ../_install/www/onvif/media_service
+echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/ptz_service || exit 1
+chmod 0755 ../_install/www/onvif/ptz_service
+echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/events_service || exit 1
+chmod 0755 ../_install/www/onvif/events_service
+cp -R ./device_service_files ../_install/www/onvif
+cp -R ./events_service_files ../_install/www/onvif
+cp -R ./generic_files ../_install/www/onvif
+cp -R ./media_service_files ../_install/www/onvif
+cp -R ./ptz_service_files ../_install/www/onvif
+
+cp ./wsd_simple_server ../_install/bin || exit 1
+cp -R ./wsd_files/* ../_install/etc/wsd_simple_server
+
+${STRIP} ../_install/bin/* || exit 1
+${STRIP} ../_install/www/onvif/onvif_simple_server || exit 1

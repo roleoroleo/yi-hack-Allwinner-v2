@@ -41,21 +41,13 @@ init_config()
         ''|*[!0-9]*) RTSP_PORT=554 ;;
         *) RTSP_PORT=$(get_config RTSP_PORT) ;;
     esac
-    case $(get_config ONVIF_PORT) in
-        ''|*[!0-9]*) ONVIF_PORT=80 ;;
-        *) ONVIF_PORT=$(get_config ONVIF_PORT) ;;
-    esac
     case $(get_config HTTPD_PORT) in
-        ''|*[!0-9]*) HTTPD_PORT=8080 ;;
+        ''|*[!0-9]*) HTTPD_PORT=80 ;;
         *) HTTPD_PORT=$(get_config HTTPD_PORT) ;;
     esac
 
     if [[ $RTSP_PORT != "554" ]] ; then
         D_RTSP_PORT=:$RTSP_PORT
-    fi
-
-    if [[ $ONVIF_PORT != "80" ]] ; then
-        D_ONVIF_PORT=:$ONVIF_PORT
     fi
 
     if [[ $HTTPD_PORT != "80" ]] ; then
@@ -149,18 +141,21 @@ start_onvif()
         ONVIF_PROFILE_1="name=Profile_1\nwidth=640\nheight=360\nurl=rtsp://%s$D_RTSP_PORT/ch0_1.h264\nsnapurl=http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK\ntype=H264"
     fi
 
-    ONVIF_SRVD_CONF="/tmp/onvif_srvd.conf"
+    ONVIF_SRVD_CONF="/tmp/onvif_simple_server.conf"
 
-    echo "pid_file=/var/run/onvif_srvd.pid" > $ONVIF_SRVD_CONF
-    echo "model=Yi Hack" >> $ONVIF_SRVD_CONF
+    echo "model=Yi Hack" > $ONVIF_SRVD_CONF
     echo "manufacturer=Yi" >> $ONVIF_SRVD_CONF
     echo "firmware_ver=$YI_HACK_VER" >> $ONVIF_SRVD_CONF
     echo "hardware_id=$HW_ID" >> $ONVIF_SRVD_CONF
     echo "serial_num=$SERIAL_NUMBER" >> $ONVIF_SRVD_CONF
     echo "ifs=$ONVIF_NETIF" >> $ONVIF_SRVD_CONF
-    echo "port=$ONVIF_PORT" >> $ONVIF_SRVD_CONF
-    echo "scope=onvif://www.onvif.org/Profile/S" >> $ONVIF_SRVD_CONF
+    echo "port=$HTTPD_PORT" >> $ONVIF_SRVD_CONF
+    echo "scope=onvif://www.onvif.org/Profile/Streaming" >> $ONVIF_SRVD_CONF
     echo "" >> $ONVIF_SRVD_CONF
+    if [ ! -z $ONVIF_USERPWD ]; then
+        echo -e $ONVIF_USERPWD >> $ONVIF_SRVD_CONF
+        echo "" >> $ONVIF_SRVD_CONF
+    fi
     if [ ! -z $ONVIF_PROFILE_0 ]; then
         echo "#Profile 0" >> $ONVIF_SRVD_CONF
         echo -e $ONVIF_PROFILE_0 >> $ONVIF_SRVD_CONF
@@ -169,10 +164,6 @@ start_onvif()
     if [ ! -z $ONVIF_PROFILE_1 ]; then
         echo "#Profile 1" >> $ONVIF_SRVD_CONF
         echo -e $ONVIF_PROFILE_1 >> $ONVIF_SRVD_CONF
-        echo "" >> $ONVIF_SRVD_CONF
-    fi
-    if [ ! -z $ONVIF_USERPWD ]; then
-        echo -e $ONVIF_USERPWD >> $ONVIF_SRVD_CONF
         echo "" >> $ONVIF_SRVD_CONF
     fi
 
@@ -187,22 +178,22 @@ start_onvif()
         echo "move_preset=/tmp/sd/yi-hack/bin/ipc_cmd -p %t" >> $ONVIF_SRVD_CONF
     fi
 
-    onvif_srvd --conf_file $ONVIF_SRVD_CONF
+    onvif_simple_server --conf_file $ONVIF_SRVD_CONF
 }
 
 stop_onvif()
 {
-    killall onvif_srvd
+    killall onvif_simple_server
 }
 
 start_wsdd()
 {
-    wsdd --pid_file /var/run/wsdd.pid --if_name $ONVIF_NETIF --type tdn:NetworkVideoTransmitter --xaddr http://%s$D_ONVIF_PORT --scope "onvif://www.onvif.org/name/Unknown onvif://www.onvif.org/Profile/Streaming"
+    wsd_simple_server --pid_file /var/run/wsd_simple_server.pid --if_name $ONVIF_NETIF --xaddr "http://%s$D_HTTPD_PORT/onvif/device_service"
 }
 
 stop_wsdd()
 {
-    killall wsdd
+    killall wsd_simple_server
 }
 
 start_ftpd()
@@ -351,9 +342,9 @@ elif [ "$ACTION" == "status" ] ; then
     if [ "$NAME" == "rtsp" ]; then
         RES=$(ps_program rRTSPServer)
     elif [ "$NAME" == "onvif" ]; then
-        RES=$(ps_program onvif_srvd)
+        RES=$(ps_program onvif_simple_server)
     elif [ "$NAME" == "wsdd" ]; then
-        RES=$(ps_program wsdd)
+        RES=$(ps_program wsd_simple_server)
     elif [ "$NAME" == "ftpd" ]; then
         RES=$(ps_program ftpd)
     elif [ "$NAME" == "mqtt" ]; then

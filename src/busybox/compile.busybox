@@ -9,4 +9,3 @@ cd "${BUILD_FOLDER}"
 
 make -j$(nproc) ARCH=arm || exit 1
 make install || exit 1
-

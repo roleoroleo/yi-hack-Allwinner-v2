@@ -1,0 +1,28 @@
+diff -Naur onvif_simple_server.ori/onvif_simple_server.c onvif_simple_server/onvif_simple_server.c
+--- onvif_simple_server.ori/onvif_simple_server.c	2023-06-03 10:25:57.674917416 +0200
++++ onvif_simple_server/onvif_simple_server.c	2023-06-03 10:30:57.707330803 +0200
+@@ -35,8 +35,8 @@
+ #include "utils.h"
+ #include "log.h"
+ 
+-#define DEFAULT_CONF_FILE "/etc/onvif_simple_server.conf"
+-#define DEFAULT_LOG_FILE "/var/log/onvif_simple_server.log"
++#define DEFAULT_CONF_FILE "/tmp/onvif_simple_server.conf"
++#define DEFAULT_LOG_FILE "/tmp/onvif_simple_server.log"
+ 
+ service_context_t service_ctx;
+ 
+diff -Naur onvif_simple_server.ori/wsd_simple_server.c onvif_simple_server/wsd_simple_server.c
+--- onvif_simple_server.ori/wsd_simple_server.c	2023-06-03 10:26:32.626990138 +0200
++++ onvif_simple_server/wsd_simple_server.c	2023-06-03 10:28:12.075157838 +0200
+@@ -36,8 +36,8 @@
+ #define PORT 3702
+ #define TYPE "NetworkVideoTransmitter"
+ 
+-#define DEFAULT_LOG_FILE "/var/log/wsd_simple_server.log"
+-#define TEMPLATE_DIR "/etc/wsd_simple_server"
++#define DEFAULT_LOG_FILE "/tmp/wsd_simple_server.log"
++#define TEMPLATE_DIR "/tmp/sd/yi-hack/etc/wsd_simple_server"
+ 
+ #define UUID_LEN 36
+ #define RECV_BUFFER_LEN 4096

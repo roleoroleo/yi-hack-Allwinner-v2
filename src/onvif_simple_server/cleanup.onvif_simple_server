@@ -3,8 +3,11 @@
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
-cd wsdd
+cd onvif_simple_server
 
 make clean
-rm -rf SDK
-rm -rf gsoap-2.8
+
+cd ..
+
+rm -rf libtomcrypt*
+rm crypt*.tar.xz

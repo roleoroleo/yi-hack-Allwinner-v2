@@ -14,5 +14,6 @@ tar zxvf $ARCHIVE
 
 cd jq-1.5 || exit 1
 
-export CFLAGS+="-Os"
+export CFLAGS+="-Os -ffunction-sections -fdata-sections"
+export LDFLAGS+="-Wl,--gc-sections"
 ./configure --host=arm-openwrt-linux --disable-docs

@@ -11,6 +11,9 @@ MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
 
 HOMEVER=$(cat /home/homever)
 HV=${HOMEVER:0:2}
+if [ "${HV:1:1}" == "." ]; then
+    HV=${HV:0:1}
+fi
 
 get_config()
 {

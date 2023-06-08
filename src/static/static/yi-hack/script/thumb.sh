@@ -106,7 +106,7 @@ checkFiles ()
 		else
 			#logAdd "[INFO] checkFiles: ignore file [${file}] - already present."
 			if [ -s $BASE_NAME.jpg ]; then
-	 			logAdd "[INFO] checkFiles: ignore file [${file}] - already present."
+				logAdd "[INFO] checkFiles: ignore file [${file}] - already present."
 			else
 				rm -f $BASE_NAME.jpg
 				logAdd "[DEBUG] checkFiles: ignore file [${file}] - already present but ZERO, deleted for next try"
@@ -157,7 +157,7 @@ serviceMain ()
 trap "" SIGHUP
 #
 if [ "${1}" = "cron" ]; then
-	RUNNING=$(ps ww| grep $SCRIPT_FULLFN | grep -v grep | grep /bin/sh | awk 'END { print NR }')
+	RUNNING=$(ps ww | grep $SCRIPT_FULLFN | grep -v grep | grep /bin/sh | awk 'END { print NR }')
 	if [ $RUNNING -gt 1 ]; then
 		logAdd "[INFO] === SERVICE ALREADY RUNNING ==="
 		exit 0
@@ -166,7 +166,7 @@ if [ "${1}" = "cron" ]; then
 	logAdd "[INFO] === SERVICE STOPPED ==="
 	exit 0
 elif [ "${1}" = "start" ]; then
-	RUNNING=$(ps ww| grep $SCRIPT_FULLFN | grep -v grep | grep /bin/sh | awk 'END { print NR }')
+	RUNNING=$(ps ww | grep $SCRIPT_FULLFN | grep -v grep | grep /bin/sh | awk 'END { print NR }')
 	if [ $RUNNING -gt 1 ]; then
 		logAdd "[INFO] === SERVICE ALREADY RUNNING ==="
 		exit 0

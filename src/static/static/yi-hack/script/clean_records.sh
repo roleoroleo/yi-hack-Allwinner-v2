@@ -18,7 +18,6 @@ fi
 
 MAX_AVI_NUMBER=10
 USED_SPACE_LIMIT=$((100-$1))
-#echo "$USED_SPACE_LIMIT"
 
 cd /tmp/sd/record/timelapse
 AVI_NUMBER=`ls -lt | grep .avi | awk 'END{print NR}'`

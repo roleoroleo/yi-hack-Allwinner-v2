@@ -47,7 +47,7 @@ Otherwise, follow this wiki: https://github.com/roleoroleo/yi-hack-Allwinner-v2/
 ```
 5. Insert the SD Card and reboot the camera
 6. Wait a minute for the camera to update.
-7. Check the hack opening the web interface http://IP-CAM:8080 (where IP-CAM is the IP address of the cam assigned by your router).
+7. Check the hack opening the web interface http://IP-CAM (where IP-CAM is the IP address of the cam assigned by your router).
 8. Don't remove the microSD card (yes this hack requires a dedicated microSD card).
 9. Check the FAQ if you have a problem: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/FAQ
 
@@ -70,10 +70,10 @@ This custom firmware contains features replicated from the [yi-hack-MStar](https
     - rtsp://IP-CAM/ch0_2.h264             (only audio)
   - ONVIF server (with support for h264 stream, snapshot, ptz, presets and WS-Discovery) - standardized interfaces for IP cameras.
   - Snapshot service - allows to get a jpg with a web request.
-    - http://IP-CAM:8080/cgi-bin/snapshot.sh?res=low&watermark=yes        (select resolution: low or high, and watermark: yes or no)
-    - http://IP-CAM:8080/cgi-bin/snapshot.sh                              (default high without watermark)
+    - http://IP-CAM/cgi-bin/snapshot.sh?res=low&watermark=yes        (select resolution: low or high, and watermark: yes or no)
+    - http://IP-CAM/cgi-bin/snapshot.sh                              (default high without watermark)
   - MQTT - Motion detection and baby crying detection through mqtt protocol.
-  - Web server - web configuration interface (port 8080).
+  - Web server - web configuration interface.
   - SSH server - dropbear.
   - Telnet server - busybox.
   - FTP server.
@@ -174,7 +174,7 @@ You can also use the [web services](https://github.com/roleoroleo/yi-hack-Allwin
 ```
 rest_command:
   camera_announce:
-    url: http://[camera address]:8080/cgi-bin/speak.sh?lang={{language}}&voldb={{volume}}
+    url: http://[camera address]/cgi-bin/speak.sh?lang={{language}}&voldb={{volume}}
     method: POST
     payload: "{{message}}"
 ```

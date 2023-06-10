@@ -475,6 +475,7 @@ void *capture(void *ptr)
         // Check if the header is ok
         memcpy(&i, input_buffer.buffer + 12, sizeof(i));
         if (buf_idx_end != input_buffer.buffer + input_buffer.offset + i) {
+            if (debug & 1) fprintf(stderr, "%lld: buf_idx_end != input_buffer.buffer + input_buffer.offset + i\n", current_timestamp());
             usleep(1000);
             continue;
         }
@@ -483,6 +484,7 @@ void *capture(void *ptr)
 #ifdef USE_SEMAPHORE
             sem_write_unlock();
 #endif
+            if (debug & 1) fprintf(stderr, "%lld: buf_idx_end == buf_idx_end_prev\n", current_timestamp());
             usleep(10000);
             continue;
         }
@@ -496,6 +498,7 @@ void *capture(void *ptr)
             // Check the len
             if (fhs[i].len > input_buffer.size - input_buffer.offset) {
                 frame_sync = 0;
+                if (debug & 1) fprintf(stderr, "%lld: fhs[i].len > input_buffer.size - input_buffer.offset\n", current_timestamp());
                 break;
             }
             fhs_addr[i] = buf_idx_cur;
@@ -504,6 +507,7 @@ void *capture(void *ptr)
             // Check if the sync is lost
             if (i == 10) {
                 frame_sync = 0;
+                if (debug & 1) fprintf(stderr, "%lld: i=10\n", current_timestamp());
                 break;
             }
         }
@@ -514,6 +518,7 @@ void *capture(void *ptr)
 
         if (frame_sync == 0) {
             buf_idx_end_prev = buf_idx_end;
+            if (debug & 1) fprintf(stderr, "%lld: frame_sync == 0\n", current_timestamp());
             usleep(10000);
             continue;
         }
@@ -524,6 +529,7 @@ void *capture(void *ptr)
             buf_idx_end_prev = fhs_addr[n - 1];
             n--;
         } else {
+            if (debug & 1) fprintf(stderr, "%lld: ! n > 1\n", current_timestamp());
             usleep(10000);
             continue;
         }

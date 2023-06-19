@@ -45,7 +45,7 @@ char *config_params[PARAM_NUM][PARAM_OPTIONS] = {
     { "system", "CRONTAB", "string", "", "", "" , "", "", "" },
 
     { "camera", "SWITCH_ON", "bool", "", "", "" , "", "", "-t" },
-    { "camera", "SAVE_VIDEO_ON_MOTION", "enum", "always", "detect", "" , "", "", "-v" },
+    { "camera", "SAVE_VIDEO_ON_MOTION", "bool", "", "", "" , "", "", "-v" },
     { "camera", "MOTION_DETECTION", "bool", "", "", "" , "", "", "-O" },
     { "camera", "SENSITIVITY", "enum", "low", "medium", "high" , "", "", "-s" },
     { "camera", "AI_HUMAN_DETECTION", "bool", "", "", "" , "", "", "-a" },

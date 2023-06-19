@@ -235,9 +235,9 @@ int main(int argc, char ** argv)
             break;
 
         case 'v':
-            if (strcasecmp("always", optarg) == 0) {
+            if ((strcasecmp("always", optarg) == 0) || (strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
                 save = SAVE_ALWAYS;
-            } else if (strcasecmp("detect", optarg) == 0) {
+            } else if ((strcasecmp("detect", optarg) == 0) || (strcasecmp("on", optarg) == 0) || (strcasecmp("yes", optarg) == 0)) {
                 save = SAVE_DETECT;
             } else {
                 print_usage(argv[0]);

@@ -13,6 +13,15 @@ if [ ! -L libtomcrypt ]; then
     ln -s libtomcrypt-1.18.2 libtomcrypt
 fi
 
+if [ ! -f v3.4.0.tar.gz ]; then
+    wget https://github.com/Mbed-TLS/mbedtls/archive/refs/tags/v3.4.0.tar.gz
+fi
+tar zxvf ./v3.4.0.tar.gz
+if [ ! -L mbedtls ]; then
+    ln -s mbedtls-3.4.0 mbedtls
+fi
+cp -f mbedtls_config.h mbedtls/include/mbedtls/
+
 cd onvif_simple_server
 
 git reset --hard

@@ -11,3 +11,6 @@ cd ..
 
 rm -rf libtomcrypt*
 rm crypt*.tar.xz
+rm -rf mbedtls-3.4.0
+rm -rf mbedtls
+rm v3.4.0.tar.gz

@@ -1,5 +1,7 @@
 # Ignore the install dir
 _install/
 *.xz
+*.gz
 libtomcrypt*/
+mbedtls*/
 onvif_simple_server/onvif_simple_server

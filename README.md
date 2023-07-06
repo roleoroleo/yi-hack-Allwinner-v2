@@ -130,6 +130,7 @@ Currently this project supports only the following cameras:
 | Yi Outdoor 1080p RFUS | 9.0.26* | h30ga | - |
 | Yi Outdoor 1080p RFUS | 11.1.26* | h30ga | - |
 | Yi 1080p Dome *FUS | 9.0.05* | r30gb | beta version (check this issue https://github.com/roleoroleo/yi-hack-Allwinner-v2/issues/484) |
+| Yi 1080p Dome *FUS | 12.1.05* | r30gb | beta version (check this issue https://github.com/roleoroleo/yi-hack-Allwinner-v2/issues/484) |
 | Yi Dome Camera U BFUS (Full HD) | 9.0.22* | h52ga | - |
 | Yi Dome Camera U BFUS (3K) | 9.0.21* | h51ga | - |
 | Yi Dome U Pro 2K LFUS | 9.0.27* | h60ga | - |

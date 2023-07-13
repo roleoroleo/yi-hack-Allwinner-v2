@@ -11,5 +11,6 @@
 
 void config_set_handler(void (*f)(const char* key, const char* value));
 void config_parse(FILE *fp);
+void config_replace(char *filename, char *key, char *value);
 FILE *open_conf_file(const char* filename);
 void close_conf_file(FILE *fp);

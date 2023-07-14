@@ -76,7 +76,7 @@ if [ "$VALID" != "0" ]; then
     exit
 fi
 # Change temporarily \n with \t (2 bytes)
-POST_DATA="${POST_DATA/\\n/\\t}"
+POST_DATA="${POST_DATA//\\n/\\t}"
 IFS=$(echo -en "\n\b")
 ROWS=$(echo "$POST_DATA" | jq -r '. | keys[] as $k | "\($k)=\(.[$k])"')
 for ROW in $ROWS; do

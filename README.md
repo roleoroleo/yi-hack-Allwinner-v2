@@ -53,6 +53,14 @@ Otherwise, follow this wiki: https://github.com/roleoroleo/yi-hack-Allwinner-v2/
 8. Don't remove the microSD card (yes this hack requires a dedicated microSD card).
 9. Check the FAQ if you have a problem: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/FAQ
 
+
+### Online Update Procedure
+1. Go to the "Maintenance" web page
+2. Check if a new release is available
+3. Click "Upgrade Firmware"
+4. Wait for cam reboot
+
+
 ### Optional Utilities 
 Several [optional untilies](https://github.com/roleoroleo/yi-hack-utils) are avaiable, some supporting experimental features like text-to-speech.
 

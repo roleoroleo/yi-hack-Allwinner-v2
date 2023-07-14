@@ -32,6 +32,8 @@ yi-hack-Allwinner-v2 is a modification of the firmware for the Allwinner-based Y
 It's not easy to brick the cam but it can happen.
 So please, make your backup copy: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Dump-your-backup-firmware-(SD-card)
 
+Anyway, the hack procedure will create a backup for you.
+
 ### Install Procedure
 If you want to use the original Yi app, please install it and complete the pairing process before installing the hack.
 
@@ -72,6 +74,7 @@ This custom firmware contains features replicated from the [yi-hack-MStar](https
   - Snapshot service - allows to get a jpg with a web request.
     - http://IP-CAM/cgi-bin/snapshot.sh?res=low&watermark=yes        (select resolution: low or high, and watermark: yes or no)
     - http://IP-CAM/cgi-bin/snapshot.sh                              (default high without watermark)
+  - Timelapse feature
   - MQTT - Motion detection and baby crying detection through mqtt protocol.
   - Web server - web configuration interface.
   - SSH server - dropbear.
@@ -89,6 +92,7 @@ This custom firmware contains features replicated from the [yi-hack-MStar](https
     - status led
     - ir led
     - rotate
+    - ...
   - Management of motion detect events and videos through a web page.
   - View recorded video through a web page (thanks to @BenjaminFaal).
   - PTZ support through a web page (if the cam supports it).

@@ -432,7 +432,7 @@ if [[ $(get_config ONVIF) == "yes" ]] ; then
     onvif_simple_server --conf_file $ONVIF_SRVD_CONF
 
     if [[ $(get_config ONVIF_WSDD) == "yes" ]] ; then
-        wsd_simple_server --pid_file /var/run/wsd_simple_server.pid --if_name $ONVIF_NETIF --xaddr "http://%s$D_HTTPD_PORT/onvif/device_service"
+        wsd_simple_server --pid_file /var/run/wsd_simple_server.pid --if_name $ONVIF_NETIF --xaddr "http://%s$D_HTTPD_PORT/onvif/device_service" -m yi_hack -n Yi
     fi
 fi
 

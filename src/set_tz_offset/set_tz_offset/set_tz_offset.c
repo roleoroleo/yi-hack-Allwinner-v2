@@ -24,24 +24,24 @@ int tz_offset_osd_addr[23][2] = {
     { 0x4a0, 1 },    // Y30QA
 
     { 0x4e0, 1 },    // H30GA_9
-    { 0x56c, 0 },    // H30GA_11     Already present
+    { 0x56c, 1 },    // H30GA_11
     { 0x4e0, 1 },    // H51GA
     { 0x4e0, 1 },    // H52GA
-    { 0x560, 0 },    // H60GA        Already present
+    { 0x560, 1 },    // H60GA
     { 0x4e0, 1 },    // Q321BR_LSX
     { 0x4e0, 1 },    // QG311R
     { 0x4e0, 1 },    // R30GB
-    { 0x56c, 0 },    // R35GB        Already present
-    { 0x560, 0 },    // R40GA        Already present
+    { 0x56c, 1 },    // R35GB
+    { 0x560, 1 },    // R40GA
     { 0x4e0, 1 },    // Y211GA_9
-    { 0x570, 0 },    // Y211GA_12    Already present
+    { 0x570, 1 },    // Y211GA_12
     { 0x4e0, 1 },    // Y21GA_9
-    { 0x564, 0 },    // Y21GA_12     Already present
+    { 0x564, 1 },    // Y21GA_12
     { 0x4e0, 1 },    // Y28GA
-    { 0x56c, 0 },    // Y291GA_9     Already present
-    { 0x570, 0 },    // Y291GA_12    Already present
+    { 0x56c, 1 },    // Y291GA_9
+    { 0x570, 1 },    // Y291GA_12
     { 0x4e0, 1 },    // Y29GA
-    { 0x000, 0 }     // B091QP       0x560 or 0x56c but already present
+    { 0x000, 0 }     // B091QP       0x560 or 0x56c - skip this model
 };
 
 int debug;

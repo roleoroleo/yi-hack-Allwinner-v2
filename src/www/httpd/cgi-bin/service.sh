@@ -289,7 +289,7 @@ if [ "$ACTION" == "start" ] ; then
         start_ftpd $PARAM1
     elif [ "$NAME" == "mqtt" ]; then
         if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
-            if [ "$MODEL_SUFFIX" != "y291ga" ]; then
+            if [ "$MODEL_SUFFIX" != "y291ga" ] && [ "$MODEL_SUFFIX" != "y211ga" ]; then
                 mqttv4 -t local >/dev/null &
             else
                 mqttv4 >/dev/null &

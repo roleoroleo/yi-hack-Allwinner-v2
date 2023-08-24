@@ -1,0 +1,5 @@
+# Don't use backslash char \
+# Don't use double quote " around ssid and psk
+# Space chars are allowed
+wifi_ssid=My AP 2.4GHz
+wifi_psk=password$

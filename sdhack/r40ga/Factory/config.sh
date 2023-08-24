@@ -38,6 +38,7 @@ else
     cp /backup/init.sh /tmp/init.sh
     sed -n '1{$!N;$!N;$!N;$!N};$!N;s@\nif \[ \-f \/home\/app\/lower_half_init.sh \];then\n    source \/home\/app\/lower_half_init.sh\nelse\n    source \/backup\/lower_half_init.sh\nfi@@;P;D' -i /tmp/init.sh
     sed -n '1{$!N;$!N;$!N;$!N};$!N;s@\nif \[ \-f \/home\/app\/lower_half_init.sh \];then\n\tsource \/home\/app\/lower_half_init.sh\nelse\n\tsource \/backup\/lower_half_init.sh\nfi@@;P;D' -i /tmp/init.sh
+    sed -e 's/^source \/home\/app\/lower_half_init.sh//g' -i /tmp/init.sh
 
     echo "# Running telnetd" >> /tmp/init.sh
     echo "/usr/sbin/telnetd &" >> /tmp/init.sh
@@ -52,6 +53,11 @@ else
 
     cp /tmp/init.sh /backup/init.sh
     rm /tmp/init.sh
+
+    ### Set wireless credentials if configure_wifi.cfg exists
+    if [ -e /tmp/sd/Factory/configure_wifi.cfg ]; then
+        /tmp/sd/Factory/configure_wifi.sh
+    fi
 fi
 
 ### Disable the hack for next reboot

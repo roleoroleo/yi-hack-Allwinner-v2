@@ -47,7 +47,7 @@ Otherwise, check setep 4.
 |-- yi-hack/
 |-- lower_half_init.sh
 ```
-4. (Optional) If you want to set wifi credentials rename the file Factory/configure_wifi.cfg.ori to Factory/configure_wifi.cfg and edit the file with your username and password.
+4. (Optional) If you want to set wifi credentials, rename the file Factory/configure_wifi.cfg.ori to Factory/configure_wifi.cfg and edit the file with your username and password.
 5. Insert the SD Card and reboot the camera
 6. Wait a minute for the camera to update.
 7. Check the hack opening the web interface http://IP-CAM (where IP-CAM is the IP address of the cam assigned by your router).

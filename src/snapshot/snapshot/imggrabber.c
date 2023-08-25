@@ -628,7 +628,7 @@ int main(int argc, char **argv)
     if (debug) fprintf(stderr, "Starting program\n");
 
     // Set low priority
-    setpriority(PRIO_PROCESS, 0, 10);
+//    setpriority(PRIO_PROCESS, 0, 10);
 
     // Check if snapshot is disabled
     if (access("/tmp/snapshot.disabled", F_OK ) == 0 ) {

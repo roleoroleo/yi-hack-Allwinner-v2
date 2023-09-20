@@ -104,8 +104,10 @@ mqtt_publish(){
 }
 hass_topic(){
   # type, topic, Full name (optional)
-  [ -n "$3" ] && UNIQUE_NAME="$NAME $3"
-  UNIQUE_ID="$IDENTIFIERS-$2"
+#  [ -n "$3" ] && UNIQUE_NAME="$NAME $3"
+  [ -n "$3" ] && UNIQUE_NAME="$3"
+#  UNIQUE_ID="$IDENTIFIERS-$2"
+  UNIQUE_ID="$2"
   TOPIC="$HOMEASSISTANT_MQTT_PREFIX/$1/$IDENTIFIERS/$2/config"
 }
 hass_setup_number(){

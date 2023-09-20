@@ -64,6 +64,26 @@ ulimit -s 1024
 echo 1500 > /sys/class/net/eth0/mtu
 echo 1500 > /sys/class/net/wlan0/mtu
 
+sysctl -w vm.oom_dump_tasks=0
+sysctl -w vm.vfs_cache_pressure=100
+sysctl -w kernel.randomize_va_space=0
+echo 0 > /sys/block/mmcblk0/queue/iostats
+echo 4 > /sys/block/mmcblk0/queue/iosched/quantum
+echo 80 > /sys/block/mmcblk0/queue/iosched/fifo_expire_sync
+echo 330 > /sys/block/mmcblk0/queue/iosched/fifo_expire_async
+echo 12582912 > /sys/block/mmcblk0/queue/iosched/back_seek_max
+echo 1 > /sys/block/mmcblk0/queue/iosched/back_seek_penalty
+echo 60 > /sys/block/mmcblk0/queue/iosched/slice_sync
+echo 50 > /sys/block/mmcblk0/queue/iosched/slice_async
+echo 2 > /sys/block/mmcblk0/queue/iosched/slice_async_rq
+echo 0 > /sys/block/mmcblk0/queue/iosched/slice_idle
+echo 0 > /sys/block/mmcblk0/queue/iosched/group_idle
+echo 1 > /sys/block/mmcblk0/queue/iosched/low_latency
+echo 300 > /sys/block/mmcblk0/queue/iosched/target_latency
+mount -o remount,noatime /tmp/sd
+mount -o remount,noatime /home/app/script/wifidhcp.sh
+mount -o remount,noatime /backup/tools/wifidhcp.sh
+
 # Remove core files, if any
 rm -f $YI_HACK_PREFIX/bin/core
 rm -f $YI_HACK_PREFIX/www/core

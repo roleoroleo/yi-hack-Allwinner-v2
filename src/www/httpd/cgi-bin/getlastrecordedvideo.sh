@@ -58,7 +58,7 @@ if [ "$OLDNESS" -lt "0" ]; then
     if [ -f "/tmp/sd/record/tmp.mp4.tmp" ]; then
         # A file is being recorded, therefore, try to get it when it finished saving.
         # First, we get the last directory.
-        for f in `ls -At /tmp/sd/record | grep H`; do
+        for f in `ls -Ar /tmp/sd/record | grep H`; do
             if [ ${#f} == 14 ]; then
                 DIRNAME="$f"
                 break;
@@ -66,14 +66,14 @@ if [ "$OLDNESS" -lt "0" ]; then
         done
 
         # Now we get the number of directories and files in the last modified directory.
-        FILECOUNT=`ls -At /tmp/sd/record/$DIRNAME | grep .mp4 -c`
-        DIRCOUNT=`ls -At /tmp/sd/record/ | grep H -c`
+        FILECOUNT=`ls -Ar /tmp/sd/record/$DIRNAME | grep .mp4 -c`
+        DIRCOUNT=`ls -Ar /tmp/sd/record/ | grep H -c`
         SLEEPCOUNT=0
-        while [ "$FILECOUNT" -eq `ls -At /tmp/sd/record/$DIRNAME | grep .mp4 -c` ]; do
+        while [ "$FILECOUNT" -eq `ls -Ar /tmp/sd/record/$DIRNAME | grep .mp4 -c` ]; do
             if [ "$SLEEPCOUNT" -gt 800 ]; then
                 # After 80 seconds, we break the wait.
                 break;
-            elif [ "$DIRCOUNT" -lt `ls -At /tmp/sd/record/ | grep H -c` ]; then
+            elif [ "$DIRCOUNT" -lt `ls -Ar /tmp/sd/record/ | grep H -c` ]; then
                 # If a new dir comes, we break the wait.
                 break;
             fi
@@ -84,7 +84,7 @@ if [ "$OLDNESS" -lt "0" ]; then
 fi
 
 
-for f in `ls -At /tmp/sd/record | grep H`; do
+for f in `ls -Ar /tmp/sd/record | grep H`; do
     if [ ${#f} == 14 ]; then
         DIRNAME="$f"
         break;
@@ -92,9 +92,9 @@ for f in `ls -At /tmp/sd/record | grep H`; do
 done
 # In $DIRNAME we now has the last modified directory.
 
-COUNT=`ls -At /tmp/sd/record/$DIRNAME | grep .mp4 -c`
+COUNT=`ls -Ar /tmp/sd/record/$DIRNAME | grep .mp4 -c`
 IDX=1
-for f in `ls -At /tmp/sd/record/$DIRNAME | grep .mp4`; do
+for f in `ls -Ar /tmp/sd/record/$DIRNAME | grep .mp4`; do
     if [ ${#f} == 12 ]; then
         VIDNAME="$f"
         if [ "$IDX" -ge "$OLDNESS" ]; then

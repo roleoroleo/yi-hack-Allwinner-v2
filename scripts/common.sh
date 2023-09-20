@@ -37,6 +37,7 @@ CAMERAS["r40ga"]="r40ga"
 CAMERAS["h60ga"]="h60ga"
 CAMERAS["q321br_lsx"]="q321br_lsx"
 CAMERAS["qg311r"]="qg311r"
+CAMERAS["q705br"]="q705br"
 CAMERAS["b091qp"]="b091qp"
 
 ###############################################################################

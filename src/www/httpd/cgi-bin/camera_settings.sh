@@ -50,6 +50,8 @@ do
     if [ "$CONF" == "switch_on" ] ; then
         if [ "$VAL" == "no" ] ; then
             ipc_cmd -t off
+            sleep 1
+            ipc_cmd -T  # Stop current motion detection event
         else
             ipc_cmd -t on
         fi

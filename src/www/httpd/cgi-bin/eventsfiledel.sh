@@ -19,10 +19,10 @@ validateRecFile()
         FILE="none"
     fi
 
-    if [ "M${1:17:1}" != "MM" ] ; then
+    if [ "M${1:17:1}" != "MM" ] && [ "M${1:19:1}" != "MM" ] ; then
         FILE="none"
     fi
-    if [ "S${1:20:1}" != "SS" ] ; then
+    if [ "S${1:20:1}" != "SS" ] && [ "S${1:22:1}" != "SS" ] ; then
         FILE="none"
     fi
 }

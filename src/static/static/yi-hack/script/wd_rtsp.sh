@@ -1,6 +1,7 @@
 #!/bin/sh
 
 CONF_FILE="etc/system.conf"
+CAMERA_CONF_FILE="etc/camera.conf"
 
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
@@ -11,6 +12,12 @@ LOG_FILE="/dev/null"
 COUNTER=0
 COUNTER_LIMIT=10
 INTERVAL=10
+
+get_camera_config()
+{
+    key=$1
+    grep -w $1 $YI_HACK_PREFIX/$CAMERA_CONF_FILE | cut -d "=" -f2
+}
 
 get_config()
 {
@@ -47,62 +54,70 @@ restart_rtsp()
 
 check_rtsp()
 {
-#  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking RTSP process..." >> $LOG_FILE
-    LISTEN=`$YI_HACK_PREFIX/bin/netstat -an 2>&1 | grep ":$RTSP_PORT_NUMBER " | grep LISTEN | grep -c ^`
-    SOCKET=`$YI_HACK_PREFIX/bin/netstat -an 2>&1 | grep ":$RTSP_PORT_NUMBER " | grep ESTABLISHED | grep -c ^`
-    CPU=`top -b -n 2 -d 1 | grep rRTSPServer | grep -v grep | tail -n 1 | awk '{print $8}'`
+    if [[ $(get_camera_config SWITCH_ON) == "yes" ]] ; then
+        #  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking RTSP process..." >> $LOG_FILE
+        LISTEN=`$YI_HACK_PREFIX/bin/netstat -an 2>&1 | grep ":$RTSP_PORT_NUMBER " | grep LISTEN | grep -c ^`
+        SOCKET=`$YI_HACK_PREFIX/bin/netstat -an 2>&1 | grep ":$RTSP_PORT_NUMBER " | grep ESTABLISHED | grep -c ^`
+        CPU=`top -b -n 2 -d 1 | grep rRTSPServer | grep -v grep | tail -n 1 | awk '{print $8}'`
 
-    if [ $LISTEN -eq 0 ]; then
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - Restarting rtsp process" >> $LOG_FILE
-        killall -q rRTSPServer
-        sleep 1
-        restart_rtsp
-    fi
-    if [ "$CPU" == "" ]; then
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - No running processes, restarting..." >> $LOG_FILE
-        killall -q rRTSPServer
-        sleep 1
-        restart_rtsp
-        COUNTER=0
-    fi
-    if [ $SOCKET -gt 0 ]; then
-        if [ "$CPU" == "0.0" ]; then
-            COUNTER=$((COUNTER+1))
-            echo "$(date +'%Y-%m-%d %H:%M:%S') - Detected possible locked process ($COUNTER)" >> $LOG_FILE
-            if [ $COUNTER -ge $COUNTER_LIMIT ]; then
-                echo "$(date +'%Y-%m-%d %H:%M:%S') - Restarting rtsp process" >> $LOG_FILE
-                killall -q rRTSPServer
-                sleep 1
-                restart_rtsp
-                COUNTER=0
-           fi
-        else
+        if [ $LISTEN -eq 0 ]; then
+            echo "$(date +'%Y-%m-%d %H:%M:%S') - Restarting rtsp process" >> $LOG_FILE
+            killall -q rRTSPServer
+            sleep 1
+            restart_rtsp
+        fi
+        if [ "$CPU" == "" ]; then
+            echo "$(date +'%Y-%m-%d %H:%M:%S') - No running processes, restarting..." >> $LOG_FILE
+            killall -q rRTSPServer
+            sleep 1
+            restart_rtsp
             COUNTER=0
         fi
+        if [ $SOCKET -gt 0 ]; then
+            if [ "$CPU" == "0.0" ]; then
+                COUNTER=$((COUNTER+1))
+                echo "$(date +'%Y-%m-%d %H:%M:%S') - Detected possible locked process ($COUNTER)" >> $LOG_FILE
+                if [ $COUNTER -ge $COUNTER_LIMIT ]; then
+                    echo "$(date +'%Y-%m-%d %H:%M:%S') - Restarting rtsp process" >> $LOG_FILE
+                    killall -q rRTSPServer
+                    sleep 1
+                    restart_rtsp
+                    COUNTER=0
+            fi
+            else
+                COUNTER=0
+            fi
+        fi
+    else
+        echo "Camera is swtich off no rtsp restart needed" >> $LOG_FILE
     fi
 }
 
 check_rtsp_alt()
 {
-#  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking RTSP process..." >> $LOG_FILE
-    LISTEN=`$YI_HACK_PREFIX/bin/netstat -an 2>&1 | grep ":$RTSP_PORT_NUMBER " | grep LISTEN | grep -c ^`
-    CPU1=`top -b -n 2 -d 1 | grep h264grabber | grep -v grep | tail -n 1 | awk '{print $8}'`
-    CPU2=`top -b -n 2 -d 1 | grep rtsp_server_yi | grep -v grep | tail -n 1 | awk '{print $8}'`
+    if [[ $(get_camera_config SWITCH_ON) == "yes" ]] ; then
+        #  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking RTSP process..." >> $LOG_FILE
+        LISTEN=`$YI_HACK_PREFIX/bin/netstat -an 2>&1 | grep ":$RTSP_PORT_NUMBER " | grep LISTEN | grep -c ^`
+        CPU1=`top -b -n 2 -d 1 | grep h264grabber | grep -v grep | tail -n 1 | awk '{print $8}'`
+        CPU2=`top -b -n 2 -d 1 | grep rtsp_server_yi | grep -v grep | tail -n 1 | awk '{print $8}'`
 
-    if [ $LISTEN -eq 0 ]; then
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - Restarting rtsp process" >> $LOG_FILE
-        killall -q rtsp_server_yi
-        killall -q h264grabber
-        sleep 1
-        restart_rtsp
-    fi
-    if [ "$CPU1" == "" ] || [ "$CPU2" == "" ]; then
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - No running processes, restarting..." >> $LOG_FILE
-        killall -q rtsp_server_yi
-        killall -q h264grabber
-        sleep 1
-        restart_rtsp
-        COUNTER=0
+        if [ $LISTEN -eq 0 ]; then
+            echo "$(date +'%Y-%m-%d %H:%M:%S') - Restarting rtsp process" >> $LOG_FILE
+            killall -q rtsp_server_yi
+            killall -q h264grabber
+            sleep 1
+            restart_rtsp
+        fi
+        if [ "$CPU1" == "" ] || [ "$CPU2" == "" ]; then
+            echo "$(date +'%Y-%m-%d %H:%M:%S') - No running processes, restarting..." >> $LOG_FILE
+            killall -q rtsp_server_yi
+            killall -q h264grabber
+            sleep 1
+            restart_rtsp
+            COUNTER=0
+        fi
+    else
+        echo "Camera is swtich off, rtsp restart not needed" >> $LOG_FILE
     fi
 }
 
@@ -112,6 +127,7 @@ check_rmm()
     PS=`ps ww | grep rmm | grep -v grep | grep -c ^`
 
     if [ $PS -eq 0 ]; then
+	echo "check_rmm failed, reboot!" >> $LOG_FILE
         reboot
     fi
 }

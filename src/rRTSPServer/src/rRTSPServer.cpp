@@ -1257,55 +1257,61 @@ int main(int argc, char** argv)
     input_buffer.offset = buf_offset;
 
     // Low res
-    output_buffer_low.type = TYPE_LOW;
-    output_buffer_low.size = OUTPUT_BUFFER_SIZE_LOW;
-    output_buffer_low.buffer = (unsigned char *) malloc(OUTPUT_BUFFER_SIZE_LOW * sizeof(unsigned char));
-    output_buffer_low.write_index = output_buffer_low.buffer;
-    output_buffer_low.frame_read_index = 0;
-    output_buffer_low.frame_write_index = 0;
-    output_buffer_low.output_frame_size = sizeof(output_buffer_low.output_frame) / sizeof(output_buffer_low.output_frame[0]);
-    if (output_buffer_low.buffer == NULL) {
-        fprintf(stderr, "could not alloc memory\n");
-        exit(EXIT_FAILURE);
+    if ((resolution == RESOLUTION_LOW) || (resolution == RESOLUTION_BOTH)){
+        output_buffer_low.type = TYPE_LOW;
+        output_buffer_low.size = OUTPUT_BUFFER_SIZE_LOW;
+        output_buffer_low.buffer = (unsigned char *) malloc(OUTPUT_BUFFER_SIZE_LOW * sizeof(unsigned char));
+        output_buffer_low.write_index = output_buffer_low.buffer;
+        output_buffer_low.frame_read_index = 0;
+        output_buffer_low.frame_write_index = 0;
+        output_buffer_low.output_frame_size = sizeof(output_buffer_low.output_frame) / sizeof(output_buffer_low.output_frame[0]);
+        if (output_buffer_low.buffer == NULL) {
+            fprintf(stderr, "could not alloc memory\n");
+            exit(EXIT_FAILURE);
+        }
+        output_buffer_low.output_frame[0].ptr = output_buffer_low.buffer;
+        output_buffer_low.output_frame[0].counter = 0;
+        output_buffer_low.output_frame[0].size = 0;
     }
-    output_buffer_low.output_frame[0].ptr = output_buffer_low.buffer;
-    output_buffer_low.output_frame[0].counter = 0;
-    output_buffer_low.output_frame[0].size = 0;
 
     // High res
-    output_buffer_high.type = TYPE_HIGH;
-    output_buffer_high.size = OUTPUT_BUFFER_SIZE_HIGH;
-    output_buffer_high.buffer = (unsigned char *) malloc(OUTPUT_BUFFER_SIZE_HIGH * sizeof(unsigned char));
-    output_buffer_high.write_index = output_buffer_high.buffer;
-    output_buffer_high.frame_read_index = 0;
-    output_buffer_high.frame_write_index = 0;
-    output_buffer_high.output_frame_size = sizeof(output_buffer_high.output_frame) / sizeof(output_buffer_high.output_frame[0]);
-    if (output_buffer_high.buffer == NULL) {
-        fprintf(stderr, "could not alloc memory\n");
-        if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
-        exit(EXIT_FAILURE);
+    if ((resolution == RESOLUTION_HIGH) || (resolution == RESOLUTION_BOTH)){
+        output_buffer_high.type = TYPE_HIGH;
+        output_buffer_high.size = OUTPUT_BUFFER_SIZE_HIGH;
+        output_buffer_high.buffer = (unsigned char *) malloc(OUTPUT_BUFFER_SIZE_HIGH * sizeof(unsigned char));
+        output_buffer_high.write_index = output_buffer_high.buffer;
+        output_buffer_high.frame_read_index = 0;
+        output_buffer_high.frame_write_index = 0;
+        output_buffer_high.output_frame_size = sizeof(output_buffer_high.output_frame) / sizeof(output_buffer_high.output_frame[0]);
+        if (output_buffer_high.buffer == NULL) {
+            fprintf(stderr, "could not alloc memory\n");
+            if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
+            exit(EXIT_FAILURE);
+        }
+        output_buffer_high.output_frame[0].ptr = output_buffer_high.buffer;
+        output_buffer_high.output_frame[0].counter = 0;
+        output_buffer_high.output_frame[0].size = 0;
     }
-    output_buffer_high.output_frame[0].ptr = output_buffer_high.buffer;
-    output_buffer_high.output_frame[0].counter = 0;
-    output_buffer_high.output_frame[0].size = 0;
 
     // Audio
-    output_buffer_audio.type = TYPE_AAC;
-    output_buffer_audio.size = OUTPUT_BUFFER_SIZE_AUDIO;
-    output_buffer_audio.buffer = (unsigned char *) malloc(OUTPUT_BUFFER_SIZE_AUDIO * sizeof(unsigned char));
-    output_buffer_audio.write_index = output_buffer_audio.buffer;
-    output_buffer_audio.frame_read_index = 0;
-    output_buffer_audio.frame_write_index = 0;
-    output_buffer_audio.output_frame_size = sizeof(output_buffer_audio.output_frame) / sizeof(output_buffer_audio.output_frame[0]);
-    if (output_buffer_audio.buffer == NULL) {
-        fprintf(stderr, "could not alloc memory\n");
-        if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
-        if(output_buffer_high.buffer != NULL) free(output_buffer_high.buffer);
-        exit(EXIT_FAILURE);
+    if(audio != 0){
+        output_buffer_audio.type = TYPE_AAC;
+        output_buffer_audio.size = OUTPUT_BUFFER_SIZE_AUDIO;
+        output_buffer_audio.buffer = (unsigned char *) malloc(OUTPUT_BUFFER_SIZE_AUDIO * sizeof(unsigned char));
+        output_buffer_audio.write_index = output_buffer_audio.buffer;
+        output_buffer_audio.frame_read_index = 0;
+        output_buffer_audio.frame_write_index = 0;
+        output_buffer_audio.output_frame_size = sizeof(output_buffer_audio.output_frame) / sizeof(output_buffer_audio.output_frame[0]);
+        if (output_buffer_audio.buffer == NULL) {
+            fprintf(stderr, "could not alloc memory\n");
+            if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
+            if(output_buffer_high.buffer != NULL) free(output_buffer_high.buffer);
+            exit(EXIT_FAILURE);
+        }
+        output_buffer_audio.output_frame[0].ptr = output_buffer_audio.buffer;
+        output_buffer_audio.output_frame[0].counter = 0;
+        output_buffer_audio.output_frame[0].size = 0;
     }
-    output_buffer_audio.output_frame[0].ptr = output_buffer_audio.buffer;
-    output_buffer_audio.output_frame[0].counter = 0;
-    output_buffer_audio.output_frame[0].size = 0;
 
     // Begin by setting up our usage environment:
     TaskScheduler* scheduler = BasicTaskScheduler::createNew();

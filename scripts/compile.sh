@@ -38,6 +38,7 @@ compile_module()
     printf "MOD_COMPILE:    %s\n" "$MOD_COMPILE"
     printf "MOD_INSTALL:    %s\n" "$MOD_INSTALL"
 
+    echo "Compile $MOD_NAME"
     cd "$MOD_DIR"
 
     if [ ! -f $MOD_INIT ]; then
@@ -88,10 +89,22 @@ rm -rf "$(get_script_dir)/../build/"
 #mkdir -p "$(get_script_dir)/../build/rootfs"
 
 SRC_DIR=$(get_script_dir)/../src
+SELECTED_MODULE=$1
+if [ -n ${SELECTED_MODULE} ]; then
+    echo "SELECTED_MODULE: $SELECTED_MODULE"
+fi
 
 for SUB_DIR in $SRC_DIR/* ; do
     if [ -d ${SUB_DIR} ]; then # Will not run if no directories are available
-        compile_module $(normalize_path "$SUB_DIR") || exit 1
+        if [ -n ${SELECTED_MODULE} ]; then
+            if [[ $SUB_DIR == *"$SELECTED_MODULE"* ]]; then
+                compile_module $(normalize_path "$SUB_DIR") || exit 1
+            else
+                echo "Skip $SUB_DIR"
+            fi
+        else
+            compile_module $(normalize_path "$SUB_DIR") || exit 1
+        fi
     fi
 done
 

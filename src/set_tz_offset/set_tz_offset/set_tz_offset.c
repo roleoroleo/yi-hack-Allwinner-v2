@@ -17,11 +17,20 @@
 #include <errno.h>
 #include "set_tz_offset.h"
 
-int tz_offset_osd_addr[23][2] = {
+int tz_offset_osd_addr[31][2] = {
+    { 0x4f4, 1 },    // Y203C
+    { 0x4a0, 1 },    // Y23
+    { 0x4f4, 1 },    // Y25
+    { 0x4a0, 1 },    // Y30
+    { 0x4f4, 1 },    // H201C
+    { 0x514, 1 },    // H305R
+    { 0x4a0, 1 },    // H307
+
     { 0x4a0, 1 },    // Y20GA_9
     { 0x4a4, 1 },    // Y20GA_12
     { 0x4a0, 1 },    // Y25GA
     { 0x4a0, 1 },    // Y30QA
+    { 0x4a4, 1 },    // Y501GC
 
     { 0x4e0, 1 },    // H30GA_9
     { 0x56c, 1 },    // H30GA_11
@@ -295,12 +304,28 @@ int main(int argc, char **argv)
             break;
 
         case 'm':
-            if (strcasecmp("y20ga", optarg) == 0) {
+            if (strcasecmp("y203c", optarg) == 0) {
+                model = Y203C;
+            } else if (strcasecmp("y23", optarg) == 0) {
+                model = Y23;
+            } else if (strcasecmp("y25", optarg) == 0) {
+                model = Y25;
+            } else if (strcasecmp("y30", optarg) == 0) {
+                model = Y30;
+            } else if (strcasecmp("h201c", optarg) == 0) {
+                model = H201C;
+            } else if (strcasecmp("h305r", optarg) == 0) {
+                model = H305R;
+            } else if (strcasecmp("h307", optarg) == 0) {
+                model = H307;
+            } else if (strcasecmp("y20ga", optarg) == 0) {
                 model = Y20GA;
             } else if (strcasecmp("y25ga", optarg) == 0) {
                 model = Y25GA;
             } else if (strcasecmp("y30qa", optarg) == 0) {
                 model = Y30QA;
+            } else if (strcasecmp("y501gc", optarg) == 0) {
+                model = Y501GC;
             } else if (strcasecmp("y21ga", optarg) == 0) {
                 model = Y21GA;
             } else if (strcasecmp("y211ga", optarg) == 0) {

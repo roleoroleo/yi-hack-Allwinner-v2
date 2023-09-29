@@ -44,10 +44,19 @@
 #define B091QP_TZ_OFFSET_OSD       0x000   // 0x560 or 0x56c but already present
 */
 typedef enum {
+    Y203C,
+    Y23,
+    Y25,
+    Y30,
+    H201C,
+    H305R,
+    H307,
+
     Y20GA,         // 9
     Y20GA_12,
     Y25GA,
     Y30QA,
+    Y501GC,
 
     H30GA,         // 9
     H30GA_11,

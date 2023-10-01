@@ -1,6 +1,6 @@
 diff -Naur onvif_simple_server.ori/onvif_simple_server.c onvif_simple_server/onvif_simple_server.c
---- onvif_simple_server.ori/onvif_simple_server.c	2023-07-04 17:36:57.353382181 +0200
-+++ onvif_simple_server/onvif_simple_server.c	2023-07-04 17:35:00.788932763 +0200
+--- onvif_simple_server.ori/onvif_simple_server.c	2023-10-01 17:23:55.595528373 +0200
++++ onvif_simple_server/onvif_simple_server.c	2023-10-01 17:24:32.443603222 +0200
 @@ -32,8 +32,8 @@
  #include "utils.h"
  #include "log.h"
@@ -9,12 +9,12 @@ diff -Naur onvif_simple_server.ori/onvif_simple_server.c onvif_simple_server/onv
 -#define DEFAULT_LOG_FILE "/var/log/onvif_simple_server.log"
 +#define DEFAULT_CONF_FILE "/tmp/onvif_simple_server.conf"
 +#define DEFAULT_LOG_FILE "/tmp/onvif_simple_server.log"
+ #define DEBUG_FILE "/tmp/onvif_simple_server.debug"
  
  service_context_t service_ctx;
- 
 diff -Naur onvif_simple_server.ori/wsd_simple_server.c onvif_simple_server/wsd_simple_server.c
---- onvif_simple_server.ori/wsd_simple_server.c	2023-07-04 17:36:57.353382181 +0200
-+++ onvif_simple_server/wsd_simple_server.c	2023-07-04 17:36:41.085319309 +0200
+--- onvif_simple_server.ori/wsd_simple_server.c	2023-10-01 17:22:33.023360636 +0200
++++ onvif_simple_server/wsd_simple_server.c	2023-10-01 17:24:51.771642482 +0200
 @@ -36,8 +36,8 @@
  #define PORT 3702
  #define TYPE "NetworkVideoTransmitter"

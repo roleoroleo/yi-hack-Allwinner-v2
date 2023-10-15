@@ -27,7 +27,7 @@ APP.configurations = (function($) {
                 $.each(response, function(key, state) {
                     if (key == "HOSTNAME" || key == "TIMEZONE" || key == "TIMELAPSE_DT" || key == "TIMELAPSE_VDT" || key == "NTP_SERVER" || key == "HTTPD_PORT" || key == "RTSP_PORT" || key == "USERNAME")
                         $('input[type="text"][data-key="' + key + '"]').prop('value', state);
-                    else if (key == "RTSP_STREAM" || key == "RTSP_AUDIO" || key == "ONVIF_PROFILE" || key == "ONVIF_NETIF")
+                    else if (key == "RTSP_STREAM" || key == "RTSP_AUDIO" || key == "ONVIF_PROFILE" || key == "ONVIF_NETIF" || key=="SWAP_SWAPPINESS")
                         $('select[data-key="' + key + '"]').prop('value', state);
                     else if (key == "PASSWORD" || key == "SSH_PASSWORD")
                         $('input[type="password"][data-key="' + key + '"]').prop('value', state);
@@ -79,6 +79,7 @@ APP.configurations = (function($) {
         configs["PASSWORD"] = $('input[type="password"][data-key="PASSWORD"]').prop('value');
         configs["SSH_PASSWORD"] = $('input[type="password"][data-key="SSH_PASSWORD"]').prop('value');
         configs["CRONTAB"] = $('textarea#CRONTAB').prop('value');
+        configs["SWAP_SWAPPINESS"] = $('select[data-key="SWAP_SWAPPINESS"]').prop('value');
 
         var configData = JSON.stringify(configs);
         var escapedConfigData = configData.replace(/\\/g, "\\")

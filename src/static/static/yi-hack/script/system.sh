@@ -124,7 +124,9 @@ if [[ $(get_config SWAP_FILE) == "yes" ]] ; then
     SD_PRESENT=$(mount | grep mmc | grep "/tmp/sd " | grep -c ^)
     if [[ $SD_PRESENT -eq 1 ]]; then
         log "Activating swap file"
-        sysctl -w vm.swappiness=15
+        SWAP_SWAPPINESS=$(get_config SWAP_SWAPPINESS)
+        log "Set swappiness to $SWAP_SWAPPINESS"
+        sysctl -w "vm.swappiness=$SWAP_SWAPPINESS"
         if [[ -f /tmp/sd/swapfile ]]; then
             swapon /tmp/sd/swapfile
         else

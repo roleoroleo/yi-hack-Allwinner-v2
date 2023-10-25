@@ -20,7 +20,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include "AudioFramedMemorySource.hh"
 #include "GroupsockHelper.hh"
-#include "presentationTime.hh"
+#include "misc.hh"
 
 #include <pthread.h>
 
@@ -55,7 +55,7 @@ AudioFramedMemorySource::AudioFramedMemorySource(UsageEnvironment& env,
                                                         unsigned samplingFrequency,
                                                         unsigned numChannels)
     : FramedSource(env), fBuffer(cbBuffer), fProfile(1), fSamplingFrequency(samplingFrequency),
-      fNumChannels(numChannels) {
+      fNumChannels(numChannels), fHaveStartedReading(False) {
 
     u_int8_t samplingFrequencyIndex;
     int i;
@@ -78,6 +78,7 @@ AudioFramedMemorySource::AudioFramedMemorySource(UsageEnvironment& env,
     audioSpecificConfig[0] = (audioObjectType<<3) | (samplingFrequencyIndex>>1);
     audioSpecificConfig[1] = (samplingFrequencyIndex<<7) | (channelConfiguration<<3);
     sprintf(fConfigStr, "%02X%02X", audioSpecificConfig[0], audioSpecificConfig[1]);
+    if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - fConfigStr %s\n", current_timestamp(), fConfigStr);
 }
 
 AudioFramedMemorySource::~AudioFramedMemorySource() {}
@@ -98,37 +99,80 @@ int AudioFramedMemorySource::cb_check_sync_word(unsigned char *str)
     return ret;
 }
 
+void AudioFramedMemorySource::doStopGettingFrames() {
+    fHaveStartedReading = False;
+}
+
+void AudioFramedMemorySource::doGetNextFrameTask(void* clientData) {
+    AudioFramedMemorySource *source = (AudioFramedMemorySource *) clientData;
+    source->doGetNextFrameEx();
+}
+
+void AudioFramedMemorySource::doGetNextFrameEx() {
+    doGetNextFrame();
+}
+
 void AudioFramedMemorySource::doGetNextFrame() {
-    fFrameSize = fMaxSize;
-
-    if (debug & 4) fprintf(stderr, "AAC doGetNextFrame() start - fMaxSize %d\n", fMaxSize);
-
-    pthread_mutex_lock(&(fBuffer->mutex));
-    while (1) {
-        if (fBuffer->frame_read_index == fBuffer->frame_write_index) {
-            pthread_mutex_unlock(&(fBuffer->mutex));
-            if (debug & 4) fprintf(stderr, "AAC doGetNextFrame() read_index = write_index\n");
-            usleep(MILLIS_25);
-            pthread_mutex_lock(&(fBuffer->mutex));
-            continue;
-        } else if (fBuffer->output_frame[fBuffer->frame_read_index].ptr == NULL) {
-            pthread_mutex_unlock(&(fBuffer->mutex));
-            if (debug & 4) fprintf(stderr, "AAC doGetNextFrame() error - NULL ptr\n");
-            usleep(MILLIS_10);
-            pthread_mutex_lock(&(fBuffer->mutex));
-            continue;
-        } else if (cb_check_sync_word(fBuffer->output_frame[fBuffer->frame_read_index].ptr) != 1) {
-            fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
-            pthread_mutex_unlock(&(fBuffer->mutex));
-            if (debug & 4) fprintf(stderr, "AAC doGetNextFrame() error - wrong frame header\n");
-            usleep(MILLIS_10);
-            pthread_mutex_lock(&(fBuffer->mutex));
-            continue;
-        } else {
-            break;
-        }
+    Boolean isFirstReading = !fHaveStartedReading;
+    if (!fHaveStartedReading) {
+        if (debug & 8) fprintf(stderr, "%lld: aac out - doGetNextFrame() 1st start\n", current_timestamp());
+        pthread_mutex_lock(&(fBuffer->mutex));
+        fBuffer->frame_read_index = fBuffer->frame_write_index;
+        pthread_mutex_unlock(&(fBuffer->mutex));
+        fHaveStartedReading = True;
     }
 
+    fFrameSize = fMaxSize;
+
+    if (debug & 8) fprintf(stderr, "%lld: aac out - doGetNextFrame() start - fMaxSize %d\n", current_timestamp(), fMaxSize);
+
+    pthread_mutex_lock(&(fBuffer->mutex));
+    if (fBuffer->frame_read_index == fBuffer->frame_write_index) {
+        pthread_mutex_unlock(&(fBuffer->mutex));
+        if (debug & 8) fprintf(stderr, "%lld: aac out - doGetNextFrame() read_index = write_index\n", current_timestamp());
+        fFrameSize = 0;
+        fNumTruncatedBytes = 0;
+        // Trick to avoid segfault with StreamReplicator
+        if (isFirstReading) {
+            nextTask() = envir().taskScheduler().scheduleDelayedTask(0,
+                    (TaskFunc*)FramedSource::afterGetting, this);
+        } else {
+            nextTask() = envir().taskScheduler().scheduleDelayedTask(fuSecsPerFrame/4,
+                    (TaskFunc*) AudioFramedMemorySource::doGetNextFrameTask, this);
+        }
+        return;
+    } else if (fBuffer->output_frame[fBuffer->frame_read_index].ptr == NULL) {
+        pthread_mutex_unlock(&(fBuffer->mutex));
+        fprintf(stderr, "%lld: aac out - doGetNextFrame() error - NULL ptr\n", current_timestamp());
+        fFrameSize = 0;
+        fNumTruncatedBytes = 0;
+        // Trick to avoid segfault with StreamReplicator
+        if (isFirstReading) {
+            nextTask() = envir().taskScheduler().scheduleDelayedTask(0,
+                    (TaskFunc*)FramedSource::afterGetting, this);
+        } else {
+            nextTask() = envir().taskScheduler().scheduleDelayedTask(fuSecsPerFrame/4,
+                    (TaskFunc*) AudioFramedMemorySource::doGetNextFrameTask, this);
+        }
+        return;
+    } else if (cb_check_sync_word(fBuffer->output_frame[fBuffer->frame_read_index].ptr) != 1) {
+        fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
+        pthread_mutex_unlock(&(fBuffer->mutex));
+        fprintf(stderr, "%lld: aac out - doGetNextFrame() error - wrong frame header\n", current_timestamp());
+        fFrameSize = 0;
+        fNumTruncatedBytes = 0;
+        // Trick to avoid segfault with StreamReplicator
+        if (isFirstReading) {
+            nextTask() = envir().taskScheduler().scheduleDelayedTask(0,
+                    (TaskFunc*)FramedSource::afterGetting, this);
+        } else {
+            nextTask() = envir().taskScheduler().scheduleDelayedTask(fuSecsPerFrame/4,
+                    (TaskFunc*) AudioFramedMemorySource::doGetNextFrameTask, this);
+        }
+        return;
+    }
+
+    // Frame found, send it
     unsigned char *ptr;
     unsigned int size;
     ptr = fBuffer->output_frame[fBuffer->frame_read_index].ptr;
@@ -141,7 +185,7 @@ void AudioFramedMemorySource::doGetNextFrame() {
         // The size of the frame is smaller than the available buffer
         fNumTruncatedBytes = 0;
         fFrameSize = size;
-        if (debug & 4) fprintf(stderr, "AAC doGetNextFrame() whole frame - fFrameSize %d - counter %d - fMaxSize %d\n", fFrameSize, fBuffer->output_frame[fBuffer->frame_read_index].counter, fMaxSize);
+        if (debug & 8) fprintf(stderr, "%lld: aac out - doGetNextFrame() whole frame - fFrameSize %d - counter %d - fMaxSize %d\n", current_timestamp(), fFrameSize, fBuffer->output_frame[fBuffer->frame_read_index].counter, fMaxSize);
         if (ptr + fFrameSize > fBuffer->buffer + fBuffer->size) {
             memmove(fTo, ptr, fBuffer->buffer + fBuffer->size - ptr);
             memmove(fTo + (fBuffer->buffer + fBuffer->size - ptr), fBuffer->buffer, fFrameSize - (fBuffer->buffer + fBuffer->size - ptr));
@@ -155,7 +199,7 @@ void AudioFramedMemorySource::doGetNextFrame() {
         // The size of the frame is greater than the available buffer
         fNumTruncatedBytes = size - fMaxSize;
         fFrameSize = fMaxSize;
-        fprintf(stderr, "AAC doGetNextFrame() error - the size of the frame is greater than the available buffer %d/%d\n", fFrameSize, fMaxSize);
+        fprintf(stderr, "%lld: aac out - doGetNextFrame() error - the size of the frame is greater than the available buffer %d/%d\n", current_timestamp(), fFrameSize, fMaxSize);
         if (ptr + fFrameSize > fBuffer->buffer + fBuffer->size) {
             memmove(fTo, ptr, fBuffer->buffer + fBuffer->size - ptr);
             memmove(fTo + (fBuffer->buffer + fBuffer->size - ptr), fBuffer->buffer, fFrameSize - (fBuffer->buffer + fBuffer->size - ptr));
@@ -185,6 +229,8 @@ void AudioFramedMemorySource::doGetNextFrame() {
 #else
     // Use system clock to set presentation time
     gettimeofday(&fPresentationTime, NULL);
+
+    fDurationInMicroseconds = fuSecsPerFrame;
 #endif
 
   // Switch to another task, and inform the reader that he has data:

@@ -21,249 +21,242 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "WAVAudioFifoSource.hh"
 #include "InputFile.hh"
 #include "GroupsockHelper.hh"
-#include "presentationTime.hh"
+#include "misc.hh"
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
 ////////// WAVAudioFifoSource //////////
 
+extern int debug;
+
 WAVAudioFifoSource*
 WAVAudioFifoSource::createNew(UsageEnvironment& env, char const* fileName) {
-  do {
-    FILE* fid = OpenInputFile(env, fileName);
-    if (fid == NULL) break;
+    do {
+        FILE* fid = OpenInputFile(env, fileName);
+        if (fid == NULL) break;
+
+        WAVAudioFifoSource* newSource = new WAVAudioFifoSource(env, fid);
+        if (newSource != NULL && newSource->bitsPerSample() == 0) {
+            // The WAV file header was apparently invalid.
+            Medium::close(newSource);
+            break;
+        }
+
+        newSource->fFileSize = (unsigned) GetFileSize(fileName, fid);
+        newSource->cleanFifo();
+
+        if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoSource - WAVAudioFifoSource created\n", current_timestamp());
+
+        return newSource;
+    } while (0);
+
+    return NULL;
+}
+
+unsigned WAVAudioFifoSource::numPCMBytes() const {
+    if (fFileSize < fWAVHeaderSize) return 0;
+    return fFileSize - fWAVHeaderSize;
+}
+
+void WAVAudioFifoSource::setScaleFactor(int scale) {
+    return; // fifo queue is not seekable
+}
+
+void WAVAudioFifoSource::seekToPCMByte(unsigned byteNumber) {
+    return; // fifo queue is not seekable
+}
+
+void WAVAudioFifoSource::limitNumBytesToStream(unsigned numBytesToStream) {
+    fNumBytesToStream = numBytesToStream;
+    fLimitNumBytesToStream = fNumBytesToStream > 0;
+}
+
+unsigned char WAVAudioFifoSource::getAudioFormat() {
+    return fAudioFormat;
+}
+
+void WAVAudioFifoSource::cleanFifo() {
+    int flags;
+
+    if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoSource - cleaning fifo\n", current_timestamp());
+
+    if (fFid == NULL) return;
 
     // Set non blocking
-    if (fcntl(fileno(fid), F_SETFL, O_NONBLOCK) != 0) {
-        fclose(fid);
-        break;
+    if ((flags = fcntl(fileno(fFid), F_GETFL, 0)) < 0) {
+        return;
+    };
+    if (fcntl(fileno(fFid), F_SETFL, flags | O_NONBLOCK) != 0) {
+        return;
     };
 
     // Clean fifo content
     unsigned char null[4];
-    while (fread(null, 1, sizeof(null), fid) > 0) {}
+    while (read(fileno(fFid), null, sizeof(null)) > 0) {}
 
-    WAVAudioFifoSource* newSource = new WAVAudioFifoSource(env, fid);
-    if (newSource != NULL && newSource->bitsPerSample() == 0) {
-      // The WAV file header was apparently invalid.
-      Medium::close(newSource);
-      break;
+    // Restore old blocking
+    if (fcntl(fileno(fFid), F_SETFL, flags) != 0) {
+        return;
     }
 
-    newSource->fFileSize = (unsigned)GetFileSize(fileName, fid);
-
-    return newSource;
-  } while (0);
-
-  return NULL;
-}
-
-unsigned WAVAudioFifoSource::numPCMBytes() const {
-  if (fFileSize < fWAVHeaderSize) return 0;
-  return fFileSize - fWAVHeaderSize;
-}
-
-void WAVAudioFifoSource::setScaleFactor(int scale) {
-  if (!fFidIsSeekable) return; // we can't do 'trick play' operations on non-seekable files
-
-  fScaleFactor = scale;
-
-  if (fScaleFactor < 0 && TellFile64(fFid) > 0) {
-    // Because we're reading backwards, seek back one sample, to ensure that
-    // (i)  we start reading the last sample before the start point, and
-    // (ii) we don't hit end-of-file on the first read.
-    int bytesPerSample = (fNumChannels*fBitsPerSample)/8;
-    if (bytesPerSample == 0) bytesPerSample = 1;
-    SeekFile64(fFid, -bytesPerSample, SEEK_CUR);
-  }
-}
-
-void WAVAudioFifoSource::seekToPCMByte(unsigned byteNumber) {
-  byteNumber += fWAVHeaderSize;
-  if (byteNumber > fFileSize) byteNumber = fFileSize;
-
-  SeekFile64(fFid, byteNumber, SEEK_SET);
-}
-
-void WAVAudioFifoSource::limitNumBytesToStream(unsigned numBytesToStream) {
-  fNumBytesToStream = numBytesToStream;
-  fLimitNumBytesToStream = fNumBytesToStream > 0;
-}
-
-unsigned char WAVAudioFifoSource::getAudioFormat() {
-  return fAudioFormat;
-}
-
-
-#define nextc fgetc(fid)
-
-static Boolean get4Bytes(FILE* fid, u_int32_t& result) { // little-endian
-  int c0, c1, c2, c3;
-  if ((c0 = nextc) == EOF || (c1 = nextc) == EOF ||
-      (c2 = nextc) == EOF || (c3 = nextc) == EOF) return False;
-  result = (c3<<24)|(c2<<16)|(c1<<8)|c0;
-  return True;
-}
-
-static Boolean get2Bytes(FILE* fid, u_int16_t& result) {//little-endian
-  int c0, c1;
-  if ((c0 = nextc) == EOF || (c1 = nextc) == EOF) return False;
-  result = (c1<<8)|c0;
-  return True;
-}
-
-static Boolean skipBytes(FILE* fid, int num) {
-  while (num-- > 0) {
-    if (nextc == EOF) return False;
-  }
-  return True;
+    if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoSource - fifo cleaned\n", current_timestamp());
 }
 
 WAVAudioFifoSource::WAVAudioFifoSource(UsageEnvironment& env, FILE* fid)
-  : AudioInputDevice(env, 0, 0, 0, 0)/* set the real parameters later */,
-    fFid(fid), fFidIsSeekable(False), fLastPlayTime(0), fHaveStartedReading(False), fWAVHeaderSize(0), fFileSize(0),
-    fScaleFactor(1), fLimitNumBytesToStream(False), fNumBytesToStream(0), fAudioFormat(WA_UNKNOWN) {
+    : AudioInputDevice(env, 0, 0, 0, 0)/* set the real parameters later */,
+      fFid(fid), fLastPlayTime(0), fHaveStartedReading(False), fWAVHeaderSize(0), fFileSize(0),
+      fScaleFactor(1), fLimitNumBytesToStream(False), fNumBytesToStream(0), fAudioFormat(WA_UNKNOWN) {
 
-  // Header vaules: 8 Khz, 16 bit,  mono
-  fWAVHeaderSize = 0;
-  fBitsPerSample = 16;
-  fSamplingFrequency = 8000;
-  fNumChannels = 1;
-  fAudioFormat = (unsigned char)WA_PCM;
+    // Header vaules: 8 Khz, 16 bit,  mono
+    fWAVHeaderSize = 0;
+    fBitsPerSample = 16;
+    fSamplingFrequency = 8000;
+    fNumChannels = 1;
+    fAudioFormat = (unsigned char) WA_PCM;
 
-  fPlayTimePerSample = 1e6/(double)fSamplingFrequency;
+    fPlayTimePerSample = 1e6/(double)fSamplingFrequency;
 
-  // Although PCM is a sample-based format, we group samples into
-  // 'frames' for efficient delivery to clients.  Set up our preferred
-  // frame size to be close to 20 ms, if possible, but always no greater
-  // than 1400 bytes (to ensure that it will fit in a single RTP packet)
-  unsigned maxSamplesPerFrame = (1400*8)/(fNumChannels*fBitsPerSample);
-  unsigned desiredSamplesPerFrame = (unsigned)(0.02*fSamplingFrequency);
-  unsigned samplesPerFrame = desiredSamplesPerFrame < maxSamplesPerFrame ? desiredSamplesPerFrame : maxSamplesPerFrame;
-  fPreferredFrameSize = (samplesPerFrame*fNumChannels*fBitsPerSample)/8;
+    // Although PCM is a sample-based format, we group samples into
+    // 'frames' for efficient delivery to clients.  Set up our preferred
+    // frame size to be close to 20 ms, if possible, but always no greater
+    // than 1400 bytes (to ensure that it will fit in a single RTP packet)
+    unsigned maxSamplesPerFrame = (1400*8)/(fNumChannels*fBitsPerSample);
+    unsigned desiredSamplesPerFrame = (unsigned)(0.02*fSamplingFrequency);
+    unsigned samplesPerFrame = desiredSamplesPerFrame < maxSamplesPerFrame ? desiredSamplesPerFrame : maxSamplesPerFrame;
+//    fPreferredFrameSize = (samplesPerFrame*fNumChannels*fBitsPerSample)/8;
+    // Force fPreferredFrameSize = 1024
+    fPreferredFrameSize = 1024;
 
-  fFidIsSeekable = FileIsSeekable(fFid);
-  // Now that we've finished reading the WAV header, all future reads (of audio samples) from the file will be asynchronous:
-  makeSocketNonBlocking(fileno(fFid));
+    // Now that we've finished reading the WAV header, all future reads (of audio samples) from the file will be asynchronous:
+    makeSocketNonBlocking(fileno(fFid));
+
+    if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoSource - maxSamplesPerFrame %u, desiredSamplesPerFrame %u, samplesPerFrame %u, fPreferredFrameSize %u\n",
+            current_timestamp(), maxSamplesPerFrame, desiredSamplesPerFrame, samplesPerFrame, fPreferredFrameSize);
 }
 
 WAVAudioFifoSource::~WAVAudioFifoSource() {
-  if (fFid == NULL) return;
+    if (fFid == NULL) return;
 
-  envir().taskScheduler().turnOffBackgroundReadHandling(fileno(fFid));
+    envir().taskScheduler().turnOffBackgroundReadHandling(fileno(fFid));
 
-  CloseInputFile(fFid);
+    CloseInputFile(fFid);
 }
 
 void WAVAudioFifoSource::doGetNextFrame() {
-  if (feof(fFid) || ferror(fFid) || (fLimitNumBytesToStream && fNumBytesToStream == 0)) {
-    handleClosure();
-    return;
-  }
+    if (feof(fFid) || (fLimitNumBytesToStream && fNumBytesToStream == 0)) {
+        handleClosure();
+        return;
+    }
 
-  fFrameSize = 0; // until it's set later
-  if (!fHaveStartedReading) {
-    // Await readable data from the file:
-    envir().taskScheduler().turnOnBackgroundReadHandling(fileno(fFid),
-							 (TaskScheduler::BackgroundHandlerProc*)&fileReadableHandler, this);
-    fHaveStartedReading = True;
-  }
+    fFrameSize = 0; // until it's set later
+    if (!fHaveStartedReading) {
+        if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoSource - doGetNextFrame() 1st start\n", current_timestamp());
+        cleanFifo();
+        // Await readable data from the file:
+        envir().taskScheduler().turnOnBackgroundReadHandling(fileno(fFid),
+                (TaskScheduler::BackgroundHandlerProc*)&fileReadableHandler, this);
+        fHaveStartedReading = True;
+    }
 }
 
 void WAVAudioFifoSource::doStopGettingFrames() {
-  envir().taskScheduler().unscheduleDelayedTask(nextTask());
-  envir().taskScheduler().turnOffBackgroundReadHandling(fileno(fFid));
-  fHaveStartedReading = False;
+    envir().taskScheduler().unscheduleDelayedTask(nextTask());
+    envir().taskScheduler().turnOffBackgroundReadHandling(fileno(fFid));
+    fHaveStartedReading = False;
 }
 
 void WAVAudioFifoSource::fileReadableHandler(WAVAudioFifoSource* source, int /*mask*/) {
-  if (!source->isCurrentlyAwaitingData()) {
-    source->doStopGettingFrames(); // we're not ready for the data yet
-    return;
-  }
-  source->doReadFromFile();
+    if (!source->isCurrentlyAwaitingData()) {
+        source->doStopGettingFrames(); // we're not ready for the data yet
+        return;
+    }
+    source->doReadFromFile();
 }
 
 void WAVAudioFifoSource::doReadFromFile() {
-  // Try to read as many bytes as will fit in the buffer provided (or "fPreferredFrameSize" if less)
-  if (fLimitNumBytesToStream && fNumBytesToStream < fMaxSize) {
-    fMaxSize = fNumBytesToStream;
-  }
-  if (fPreferredFrameSize < fMaxSize) {
-    fMaxSize = fPreferredFrameSize;
-  }
-  unsigned bytesPerSample = (fNumChannels*fBitsPerSample)/8;
-  if (bytesPerSample == 0) bytesPerSample = 1; // because we can't read less than a byte at a time
-
-  // For 'trick play', read one sample at a time; otherwise (normal case) read samples in bulk:
-  unsigned bytesToRead = fScaleFactor == 1 ? fMaxSize - fMaxSize%bytesPerSample : bytesPerSample;
-  unsigned numBytesRead;
-
-  while (1) { // loop for 'trick play' only
-    while (1) {
-      if (fFidIsSeekable) {
-        numBytesRead = fread(fTo, 1, bytesToRead, fFid);
-      } else {
-        // For non-seekable files (e.g., pipes), call "read()" rather than "fread()", to ensure that the read doesn't block:
-        numBytesRead = read(fileno(fFid), fTo, bytesToRead);
-      }
-      if (numBytesRead > 0) {
-        break;
-      }
-      usleep(10000);
+    struct timeval fCurrentTime;
+    gettimeofday(&fCurrentTime, NULL);
+    if (fCurrentTime.tv_sec - fPresentationTime.tv_sec >= 5) {
+        if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoSource - Previous frame is too old\n", current_timestamp());;
+        cleanFifo();
+        gettimeofday(&fPresentationTime, NULL);
+        return;
     }
 
-    fFrameSize += numBytesRead;
-    fTo += numBytesRead;
-    fMaxSize -= numBytesRead;
-    fNumBytesToStream -= numBytesRead;
-
-    // If we did an asynchronous read, and didn't read an integral number of samples, then we need to wait for another read:
-    if (fFrameSize%bytesPerSample > 0) return;
-
-    // If we're doing 'trick play', then seek to the appropriate place for reading the next sample,
-    // and keep reading until we fill the provided buffer:
-    if (fScaleFactor != 1) {
-      SeekFile64(fFid, (fScaleFactor-1)*bytesPerSample, SEEK_CUR);
-      if (fMaxSize < bytesPerSample) break;
-    } else {
-      break; // from the loop (normal case)
+    // Try to read as many bytes as will fit in the buffer provided (or "fPreferredFrameSize" if less)
+    if (fLimitNumBytesToStream && fNumBytesToStream < fMaxSize) {
+        fMaxSize = fNumBytesToStream;
     }
-  }
+    if (fPreferredFrameSize < fMaxSize) {
+        fMaxSize = fPreferredFrameSize;
+    }
+
+    if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoSource - doReadFromFile() start - fMaxSize %d\n", current_timestamp(), fMaxSize);
+
+    unsigned bytesPerSample = (fNumChannels*fBitsPerSample)/8;
+    if (bytesPerSample == 0) bytesPerSample = 1; // because we can't read less than a byte at a time
+
+    unsigned bytesToRead = fMaxSize - fMaxSize%bytesPerSample;
+    unsigned numBytesRead;
+
+    while (1) { // loop for 'trick play' only
+        while (1) {
+            // For non-seekable files (e.g., pipes), call "read()" rather than "fread()", to ensure that the read doesn't block:
+            numBytesRead = read(fileno(fFid), fTo, bytesToRead);
+            if (numBytesRead > 0) {
+                break;
+            }
+            usleep(1000);
+        }
+
+        fFrameSize += numBytesRead;
+        fTo += numBytesRead;
+        fMaxSize -= numBytesRead;
+        fNumBytesToStream -= numBytesRead;
+
+        // If we did an asynchronous read, and didn't read an integral number of samples, then we need to wait for another read:
+        if (fFrameSize%bytesPerSample > 0) return;
+
+        break; // from the loop (normal case)
+    }
+
+    if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoSource - doReadFromFile() - fFrameSize %d - fMaxSize %d\n", current_timestamp(), fFrameSize, fMaxSize);
 
 #ifndef PRES_TIME_CLOCK
-  // Set the 'presentation time' and 'duration' of this frame:
-  struct timeval newPT;
-  gettimeofday(&newPT, NULL);
-  if ((fPresentationTime.tv_sec == 0 && fPresentationTime.tv_usec == 0) || (newPT.tv_sec % 60 == 0)) {
-    // At the first frame and every minute use the current time:
-    gettimeofday(&fPresentationTime, NULL);
-  } else {
-    // Increment by the play time of the previous data:
-    unsigned uSeconds = fPresentationTime.tv_usec + fLastPlayTime;
-    fPresentationTime.tv_sec += uSeconds/1000000;
-    fPresentationTime.tv_usec = uSeconds%1000000;
-  }
+    // Set the 'presentation time' and 'duration' of this frame:
+    struct timeval newPT;
+    gettimeofday(&newPT, NULL);
+    if ((fPresentationTime.tv_sec == 0 && fPresentationTime.tv_usec == 0) || (newPT.tv_sec % 60 == 0)) {
+        // At the first frame and every minute use the current time:
+        gettimeofday(&fPresentationTime, NULL);
+    } else {
+        // Increment by the play time of the previous data:
+        unsigned uSeconds = fPresentationTime.tv_usec + fLastPlayTime;
+        fPresentationTime.tv_sec += uSeconds/1000000;
+        fPresentationTime.tv_usec = uSeconds%1000000;
+    }
 
-  // Remember the play time of this data:
-  fDurationInMicroseconds = fLastPlayTime
-    = (unsigned)((fPlayTimePerSample*fFrameSize)/bytesPerSample);
+    // Remember the play time of this data:
+    fDurationInMicroseconds = fLastPlayTime
+        = (unsigned)((fPlayTimePerSample*fFrameSize)/bytesPerSample);
 #else
-  // Use system clock to set presentation time
-  gettimeofday(&fPresentationTime, NULL);
+    // Use system clock to set presentation time
+    gettimeofday(&fPresentationTime, NULL);
+
+    fDurationInMicroseconds = (unsigned)((fPlayTimePerSample*fFrameSize)/bytesPerSample);
 #endif
 
-  // Inform the reader that he has data:
-  // Because the file read was done from the event loop, we can call the
-  // 'after getting' function directly, without risk of infinite recursion:
-  FramedSource::afterGetting(this);
+    // Inform the reader that he has data:
+    // Because the file read was done from the event loop, we can call the
+    // 'after getting' function directly, without risk of infinite recursion:
+    FramedSource::afterGetting(this);
 }
 
 Boolean WAVAudioFifoSource::setInputPort(int /*portIndex*/) {
-  return True;
+    return True;
 }
 
 double WAVAudioFifoSource::getAverageLevel() const {
-  return 0.0;//##### fix this later
+    return 0.0;//##### fix this later
 }

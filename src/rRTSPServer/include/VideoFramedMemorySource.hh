@@ -36,6 +36,8 @@ public:
 
     void seekToByteAbsolute(u_int64_t byteNumber, u_int64_t numBytesToStream = 0);
     void seekToByteRelative(int64_t offset, u_int64_t numBytesToStream = 0);
+    static void doGetNextFrameTask(void *clientData);
+    void doGetNextFrameEx();
 
 protected:
     VideoFramedMemorySource(UsageEnvironment& env,
@@ -50,6 +52,7 @@ private:
     int cb_memcmp(unsigned char *str1, unsigned char*str2, size_t n);
     // redefined virtual functions:
     virtual void doGetNextFrame();
+    virtual void doStopGettingFrames();
 
 private:
     cb_output_buffer *fBuffer;
@@ -59,6 +62,7 @@ private:
     unsigned fLastPlayTime;
     Boolean fLimitNumBytesToStream;
     u_int64_t fNumBytesToStream; // used iff "fLimitNumBytesToStream" is True
+    Boolean fHaveStartedReading;
 };
 
 #endif

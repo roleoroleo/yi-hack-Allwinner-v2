@@ -20,12 +20,14 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // Implementation
 
 #include "ADTSAudioFramedMemoryServerMediaSubsession.hh"
+#include "ADTSAudioStreamDiscreteFramer.hh"
 #include "ADTSAudioFileSource.hh"
 #include "AudioFramedMemorySource.hh"
 #include "MPEG4GenericRTPSink.hh"
 #include "FramedFilter.hh"
+#include "misc.hh"
 
-// #define DEBUG 1
+extern int debug;
 
 ADTSAudioFramedMemoryServerMediaSubsession*
 ADTSAudioFramedMemoryServerMediaSubsession::createNew(UsageEnvironment& env,
@@ -115,28 +117,27 @@ FramedSource* ADTSAudioFramedMemoryServerMediaSubsession::createNewStreamSource(
     // has a sample frequency and expected to be a WAVAudioFifoSource.
     for (int x = 0; x < 10; x++) {
         if (((AudioFramedMemorySource*)(previousSource))->samplingFrequency() != 0) {
-#ifdef DEBUG
-            printf("AudioFramedMemorySource found at x = %d\n", x);
-#endif
+            if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - source found at x = %d\n", current_timestamp(), x);
             originalSource = (AudioFramedMemorySource*)(previousSource);
             break;
         }
         previousSource = (FramedFilter*)previousSource->inputSource();
     }
-#ifdef DEBUG
-    printf("fReplicator->inputSource() = %p\n", originalSource);
-#endif
+    if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - fReplicator->inputSource() = %p\n", current_timestamp(), originalSource);
     resultSource = fReplicator->createStreamReplica();
     if (resultSource == NULL) {
-        fprintf(stderr, "Failed to create stream replica\n");
+        fprintf(stderr, "%lld: AudioFramedMemorySource - Failed to create stream replica\n", current_timestamp());
         Medium::close(resultSource);
         return NULL;
     } else {
+        fSamplingFrequency = originalSource->samplingFrequency();
+        fNumChannels = originalSource->numChannels();
         sprintf(fConfigStr, originalSource->configStr());
-#ifdef DEBUG
-        fprintf(stderr, "createStreamReplica completed successfully\n");
-#endif
+        if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - createStreamReplica completed successfully\n", current_timestamp());
+        if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - Sampling frequency: %d, Num channels: %d, Config string: %s\n",
+            current_timestamp(), fSamplingFrequency, fNumChannels, fConfigStr);
 
+        //return ADTSAudioStreamDiscreteFramer::createNew(envir(), resultSource, fConfigStr);
         return resultSource;
     }
 }
@@ -148,7 +149,7 @@ RTPSink* ADTSAudioFramedMemoryServerMediaSubsession
 
     return MPEG4GenericRTPSink::createNew(envir(), rtpGroupsock,
                                         rtpPayloadTypeIfDynamic,
-                                        16000,
+                                        fSamplingFrequency,
                                         "audio", "AAC-hbr", fConfigStr,
-                                        1);
+                                        fNumChannels);
 }

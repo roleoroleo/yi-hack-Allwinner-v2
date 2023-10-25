@@ -37,6 +37,8 @@ public:
     unsigned samplingFrequency() const { return fSamplingFrequency; }
     unsigned numChannels() const { return fNumChannels; }
     char const* configStr() const { return fConfigStr; }
+    static void doGetNextFrameTask(void *clientData);
+    void doGetNextFrameEx();
 
 protected:
     AudioFramedMemorySource(UsageEnvironment& env,
@@ -51,6 +53,7 @@ private:
     int cb_check_sync_word(unsigned char *str);
     // redefined virtual functions:
     virtual void doGetNextFrame();
+    virtual void doStopGettingFrames();
 
 private:
     cb_output_buffer *fBuffer;
@@ -60,6 +63,7 @@ private:
     int fNumChannels;
     unsigned fuSecsPerFrame;
     char fConfigStr[5];
+    Boolean fHaveStartedReading;
 };
 
 #endif

@@ -181,6 +181,17 @@ struct __attribute__((__packed__)) frame_header_22 {
     uint16_t u4;
 };
 
+struct __attribute__((__packed__)) frame_header_24 {
+    uint32_t len;
+    uint32_t counter;
+    uint32_t u1;
+    uint32_t time;
+    uint16_t type;
+    uint16_t stream_counter;
+    uint16_t u4;
+    uint16_t u5;
+};
+
 struct __attribute__((__packed__)) frame_header_26 {
     uint32_t len;
     uint32_t counter;

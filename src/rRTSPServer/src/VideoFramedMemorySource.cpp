@@ -20,7 +20,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include "VideoFramedMemorySource.hh"
 #include "GroupsockHelper.hh"
-#include "presentationTime.hh"
+#include "misc.hh"
 
 #include <pthread.h>
 
@@ -49,7 +49,7 @@ VideoFramedMemorySource::VideoFramedMemorySource(UsageEnvironment& env,
                                                         unsigned playTimePerFrame)
     : FramedSource(env), fBuffer(cbBuffer), fCurIndex(0),
       fPreferredFrameSize(preferredFrameSize), fPlayTimePerFrame(playTimePerFrame), fLastPlayTime(0),
-      fLimitNumBytesToStream(False), fNumBytesToStream(0) {
+      fLimitNumBytesToStream(False), fNumBytesToStream(0), fHaveStartedReading(False) {
 }
 
 VideoFramedMemorySource::~VideoFramedMemorySource() {}
@@ -76,7 +76,28 @@ int VideoFramedMemorySource::cb_memcmp(unsigned char *str1, unsigned char *str2,
     return ret;
 }
 
+void VideoFramedMemorySource::doStopGettingFrames() {
+    fHaveStartedReading = False;
+}
+
+void VideoFramedMemorySource::doGetNextFrameTask(void* clientData) {
+    VideoFramedMemorySource *source = (VideoFramedMemorySource *) clientData;
+    source->doGetNextFrameEx();
+}
+
+void VideoFramedMemorySource::doGetNextFrameEx() {
+    doGetNextFrame();
+}
+
 void VideoFramedMemorySource::doGetNextFrame() {
+    if (!fHaveStartedReading) {
+        if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() 1st start\n", current_timestamp());
+        pthread_mutex_lock(&(fBuffer->mutex));
+        fBuffer->frame_read_index = fBuffer->frame_write_index;
+        pthread_mutex_unlock(&(fBuffer->mutex));
+        fHaveStartedReading = True;
+    }
+
     if (fLimitNumBytesToStream && fNumBytesToStream == 0) {
         handleClosure();
         return;
@@ -91,34 +112,37 @@ void VideoFramedMemorySource::doGetNextFrame() {
         fFrameSize = fPreferredFrameSize;
     }
 
-    if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() start - fMaxSize %d - fLimitNumBytesToStream %d - fPreferredFrameSize %d\n", fMaxSize, fLimitNumBytesToStream, fPreferredFrameSize);
+    if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() start - fMaxSize %d - fLimitNumBytesToStream %d - fPreferredFrameSize %d\n", current_timestamp(), fMaxSize, fLimitNumBytesToStream, fPreferredFrameSize);
 
     pthread_mutex_lock(&(fBuffer->mutex));
-    while (1) {
-        if (fBuffer->frame_read_index == fBuffer->frame_write_index) {
-            pthread_mutex_unlock(&(fBuffer->mutex));
-            if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() read_index == write_index\n");
-            usleep(MILLIS_25);
-            pthread_mutex_lock(&(fBuffer->mutex));
-            continue;
-        } else if (fBuffer->output_frame[fBuffer->frame_read_index].ptr == NULL) {
-            pthread_mutex_unlock(&(fBuffer->mutex));
-            if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() error - NULL ptr\n");
-            usleep(MILLIS_10);
-            pthread_mutex_lock(&(fBuffer->mutex));
-            continue;
-        } else if (cb_memcmp(NALU_HEADER, fBuffer->output_frame[fBuffer->frame_read_index].ptr, sizeof(NALU_HEADER)) != 0) {
-            fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
-            pthread_mutex_unlock(&(fBuffer->mutex));
-            if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() error - wrong frame header\n");
-            usleep(MILLIS_10);
-            pthread_mutex_lock(&(fBuffer->mutex));
-            continue;
-        } else {
-            break;
-        }
+    if (fBuffer->frame_read_index == fBuffer->frame_write_index) {
+        pthread_mutex_unlock(&(fBuffer->mutex));
+        if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() read_index == write_index\n", current_timestamp());
+        fFrameSize = 0;
+        fNumTruncatedBytes = 0;
+        nextTask() = envir().taskScheduler().scheduleDelayedTask(fPlayTimePerFrame/4,
+                (TaskFunc*) VideoFramedMemorySource::doGetNextFrameTask, this);
+        return;
+    } else if (fBuffer->output_frame[fBuffer->frame_read_index].ptr == NULL) {
+        pthread_mutex_unlock(&(fBuffer->mutex));
+        fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() error - NULL ptr\n", current_timestamp());
+        fFrameSize = 0;
+        fNumTruncatedBytes = 0;
+        nextTask() = envir().taskScheduler().scheduleDelayedTask(fPlayTimePerFrame/4,
+                (TaskFunc*) VideoFramedMemorySource::doGetNextFrameTask, this);
+        return;
+    } else if (cb_memcmp(NALU_HEADER, fBuffer->output_frame[fBuffer->frame_read_index].ptr, sizeof(NALU_HEADER)) != 0) {
+        fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
+        pthread_mutex_unlock(&(fBuffer->mutex));
+        fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() error - wrong frame header\n", current_timestamp());
+        fFrameSize = 0;
+        fNumTruncatedBytes = 0;
+        nextTask() = envir().taskScheduler().scheduleDelayedTask(fPlayTimePerFrame/4,
+                (TaskFunc*) VideoFramedMemorySource::doGetNextFrameTask, this);
+        return;
     }
 
+    // Frame found, send it
     unsigned char *ptr;
     unsigned int size;
     ptr = fBuffer->output_frame[fBuffer->frame_read_index].ptr;
@@ -131,7 +155,7 @@ void VideoFramedMemorySource::doGetNextFrame() {
     if (size <= fFrameSize) {
         // The size of the frame is smaller than the available buffer
         fFrameSize = size;
-        if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() whole frame - fFrameSize %d - counter %d - fMaxSize %d - fLimitNumBytesToStream %d\n", fFrameSize, fBuffer->output_frame[fBuffer->frame_read_index].counter, fMaxSize, fLimitNumBytesToStream);
+        if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() whole frame - fFrameSize %d - counter %d - fMaxSize %d - fLimitNumBytesToStream %d\n", current_timestamp(), fFrameSize, fBuffer->output_frame[fBuffer->frame_read_index].counter, fMaxSize, fLimitNumBytesToStream);
         if (ptr + fFrameSize > fBuffer->buffer + fBuffer->size) {
             memmove(fTo, ptr, fBuffer->buffer + fBuffer->size - ptr);
             memmove(fTo + (fBuffer->buffer + fBuffer->size - ptr), fBuffer->buffer, fFrameSize - (fBuffer->buffer + fBuffer->size - ptr));
@@ -142,15 +166,15 @@ void VideoFramedMemorySource::doGetNextFrame() {
 
         pthread_mutex_unlock(&(fBuffer->mutex));
         fNumTruncatedBytes = 0;
-        if (debug & 2) fprintf(stderr, "RTSP doGetNextFrame() whole frame completed\n");
+        if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() whole frame completed\n", current_timestamp());
     } else {
         // The size of the frame is greater than the available buffer
-        fprintf(stderr, "RTSP doGetNextFrame() error - the size of the frame is greater than the available buffer %d/%d\n", fFrameSize, fMaxSize);
+        fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() error - the size of the frame is greater than the available buffer %d/%d\n", current_timestamp(), fFrameSize, fMaxSize);
         fFrameSize = 0;
         fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
         pthread_mutex_unlock(&(fBuffer->mutex));
         fNumTruncatedBytes = 0;
-        fprintf(stderr, "RTSP doGetNextFrame() frame lost\n");
+        fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() frame lost\n", current_timestamp());
     }
 
 #ifndef PRES_TIME_CLOCK
@@ -175,12 +199,15 @@ void VideoFramedMemorySource::doGetNextFrame() {
         // We don't know a specific play time duration for this data,
         // so just record the current time as being the 'presentation time':
         gettimeofday(&fPresentationTime, NULL);
+        fDurationInMicroseconds = fPlayTimePerFrame;
     }
 #else
     // Use system clock to set presentation time
     gettimeofday(&fPresentationTime, NULL);
+    fDurationInMicroseconds = fPlayTimePerFrame;
 #endif
 
-    // Inform the downstream object that it has data:
-    FramedSource::afterGetting(this);
+     // Switch to another task, and inform the reader that he has data:
+    nextTask() = envir().taskScheduler().scheduleDelayedTask(0,
+            (TaskFunc*)FramedSource::afterGetting, this);
 }

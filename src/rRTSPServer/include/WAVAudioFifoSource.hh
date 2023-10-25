@@ -62,6 +62,7 @@ private:
   virtual void doStopGettingFrames();
   virtual Boolean setInputPort(int portIndex);
   virtual double getAverageLevel() const;
+  void cleanFifo();
 
 protected:
   unsigned fPreferredFrameSize;

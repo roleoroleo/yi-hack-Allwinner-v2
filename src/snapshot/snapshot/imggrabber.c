@@ -48,6 +48,9 @@
 #define BUF_OFFSET_Y211GA 368
 #define FRAME_HEADER_SIZE_Y211GA 28
 
+#define BUF_OFFSET_Y213GA 368
+#define FRAME_HEADER_SIZE_Y213GA 28
+
 #define BUF_OFFSET_Y291GA 368
 #define FRAME_HEADER_SIZE_Y291GA 28
 
@@ -77,6 +80,9 @@
 
 #define BUF_OFFSET_Y29GA 368
 #define FRAME_HEADER_SIZE_Y29GA 28
+
+#define BUF_OFFSET_Y623 368
+#define FRAME_HEADER_SIZE_Y623 28
 
 #define BUF_OFFSET_Q321BR_LSX 300
 #define FRAME_HEADER_SIZE_Q321BR_LSX 26
@@ -471,7 +477,7 @@ pid_t proc_find(const char* process_name, pid_t process_pid)
 void usage(char *prog_name)
 {
     fprintf(stderr, "Usage: %s [options]\n", prog_name);
-    fprintf(stderr, "\t-m, --model MODEL       Set model: y21ga, y211ga, y291ga, h30ga, r30gb, r35gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t-m, --model MODEL       Set model: y21ga, y211ga, y213, y291ga, h30ga, r30gb, r35gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, y623, q321br_lsx, qg311r or b091qp (default y21ga)\n");
     fprintf(stderr, "\t-f, --file FILE         Ignore model and read frame from file FILE\n");
     fprintf(stderr, "\t-r, --res RES           Set resolution: \"low\" or \"high\" (default \"high\")\n");
     fprintf(stderr, "\t-w, --watermark         Add watermark to image\n");
@@ -542,6 +548,10 @@ int main(int argc, char **argv)
                     buf_offset = BUF_OFFSET_Y211GA;
                     frame_header_size = FRAME_HEADER_SIZE_Y211GA;
                     model_high_res = RESOLUTION_FHD;
+                } else if (strcasecmp("y213ga", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_Y213GA;
+                    frame_header_size = FRAME_HEADER_SIZE_Y213GA;
+                    model_high_res = RESOLUTION_3M;
                 } else if (strcasecmp("y291ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Y291GA;
                     frame_header_size = FRAME_HEADER_SIZE_Y291GA;
@@ -582,6 +592,10 @@ int main(int argc, char **argv)
                     buf_offset = BUF_OFFSET_Y29GA;
                     frame_header_size = FRAME_HEADER_SIZE_Y29GA;
                     model_high_res = RESOLUTION_3K;
+                } else if (strcasecmp("y623", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_Y623;
+                    frame_header_size = FRAME_HEADER_SIZE_Y623;
+                    model_high_res = RESOLUTION_3M;
                 } else if (strcasecmp("q321br_lsx", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Q321BR_LSX;
                     frame_header_size = FRAME_HEADER_SIZE_Q321BR_LSX;

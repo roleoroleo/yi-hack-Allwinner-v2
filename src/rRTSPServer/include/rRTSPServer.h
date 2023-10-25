@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 roleo.
+ * Copyright (c) 2023 roleo.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,25 +42,30 @@
 
 #define Y21GA 0
 #define Y211GA 1
-#define Y291GA 2
-#define H30GA 3
-#define R30GB 4
-#define R35GB 5
-#define R40GA 6
-#define H51GA 7
-#define H52GA 8
-#define H60GA 9
-#define Y28GA 10
-#define Y29GA 11
-#define Q321BR_LSX 12
-#define QG311R 13
-#define B091QP 14
+#define Y213GA 2
+#define Y291GA 3
+#define H30GA 4
+#define R30GB 5
+#define R35GB 6
+#define R40GA 7
+#define H51GA 8
+#define H52GA 9
+#define H60GA 10
+#define Y28GA 11
+#define Y29GA 12
+#define Y623 13
+#define Q321BR_LSX 14
+#define QG311R 15
+#define B091QP 16
 
 #define BUF_OFFSET_Y21GA 368
 #define FRAME_HEADER_SIZE_Y21GA 28
 
 #define BUF_OFFSET_Y211GA 368
 #define FRAME_HEADER_SIZE_Y211GA 28
+
+#define BUF_OFFSET_Y213GA 368
+#define FRAME_HEADER_SIZE_Y213GA 28
 
 #define BUF_OFFSET_Y291GA 368
 #define FRAME_HEADER_SIZE_Y291GA 28
@@ -91,6 +96,9 @@
 
 #define BUF_OFFSET_Y29GA 368
 #define FRAME_HEADER_SIZE_Y29GA 28
+
+#define BUF_OFFSET_Y623 368
+#define FRAME_HEADER_SIZE_Y623 28
 
 #define BUF_OFFSET_Q321BR_LSX 300
 #define FRAME_HEADER_SIZE_Q321BR_LSX 26

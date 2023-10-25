@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 roleo.
+ * Copyright (c) 2023 roleo.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -122,6 +122,13 @@ unsigned char SPS4_3_1920X1080_TI[] = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00,
                                        0xAC, 0x2C, 0xA8, 0x07, 0x80, 0x22, 0x5E, 0x59,
                                        0xA8, 0x08, 0x08, 0x0A, 0x00, 0x00, 0x03, 0x03,
                                        0xE8, 0x00, 0x00, 0x9C, 0x41, 0x08};
+unsigned char SPS4_3_2304X1296[]    = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x20,
+                                       0xAC, 0x2C, 0xA8, 0x02, 0x40, 0x0A, 0x32, 0x6A,
+                                       0x02, 0x02, 0x02, 0x04};
+unsigned char SPS4_3_2304X1296_TI[] = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x20,
+                                       0xAC, 0x2C, 0xA8, 0x02, 0x40, 0x0A, 0x32, 0x6A,
+                                       0x02, 0x02, 0x02, 0x80, 0x00, 0x00, 0xFA, 0x00,
+                                       0x00, 0x27, 0x10, 0x42};
 unsigned char SPS5_1920X1080[]      = {0x00, 0x00, 0x00, 0x01, 0x42, 0x01, 0x01, 0x01,
                                        0x60, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00,
                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x7B, 0xA0,
@@ -168,7 +175,16 @@ unsigned char VPS5_2_1920X1080[]    = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C,
 unsigned char VPS5_2_1920X1080_TI[] = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
                                        0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
-                                       0x00, 0xBA, 0xAC, 0x0C, 0x00, 0x00, 0x0F, 0xA4,
+                                       0x00, 0xBA, 0xAC, 0x0C, 0x00, 0x00, 0x07, 0xD0,
+                                       0x00, 0x01, 0x38, 0x81, 0x40};
+unsigned char VPS5_3_2304X1296[]    = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
+                                       0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
+                                       0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
+                                       0x00, 0xBA, 0xAC, 0x09};
+unsigned char VPS5_3_2304X1296_TI[] = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
+                                       0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
+                                       0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
+                                       0x00, 0xBA, 0xAC, 0x0C, 0x00, 0x00, 0x07, 0xD0,
                                        0x00, 0x01, 0x38, 0x81, 0x40};
 
 int debug;                                  /* Set to 1 to debug this .c */
@@ -883,7 +899,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [options]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, y211ga, y291ga, h30ga, r30gb, r35gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, y211ga, y213ga, y291ga, h30ga, r30gb, r35gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, y623, q321br_lsx, qg311r or b091qp (default y21ga)\n");
     fprintf(stderr, "\t-r RES,   --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: low, high or both (default high)\n");
     fprintf(stderr, "\t-a AUDIO, --audio AUDIO\n");
@@ -968,6 +984,8 @@ int main(int argc, char** argv)
                 model = Y21GA;
             } else if (strcasecmp("y211ga", optarg) == 0) {
                 model = Y211GA;
+            } else if (strcasecmp("y213ga", optarg) == 0) {
+                model = Y213GA;
             } else if (strcasecmp("y291ga", optarg) == 0) {
                 model = Y291GA;
             } else if (strcasecmp("h30ga", optarg) == 0) {
@@ -988,6 +1006,8 @@ int main(int argc, char** argv)
                 model = Y28GA;
             } else if (strcasecmp("y29ga", optarg) == 0) {
                 model = Y29GA;
+            } else if (strcasecmp("y623", optarg) == 0) {
+                model = Y623;
             } else if (strcasecmp("q321br_lsx", optarg) == 0) {
                 model = Q321BR_LSX;
             } else if (strcasecmp("qg311r", optarg) == 0) {
@@ -1099,6 +1119,8 @@ int main(int argc, char** argv)
             model = Y21GA;
         } else if (strcasecmp("y211ga", str) == 0) {
             model = Y211GA;
+        } else if (strcasecmp("y213ga", str) == 0) {
+            model = Y213GA;
         } else if (strcasecmp("y291ga", str) == 0) {
             model = Y291GA;
         } else if (strcasecmp("h30ga", str) == 0) {
@@ -1119,6 +1141,8 @@ int main(int argc, char** argv)
             model = Y28GA;
         } else if (strcasecmp("y29ga", str) == 0) {
             model = Y29GA;
+        } else if (strcasecmp("y623", str) == 0) {
+            model = Y623;
         } else if (strcasecmp("q321br_lsx", str) == 0) {
             model = Q321BR_LSX;
         } else if (strcasecmp("qg311r", str) == 0) {
@@ -1202,6 +1226,9 @@ int main(int argc, char** argv)
     } else if (model == Y211GA) {
         buf_offset = BUF_OFFSET_Y211GA;
         frame_header_size = FRAME_HEADER_SIZE_Y211GA;
+    } else if (model == Y213GA) {
+        buf_offset = BUF_OFFSET_Y213GA;
+        frame_header_size = FRAME_HEADER_SIZE_Y213GA;
     } else if (model == Y291GA) {
         buf_offset = BUF_OFFSET_Y291GA;
         frame_header_size = FRAME_HEADER_SIZE_Y291GA;
@@ -1232,6 +1259,9 @@ int main(int argc, char** argv)
     } else if (model == Y29GA) {
         buf_offset = BUF_OFFSET_Y29GA;
         frame_header_size = FRAME_HEADER_SIZE_Y29GA;
+    } else if (model == Y623) {
+        buf_offset = BUF_OFFSET_Y623;
+        frame_header_size = FRAME_HEADER_SIZE_Y623;
     } else if (model == Q321BR_LSX) {
         buf_offset = BUF_OFFSET_Q321BR_LSX;
         frame_header_size = FRAME_HEADER_SIZE_Q321BR_LSX;

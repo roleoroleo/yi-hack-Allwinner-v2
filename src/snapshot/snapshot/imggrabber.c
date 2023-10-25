@@ -103,7 +103,7 @@
 #define RESOLUTION_HIGH 1080
 
 #define RESOLUTION_FHD  1080
-#define RESOLUTION_3K   1296
+#define RESOLUTION_3M   1296
 
 #define PATH_RES_LOW  "/tmp/sd/yi-hack/etc/wm_res/low/wm_540p_"
 #define PATH_RES_HIGH "/tmp/sd/yi-hack/etc/wm_res/high/wm_540p_"
@@ -575,7 +575,7 @@ int main(int argc, char **argv)
                 } else if (strcasecmp("h51ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_H51GA;
                     frame_header_size = FRAME_HEADER_SIZE_H51GA;
-                    model_high_res = RESOLUTION_3K;
+                    model_high_res = RESOLUTION_3M;
                 } else if (strcasecmp("h52ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_H52GA;
                     frame_header_size = FRAME_HEADER_SIZE_H52GA;
@@ -583,7 +583,7 @@ int main(int argc, char **argv)
                 } else if (strcasecmp("h60ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_H60GA;
                     frame_header_size = FRAME_HEADER_SIZE_H60GA;
-                    model_high_res = RESOLUTION_3K;
+                    model_high_res = RESOLUTION_3M;
                 } else if (strcasecmp("y28ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Y28GA;
                     frame_header_size = FRAME_HEADER_SIZE_Y28GA;
@@ -591,7 +591,7 @@ int main(int argc, char **argv)
                 } else if (strcasecmp("y29ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Y29GA;
                     frame_header_size = FRAME_HEADER_SIZE_Y29GA;
-                    model_high_res = RESOLUTION_3K;
+                    model_high_res = RESOLUTION_3M;
                 } else if (strcasecmp("y623", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Y623;
                     frame_header_size = FRAME_HEADER_SIZE_Y623;
@@ -599,11 +599,11 @@ int main(int argc, char **argv)
                 } else if (strcasecmp("q321br_lsx", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Q321BR_LSX;
                     frame_header_size = FRAME_HEADER_SIZE_Q321BR_LSX;
-                    model_high_res = RESOLUTION_3K;
+                    model_high_res = RESOLUTION_3M;
                 } else if (strcasecmp("qg311r", optarg) == 0) {
                     buf_offset = BUF_OFFSET_QG311R;
                     frame_header_size = FRAME_HEADER_SIZE_QG311R;
-                    model_high_res = RESOLUTION_3K;
+                    model_high_res = RESOLUTION_3M;
                 } else if (strcasecmp("b091qp", optarg) == 0) {
                     buf_offset = BUF_OFFSET_B091QP;
                     frame_header_size = FRAME_HEADER_SIZE_B091QP;

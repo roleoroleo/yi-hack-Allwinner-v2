@@ -153,6 +153,17 @@ struct __attribute__((__packed__)) frame_header_22 {
     uint16_t u4;
 };
 
+struct __attribute__((__packed__)) frame_header_24 {
+    uint32_t len;
+    uint32_t counter;
+    uint32_t u1;
+    uint32_t time;
+    uint16_t type;
+    uint16_t stream_counter;
+    uint16_t u4;
+    uint16_t u5;
+};
+
 struct __attribute__((__packed__)) frame_header_26 {
     uint32_t len;
     uint32_t counter;
@@ -257,6 +268,13 @@ unsigned char SPS4_3_1920X1080_TI[] = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00,
                                        0xAC, 0x2C, 0xA8, 0x07, 0x80, 0x22, 0x5E, 0x59,
                                        0xA8, 0x08, 0x08, 0x0A, 0x00, 0x00, 0x03, 0x03,
                                        0xE8, 0x00, 0x00, 0x9C, 0x41, 0x08};
+unsigned char SPS4_3_2304X1296[]    = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x20,
+                                       0xAC, 0x2C, 0xA8, 0x02, 0x40, 0x0A, 0x32, 0x6A,
+                                       0x02, 0x02, 0x02, 0x04};
+unsigned char SPS4_3_2304X1296_TI[] = {0x00, 0x00, 0x00, 0x01, 0x67, 0x64, 0x00, 0x20,
+                                       0xAC, 0x2C, 0xA8, 0x02, 0x40, 0x0A, 0x32, 0x6A,
+                                       0x02, 0x02, 0x02, 0x80, 0x00, 0x00, 0xFA, 0x00,
+                                       0x00, 0x27, 0x10, 0x42};
 unsigned char SPS5_1920X1080[]      = {0x00, 0x00, 0x00, 0x01, 0x42, 0x01, 0x01, 0x01,
                                        0x60, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00,
                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x7B, 0xA0,
@@ -264,14 +282,14 @@ unsigned char SPS5_1920X1080[]      = {0x00, 0x00, 0x00, 0x01, 0x42, 0x01, 0x01,
                                        0x12, 0x20, 0xB2, 0xFC, 0xF3, 0xCF, 0x3C, 0xF3,
                                        0xCF, 0x3C, 0xF3, 0xCF, 0x3C, 0xF3, 0xCF, 0x3C,
                                        0xF3, 0xCB, 0x73, 0x70, 0x10, 0x10, 0x10, 0x08};
-unsigned char SPS5_1920X1080_TI[]   = {0x00, 0x00, 0x00, 0x01, 0x42, 0x01, 0x01, 0x01,
-                                       0x60, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00,
-                                       0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x7B, 0xA0,
-                                       0x03, 0xC0, 0x80, 0x10, 0xE7, 0xF9, 0x6B, 0xB9,
-                                       0x12, 0x20, 0xB2, 0xFC, 0xF3, 0xCF, 0x3C, 0xF3,
-                                       0xCF, 0x3C, 0xF3, 0xCF, 0x3C, 0xF3, 0xCF, 0x3C,
-                                       0xF3, 0xCB, 0x73, 0x70, 0x10, 0x10, 0x10, 0x40,
-                                       0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x05, 0x02};
+//unsigned char SPS5_1920X1080_TI[]   = {0x00, 0x00, 0x00, 0x01, 0x42, 0x01, 0x01, 0x01,
+//                                       0x60, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00,
+//                                       0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x7B, 0xA0,
+//                                       0x03, 0xC0, 0x80, 0x10, 0xE7, 0xF9, 0x6B, 0xB9,
+//                                       0x12, 0x20, 0xB2, 0xFC, 0xF3, 0xCF, 0x3C, 0xF3,
+//                                       0xCF, 0x3C, 0xF3, 0xCF, 0x3C, 0xF3, 0xCF, 0x3C,
+//                                       0xF3, 0xCB, 0x73, 0x70, 0x10, 0x10, 0x10, 0x40,
+//                                       0x00, 0x00, 0x7D, 0x00, 0x00, 0x13, 0x88, 0x02};
 unsigned char SPS5_2_1920X1080[]    = {0x00, 0x00, 0x00, 0x01, 0x42, 0x01, 0x01, 0x01,
                                        0x60, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00,
                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0xBA, 0xA0,
@@ -279,14 +297,27 @@ unsigned char SPS5_2_1920X1080[]    = {0x00, 0x00, 0x00, 0x01, 0x42, 0x01, 0x01,
                                        0x12, 0x20, 0xB2, 0xFC, 0xF3, 0xCF, 0x3C, 0xF3,
                                        0xCF, 0x3C, 0xF3, 0xCF, 0x3C, 0xF3, 0xCF, 0x3C,
                                        0xF3, 0xCB, 0x73, 0x70, 0x10, 0x10, 0x10, 0x08};
-unsigned char SPS5_2_1920X1080_TI[] = {0x00, 0x00, 0x00, 0x01, 0x42, 0x01, 0x01, 0x01,
+//unsigned char SPS5_2_1920X1080_TI[] = {0x00, 0x00, 0x00, 0x01, 0x42, 0x01, 0x01, 0x01,
+//                                       0x60, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00,
+//                                       0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0xBA, 0xA0,
+//                                       0x03, 0xC0, 0x80, 0x10, 0xE7, 0xF9, 0x6B, 0xB9,
+//                                       0x12, 0x20, 0xB2, 0xFC, 0xF3, 0xCF, 0x3C, 0xF3,
+//                                       0xCF, 0x3C, 0xF3, 0xCF, 0x3C, 0xF3, 0xCF, 0x3C,
+//                                       0xF3, 0xCB, 0x73, 0x70, 0x10, 0x10, 0x10, 0x40,
+//                                       0x00, 0x00, 0x7D, 0x00, 0x00, 0x13, 0x88, 0x02};
+unsigned char SPS5_3_2304X1296[]    = {0x00, 0x00, 0x00, 0x01, 0x42, 0x01, 0x01, 0x01,
                                        0x60, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00,
                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0xBA, 0xA0,
-                                       0x03, 0xC0, 0x80, 0x10, 0xE7, 0xF9, 0x6B, 0xB9,
-                                       0x12, 0x20, 0xB2, 0xFC, 0xF3, 0xCF, 0x3C, 0xF3,
-                                       0xCF, 0x3C, 0xF3, 0xCF, 0x3C, 0xF3, 0xCF, 0x3C,
-                                       0xF3, 0xCB, 0x73, 0x70, 0x10, 0x10, 0x10, 0x40,
-                                       0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x05, 0x02};
+                                       0x01, 0x20, 0x20, 0x05, 0x11, 0xFE, 0x5A, 0xEE,
+                                       0x44, 0x88, 0x8B, 0xF2, 0xDC, 0xD4, 0x04, 0x04,
+                                       0x04, 0x02};
+//unsigned char SPS5_3_2304X1296_TI[] = {0x00, 0x00, 0x00, 0x01, 0x42, 0x01, 0x01, 0x01,
+//                                       0x60, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00,
+//                                       0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0xBA, 0xA0,
+//                                       0x01, 0x20, 0x20, 0x05, 0x11, 0xFE, 0x5A, 0xEE,
+//                                       0x44, 0x88, 0x8B, 0xF2, 0xDC, 0xD4, 0x04, 0x04,
+//                                       0x04, 0x10, 0x00, 0x00, 0x1F, 0x40, 0x00, 0x04,
+//                                       0xE2, 0x00, 0x80};
 unsigned char VPS5_1920X1080[]      = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
                                        0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
@@ -294,8 +325,8 @@ unsigned char VPS5_1920X1080[]      = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C,
 unsigned char VPS5_1920X1080_TI[]   = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
                                        0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
-                                       0x00, 0x7B, 0xAC, 0x0C, 0x00, 0x00, 0x00, 0x40,
-                                       0x00, 0x00, 0x00, 0x05, 0x40};
+                                       0x00, 0x7B, 0xAC, 0x0C, 0x00, 0x00, 0x07, 0xD0,
+                                       0x00, 0x01, 0x38, 0x81, 0x40};
 unsigned char VPS5_2_1920X1080[]    = {0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0C, 0x01,
                                        0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00,
                                        0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
@@ -396,12 +427,15 @@ void cb2s_headercpy(unsigned char *dest, unsigned char *src, size_t n)
 {
     struct frame_header *fh = (struct frame_header *) dest;
     struct frame_header_22 fh22;
+    struct frame_header_24 fh24;
     struct frame_header_26 fh26;
     struct frame_header_28 fh28;
     unsigned char *fp = NULL;
 
     if (n == sizeof(fh22)) {
         fp = (unsigned char *) &fh22;
+    } else if (n == sizeof(fh24)) {
+        fp = (unsigned char *) &fh24;
     } else if (n == sizeof(fh26)) {
         fp = (unsigned char *) &fh26;
     } else if (n == sizeof(fh28)) {
@@ -421,6 +455,12 @@ void cb2s_headercpy(unsigned char *dest, unsigned char *src, size_t n)
         fh->time = fh22.time;
         fh->type = fh22.type;
         fh->stream_counter = fh22.stream_counter;
+    } else if (n == sizeof(fh24)) {
+        fh->len = fh24.len;
+        fh->counter = fh24.counter;
+        fh->time = fh24.time;
+        fh->type = fh24.type;
+        fh->stream_counter = fh24.stream_counter;
     } else if (n == sizeof(fh26)) {
         fh->len = fh26.len;
         fh->counter = fh26.counter;
@@ -912,6 +952,12 @@ int main(int argc, char **argv) {
                     } else if (cb_memcmp(SPS4_3_640X360, buf_idx_cur, sizeof(SPS4_3_640X360)) == 0) {
                         stream_type.codec_low = CODEC_H264;
                         stream_type.sps_type_low = 0x0401;
+                    } else if (cb_memcmp(SPS4_START, buf_idx_cur, sizeof(SPS4_START)) == 0) {
+                        stream_type.codec_low = CODEC_H264;
+                        stream_type.sps_type_low = 0x0000;
+                    } else if (cb_memcmp(SPS5_START, buf_idx_cur, sizeof(SPS5_START)) == 0) {
+                        stream_type.codec_low = CODEC_H265;
+                        stream_type.sps_type_low = 0x0000;
                     }
                     if ((debug) && (stream_type.codec_low != CODEC_NONE)) fprintf(stderr, "%lld: low - codec type is %d - sps type is %d\n",
                             current_timestamp(), stream_type.codec_low, stream_type.sps_type_low);
@@ -931,29 +977,27 @@ int main(int argc, char **argv) {
                     } else if (cb_memcmp(SPS4_3_1920X1080, buf_idx_cur, sizeof(SPS4_3_1920X1080)) == 0) {
                         stream_type.codec_high = CODEC_H264;
                         stream_type.sps_type_high = 0x0402;
+                    } else if (cb_memcmp(SPS4_3_2304X1296, buf_idx_cur, sizeof(SPS4_3_2304X1296)) == 0) {
+                        stream_type.codec_high = CODEC_H264;
+                        stream_type.sps_type_high = 0x0403;
+                    } else if (cb_memcmp(SPS5_1920X1080, buf_idx_cur, sizeof(SPS5_1920X1080)) == 0) {
+                        stream_type.codec_high = CODEC_H265;
+                        stream_type.sps_type_high = 0x0802;
+                    } else if (cb_memcmp(SPS5_2_1920X1080, buf_idx_cur, sizeof(SPS5_2_1920X1080)) == 0) {
+                        stream_type.codec_high = CODEC_H265;
+                        stream_type.sps_type_high = 0x1002;
+                    } else if (cb_memcmp(SPS5_3_2304X1296, buf_idx_cur, sizeof(SPS5_3_2304X1296)) == 0) {
+                        stream_type.codec_high = CODEC_H265;
+                        stream_type.sps_type_high = 0x2003;
+                    } else if (cb_memcmp(SPS4_START, buf_idx_cur, sizeof(SPS4_START)) == 0) {
+                        stream_type.codec_high = CODEC_H264;
+                        stream_type.sps_type_high = 0x0000;
+                    } else if (cb_memcmp(SPS5_START, buf_idx_cur, sizeof(SPS5_START)) == 0) {
+                        stream_type.codec_high = CODEC_H265;
+                        stream_type.sps_type_high = 0x0000;
                     }
                     if ((debug) && (stream_type.codec_high != CODEC_NONE)) fprintf(stderr, "%lld: high - codec type is %d - sps type is %d\n",
                             current_timestamp(), stream_type.codec_high, stream_type.sps_type_high);
-                }
-            } else if (fhs[i].type & 0x0008) {
-                buf_idx_cur = cb_move(buf_idx_cur, frame_header_size);
-                if ((stream_type.codec_low  == CODEC_NONE) && (fhs[i].type & 0x0800)) {
-                    if (cb_memcmp(VPS5_START, buf_idx_cur, sizeof(VPS5_START)) == 0) {
-                        stream_type.codec_low = CODEC_H265;
-                        stream_type.vps_type_low = 0x0101;
-                    }
-                    if (debug & 1) fprintf(stderr, "%lld: low - codec type is %d - vps type is %d\n",
-                            current_timestamp(), stream_type.codec_low, stream_type.vps_type_low);
-                } else if ((stream_type.codec_high  == CODEC_NONE) && (fhs[i].type & 0x0400)) {
-                    if (cb_memcmp(VPS5_1920X1080, buf_idx_cur, sizeof(VPS5_1920X1080)) == 0) {
-                        stream_type.codec_high = CODEC_H265;
-                        stream_type.vps_type_high = 0x0102;
-                    } else if (cb_memcmp(VPS5_2_1920X1080, buf_idx_cur, sizeof(VPS5_2_1920X1080)) == 0) {
-                        stream_type.codec_high = CODEC_H265;
-                        stream_type.vps_type_high = 0x0202;
-                    }
-                    if (debug & 1) fprintf(stderr, "%lld: high - codec type is %d - vps type is %d\n",
-                            current_timestamp(), stream_type.codec_high, stream_type.vps_type_high);
                 }
             } else {
                 buf_idx_cur = cb_move(buf_idx_cur, frame_header_size);
@@ -1071,10 +1115,14 @@ int main(int argc, char **argv) {
                                     fwrite(SPS4_2304X1296_TI, 1, sizeof(SPS4_2304X1296_TI), fOut);
                                 } else if (stream_type.sps_type_high == 0x0203) {
                                     fwrite(SPS4_2_2304X1296_TI, 1, sizeof(SPS4_2_2304X1296_TI), fOut);
-                                } else if (stream_type.vps_type_high == 0x0102) {
+                                } else if (stream_type.sps_type_high == 0x0403) {
+                                    fwrite(SPS4_3_2304X1296_TI, 1, sizeof(SPS4_3_2304X1296_TI), fOut);
+/*                                } else if (stream_type.sps_type_high == 0x0802) {
                                     fwrite(SPS5_1920X1080_TI, 1, sizeof(SPS5_1920X1080_TI), fOut);
-                                } else if (stream_type.vps_type_high == 0x0202) {
+                                } else if (stream_type.sps_type_high == 0x1002) {
                                     fwrite(SPS5_2_1920X1080_TI, 1, sizeof(SPS5_2_1920X1080_TI), fOut);
+                                } else if (stream_type.sps_type_high == 0x2003) {
+                                    fwrite(SPS5_3_2304X1296_TI, 1, sizeof(SPS5_3_2304X1296_TI), fOut); */
                                 } else {
                                     if (buf_idx_start + frame_len > addr + buf_size) {
                                         fwrite(buf_idx_start, 1, addr + buf_size - buf_idx_start, fOut);
@@ -1100,18 +1148,18 @@ int main(int argc, char **argv) {
                                     fwrite(buf_idx_start, 1, frame_len, fOut);
                                 }
                             } else if (frame_type == TYPE_HIGH) {
-                                if (stream_type.vps_type_high == 0x0102) {
+/*                                if (stream_type.vps_type_high == 0x0102) {
                                     fwrite(VPS5_1920X1080_TI, 1, sizeof(VPS5_1920X1080_TI), fOut);
                                 } else if (stream_type.vps_type_high == 0x0202) {
                                     fwrite(VPS5_2_1920X1080_TI, 1, sizeof(VPS5_2_1920X1080_TI), fOut);
-                                } else {
+                                } else { */
                                     if (buf_idx_start + frame_len > addr + buf_size) {
                                         fwrite(buf_idx_start, 1, addr + buf_size - buf_idx_start, fOut);
                                         fwrite(addr + buf_offset, 1, frame_len - (addr + buf_size - buf_idx_start), fOut);
                                     } else {
                                         fwrite(buf_idx_start, 1, frame_len, fOut);
                                     }
-                                }
+/*                                } */
                             } else {
                                 if (buf_idx_start + frame_len > addr + buf_size) {
                                     fwrite(buf_idx_start, 1, addr + buf_size - buf_idx_start, fOut);

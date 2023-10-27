@@ -64,18 +64,21 @@ typedef enum {
     H52GA,
     H60GA,
     Q321BR_LSX,
+    Q705BR,
     QG311R,
     R30GB,
     R35GB,
     R40GA,
     Y211GA,        // 9
     Y211GA_12,
+    Y213GA,
     Y21GA,         // 9
     Y21GA_12,
     Y28GA,
     Y291GA,        // 9,
     Y291GA_12,
     Y29GA,
+    Y623,
     B091QP
 } MODEL;
 

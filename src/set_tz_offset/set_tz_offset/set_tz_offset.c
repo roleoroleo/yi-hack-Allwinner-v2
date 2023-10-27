@@ -17,7 +17,7 @@
 #include <errno.h>
 #include "set_tz_offset.h"
 
-int tz_offset_osd_addr[31][2] = {
+int tz_offset_osd_addr[34][2] = {
     { 0x4f4, 1 },    // Y203C
     { 0x4a0, 1 },    // Y23
     { 0x4f4, 1 },    // Y25
@@ -38,18 +38,21 @@ int tz_offset_osd_addr[31][2] = {
     { 0x4e0, 1 },    // H52GA
     { 0x560, 1 },    // H60GA
     { 0x4e0, 1 },    // Q321BR_LSX
+    { 0x4e0, 1 },    // Q705BR
     { 0x4e0, 1 },    // QG311R
     { 0x4e0, 1 },    // R30GB
     { 0x56c, 1 },    // R35GB
     { 0x560, 1 },    // R40GA
     { 0x4e0, 1 },    // Y211GA_9
     { 0x570, 1 },    // Y211GA_12
+    { 0x56c, 1 },    // Y213
     { 0x4e0, 1 },    // Y21GA_9
     { 0x564, 1 },    // Y21GA_12
     { 0x4e0, 1 },    // Y28GA
     { 0x56c, 1 },    // Y291GA_9
     { 0x570, 1 },    // Y291GA_12
     { 0x4e0, 1 },    // Y29GA
+    { 0x570, 1 },    // Y623
     { 0x000, 0 }     // B091QP       0x560 or 0x56c - skip this model
 };
 
@@ -230,8 +233,9 @@ void print_usage(char *progname)
     fprintf(stderr, "\t-v VALUE, --value VALUE\n");
     fprintf(stderr, "\t\ttimezone offset value to set (s)\n");
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y20ga, y25ga, y30qa\n");
-    fprintf(stderr, "\t\tset model: y21ga, y211ga, y291ga, h30ga, r30gb, r35gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, q321br_lsx, qg311r or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y203c, y23, y25, y30, h201c, h305r, h307\n");
+    fprintf(stderr, "\t\tset model: y20ga, y25ga, y30qa, y501gc\n");
+    fprintf(stderr, "\t\tset model: h30ga, h51ga, h52ga, h60ga, q321br_lsx, qg311r, q705br r30gb, r35gb, r40ga, y211ga, y213ga, y21ga, y28ga, y291ga, y29ga, y623 or b091qp (default y21ga)\n");
     fprintf(stderr, "\t\t(required if tz_offset_osd command is specified)\n");
     fprintf(stderr, "\t-f FIRMWARE_VERSION, --fwver FIRMWARE_VERSION\n");
     fprintf(stderr, "\t\tfirmware version (required if tz_offset_osd command is specified)\n");
@@ -326,34 +330,40 @@ int main(int argc, char **argv)
                 model = Y30QA;
             } else if (strcasecmp("y501gc", optarg) == 0) {
                 model = Y501GC;
-            } else if (strcasecmp("y21ga", optarg) == 0) {
-                model = Y21GA;
-            } else if (strcasecmp("y211ga", optarg) == 0) {
-                model = Y211GA;
-            } else if (strcasecmp("y291ga", optarg) == 0) {
-                model = Y291GA;
             } else if (strcasecmp("h30ga", optarg) == 0) {
                 model = H30GA;
-            } else if (strcasecmp("r30gb", optarg) == 0) {
-                model = R30GB;
-            } else if (strcasecmp("r35gb", optarg) == 0) {
-                model = R35GB;
-            } else if (strcasecmp("r40ga", optarg) == 0) {
-                model = R40GA;
             } else if (strcasecmp("h51ga", optarg) == 0) {
                 model = H51GA;
             } else if (strcasecmp("h52ga", optarg) == 0) {
                 model = H52GA;
             } else if (strcasecmp("h60ga", optarg) == 0) {
                 model = H60GA;
-            } else if (strcasecmp("y28ga", optarg) == 0) {
-                model = Y28GA;
-            } else if (strcasecmp("y29ga", optarg) == 0) {
-                model = Y29GA;
             } else if (strcasecmp("q321br_lsx", optarg) == 0) {
                 model = Q321BR_LSX;
+            } else if (strcasecmp("q705br", optarg) == 0) {
+                model = Q705BR;
             } else if (strcasecmp("qg311r", optarg) == 0) {
                 model = QG311R;
+            } else if (strcasecmp("r30gb", optarg) == 0) {
+                model = R30GB;
+            } else if (strcasecmp("r35gb", optarg) == 0) {
+                model = R35GB;
+            } else if (strcasecmp("r40ga", optarg) == 0) {
+                model = R40GA;
+            } else if (strcasecmp("y211ga", optarg) == 0) {
+                model = Y211GA;
+            } else if (strcasecmp("y213ga", optarg) == 0) {
+                model = Y213GA;
+            } else if (strcasecmp("y21ga", optarg) == 0) {
+                model = Y21GA;
+            } else if (strcasecmp("y28ga", optarg) == 0) {
+                model = Y28GA;
+            } else if (strcasecmp("y291ga", optarg) == 0) {
+                model = Y291GA;
+            } else if (strcasecmp("y29ga", optarg) == 0) {
+                model = Y29GA;
+            } else if (strcasecmp("y623", optarg) == 0) {
+                model = Y623;
             } else if (strcasecmp("b091qp", optarg) == 0) {
                 model = B091QP;
             }

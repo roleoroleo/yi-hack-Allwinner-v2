@@ -40,19 +40,26 @@ make || exit 1
 
 mkdir -p ../_install/www/onvif || exit 1
 mkdir -p ../_install/bin || exit 1
+mkdir -p ../_install/etc/onvif_notify_server || exit 1
 mkdir -p ../_install/etc/wsd_simple_server || exit 1
 
 cp ./onvif_simple_server ../_install/www/onvif || exit 1
 echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/device_service || exit 1
 chmod 0755 ../_install/www/onvif/device_service
+echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/events_service || exit 1
+chmod 0755 ../_install/www/onvif/events_service
 echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/media_service || exit 1
 chmod 0755 ../_install/www/onvif/media_service
 echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/ptz_service || exit 1
 chmod 0755 ../_install/www/onvif/ptz_service
 cp -R ./device_service_files ../_install/www/onvif
+cp -R ./events_service_files ../_install/www/onvif
 cp -R ./generic_files ../_install/www/onvif
 cp -R ./media_service_files ../_install/www/onvif
 cp -R ./ptz_service_files ../_install/www/onvif
+
+cp ./onvif_notify_server ../_install/bin || exit 1
+cp -R ./notify_files/* ../_install/etc/onvif_notify_server
 
 cp ./wsd_simple_server ../_install/bin || exit 1
 cp -R ./wsd_files/* ../_install/etc/wsd_simple_server

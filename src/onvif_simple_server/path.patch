@@ -1,7 +1,24 @@
+diff -Naur onvif_simple_server.ori/onvif_notify_server.c onvif_simple_server/onvif_notify_server.c
+--- onvif_simple_server.ori/onvif_notify_server.c	2023-11-07 21:36:47.640210252 +0100
++++ onvif_simple_server/onvif_notify_server.c	2023-11-07 21:38:59.448510264 +0100
+@@ -39,10 +39,10 @@
+ #include "log.h"
+ #include "onvif_simple_server.h"
+ 
+-#define DEFAULT_CONF_FILE "/etc/onvif_simple_server.conf"
+-#define DEFAULT_LOG_FILE "/var/log/onvif_notify_server.log"
++#define DEFAULT_CONF_FILE "/tmp/onvif_simple_server.conf"
++#define DEFAULT_LOG_FILE "/tmp/onvif_notify_server.log"
+ #define DEFAULT_PID_FILE "/var/run/onvif_notify_server.pid"
+-#define TEMPLATE_DIR "/etc/onvif_notify_server"
++#define TEMPLATE_DIR "/tmp/sd/yi-hack/etc/onvif_notify_server"
+ #define INOTIFY_DIR "/tmp/onvif_notify_server"
+ 
+ #define BD_NO_CHDIR          01
 diff -Naur onvif_simple_server.ori/onvif_simple_server.c onvif_simple_server/onvif_simple_server.c
---- onvif_simple_server.ori/onvif_simple_server.c	2023-10-01 17:23:55.595528373 +0200
-+++ onvif_simple_server/onvif_simple_server.c	2023-10-01 17:24:32.443603222 +0200
-@@ -32,8 +32,8 @@
+--- onvif_simple_server.ori/onvif_simple_server.c	2023-11-07 21:36:47.640210252 +0100
++++ onvif_simple_server/onvif_simple_server.c	2023-11-07 21:39:20.952557004 +0100
+@@ -36,8 +36,8 @@
  #include "utils.h"
  #include "log.h"
  
@@ -13,9 +30,9 @@ diff -Naur onvif_simple_server.ori/onvif_simple_server.c onvif_simple_server/onv
  
  service_context_t service_ctx;
 diff -Naur onvif_simple_server.ori/wsd_simple_server.c onvif_simple_server/wsd_simple_server.c
---- onvif_simple_server.ori/wsd_simple_server.c	2023-10-01 17:22:33.023360636 +0200
-+++ onvif_simple_server/wsd_simple_server.c	2023-10-01 17:24:51.771642482 +0200
-@@ -36,8 +36,8 @@
+--- onvif_simple_server.ori/wsd_simple_server.c	2023-11-07 21:36:47.640210252 +0100
++++ onvif_simple_server/wsd_simple_server.c	2023-11-07 21:39:36.432590305 +0100
+@@ -37,8 +37,8 @@
  #define PORT 3702
  #define TYPE "NetworkVideoTransmitter"
  
@@ -24,5 +41,5 @@ diff -Naur onvif_simple_server.ori/wsd_simple_server.c onvif_simple_server/wsd_s
 +#define DEFAULT_LOG_FILE "/tmp/wsd_simple_server.log"
 +#define TEMPLATE_DIR "/tmp/sd/yi-hack/etc/wsd_simple_server"
  
- #define UUID_LEN 36
  #define RECV_BUFFER_LEN 4096
+ 

@@ -142,6 +142,7 @@ if [[ x$(get_config USERNAME) != "x" ]] ; then
     log "Setting username and password"
     USERNAME=$(get_config USERNAME)
     PASSWORD=$(get_config PASSWORD)
+    RTSP_USERPWD=$USERNAME:$PASSWORD@
     ONVIF_USERPWD="user=$USERNAME\npassword=$PASSWORD"
     echo "/onvif::" > /tmp/httpd.conf
     echo "/:$USERNAME:$PASSWORD" >> /tmp/httpd.conf
@@ -372,7 +373,7 @@ if [[ $(get_config RTSP) == "yes" ]] ; then
             sleep 1
         fi
         $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &
-        ONVIF_PROFILE_1="name=Profile_1\nwidth=640\nheight=360\nurl=rtsp://%s$D_RTSP_PORT/ch0_1.h264\nsnapurl=http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK\ntype=H264"
+        ONVIF_PROFILE_1="name=Profile_1\nwidth=640\nheight=360\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_1.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK\ntype=H264"
     fi
     if [[ "$RTSP_STREAM" == "high" ]]; then
         if [[ "$RTSP_ALT" == "yes" ]] ; then
@@ -380,7 +381,7 @@ if [[ $(get_config RTSP) == "yes" ]] ; then
             sleep 1
         fi
         $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &
-        ONVIF_PROFILE_0="name=Profile_0\nwidth=1920\nheight=1080\nurl=rtsp://%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264"
+        ONVIF_PROFILE_0="name=Profile_0\nwidth=1920\nheight=1080\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264"
     fi
     if [[ "$RTSP_STREAM" == "both" ]]; then
         if [[ "$RTSP_ALT" == "yes" ]] ; then
@@ -389,10 +390,10 @@ if [[ $(get_config RTSP) == "yes" ]] ; then
         fi
         $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &
         if [[ "$ONVIF_PROFILE" == "low" ]] || [[ "$ONVIF_PROFILE" == "both" ]] ; then
-            ONVIF_PROFILE_1="name=Profile_1\nwidth=640\nheight=360\nurl=rtsp://%s$D_RTSP_PORT/ch0_1.h264\nsnapurl=http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK\ntype=H264"
+            ONVIF_PROFILE_1="name=Profile_1\nwidth=640\nheight=360\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_1.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK\ntype=H264"
         fi
         if [[ "$ONVIF_PROFILE" == "high" ]] || [[ "$ONVIF_PROFILE" == "both" ]] ; then
-            ONVIF_PROFILE_0="name=Profile_0\nwidth=1920\nheight=1080\nurl=rtsp://%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264"
+            ONVIF_PROFILE_0="name=Profile_0\nwidth=1920\nheight=1080\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264"
         fi
     fi
     $YI_HACK_PREFIX/script/wd_rtsp.sh &
@@ -450,9 +451,49 @@ if [[ $(get_config ONVIF) == "yes" ]] ; then
         echo "move_down=/tmp/sd/yi-hack/bin/ipc_cmd $PTZ_UD_INV down" >> $ONVIF_SRVD_CONF
         echo "move_stop=/tmp/sd/yi-hack/bin/ipc_cmd -M stop" >> $ONVIF_SRVD_CONF
         echo "move_preset=/tmp/sd/yi-hack/bin/ipc_cmd -p %t" >> $ONVIF_SRVD_CONF
+        echo "set_preset=/tmp/sd/yi-hack/bin/ipc_cmd -P %t" >> $ONVIF_SRVD_CONF
+        echo "set_home_position=/tmp/sd/yi-hack/bin/ipc_cmd -H" >> $ONVIF_SRVD_CONF
+        echo "remove_preset=/tmp/sd/yi-hack/bin/ipc_cmd -R %t" >> $ONVIF_SRVD_CONF
+        echo "" >> $ONVIF_SRVD_CONF
     fi
 
+    echo "#EVENT" >> $ONVIF_SRVD_CONF
+    echo "events=1" >> $ONVIF_SRVD_CONF
+    echo "#Event 0" >> $ONVIF_SRVD_CONF
+    echo "topic=tns1:VideoSource/MotionAlarm" >> $ONVIF_SRVD_CONF
+    echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
+    echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
+    echo "input_file=/tmp/onvif_notify_server/motion_alarm" >> $ONVIF_SRVD_CONF
+    echo "#Event 1" >> $ONVIF_SRVD_CONF
+    echo "topic=tns1:RuleEngine/MyRuleDetector/PeopleDetect" >> $ONVIF_SRVD_CONF
+    echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
+    echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
+    echo "input_file=/tmp/onvif_notify_server/human_detection" >> $ONVIF_SRVD_CONF
+    echo "#Event 2" >> $ONVIF_SRVD_CONF
+    echo "topic=tns1:RuleEngine/MyRuleDetector/VehicleDetect" >> $ONVIF_SRVD_CONF
+    echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
+    echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
+    echo "input_file=/tmp/onvif_notify_server/vehicle_detection" >> $ONVIF_SRVD_CONF
+    echo "#Event 3" >> $ONVIF_SRVD_CONF
+    echo "topic=tns1:RuleEngine/MyRuleDetector/DogCatDetect" >> $ONVIF_SRVD_CONF
+    echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
+    echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
+    echo "input_file=/tmp/onvif_notify_server/animal_detection" >> $ONVIF_SRVD_CONF
+    echo "#Event 4" >> $ONVIF_SRVD_CONF
+    echo "topic=tns1:RuleEngine/MyRuleDetector/BabyCryingDetect" >> $ONVIF_SRVD_CONF
+    echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
+    echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
+    echo "input_file=/tmp/onvif_notify_server/baby_crying" >> $ONVIF_SRVD_CONF
+    echo "#Event 5" >> $ONVIF_SRVD_CONF
+    echo "topic=tns1:AudioAnalytics/Audio/DetectedSound" >> $ONVIF_SRVD_CONF
+    echo "source_name=AudioAnalyticsConfigurationToken" >> $ONVIF_SRVD_CONF
+    echo "source_value=AudioAnalyticsToken" >> $ONVIF_SRVD_CONF
+    echo "input_file=/tmp/onvif_notify_server/sound_detection" >> $ONVIF_SRVD_CONF
+
+    chmod 0600 $ONVIF_SRVD_CONF
     onvif_simple_server --conf_file $ONVIF_SRVD_CONF
+    ipc2file
+    onvif_notify_server --conf_file $ONVIF_SRVD_CONF
 
     if [[ $(get_config ONVIF_WSDD) == "yes" ]] ; then
         wsd_simple_server --pid_file /var/run/wsd_simple_server.pid --if_name $ONVIF_NETIF --xaddr "http://%s$D_HTTPD_PORT/onvif/device_service" -m yi_hack -n Yi

@@ -83,7 +83,7 @@ check_rtsp()
                     sleep 1
                     restart_rtsp
                     COUNTER=0
-            fi
+                fi
             else
                 COUNTER=0
             fi
@@ -127,7 +127,7 @@ check_rmm()
     PS=`ps ww | grep rmm | grep -v grep | grep -c ^`
 
     if [ $PS -eq 0 ]; then
-	echo "check_rmm failed, reboot!" >> $LOG_FILE
+        echo "check_rmm failed, reboot!" >> $LOG_FILE
         reboot
     fi
 }

@@ -336,30 +336,30 @@ if [ "$ACTION" == "start" ] ; then
     elif [ "$NAME" == "mqtt" ]; then
         if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
             if [ "$MODEL_SUFFIX" != "y291ga" ] && [ "$MODEL_SUFFIX" != "y211ga" ]; then
-                mqttv4 -t local >/dev/null &
+                mqttv4 -t local > /dev/null &
             else
-                mqttv4 >/dev/null &
+                mqttv4 > /dev/null &
             fi
         else
-            mqttv4 >/dev/null &
+            mqttv4 > /dev/null &
         fi
-        mqtt-config >/dev/null &
+        mqtt-config > /dev/null &
     elif [ "$NAME" == "mp4record" ]; then
         cd /home/app
-        ./mp4record >/dev/null &
+        ./mp4record > /dev/null &
     elif [ "$NAME" == "all" ]; then
         start_rtsp
         start_onvif
         start_wsdd
         start_ftpd
         if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
-            mqttv4 -t local >/dev/null &
+            mqttv4 -t local > /dev/null &
         else
-            mqttv4 >/dev/null &
+            mqttv4 > /dev/null &
         fi
-        mqtt-config >/dev/null &
+        mqtt-config > /dev/null &
         cd /home/app
-        ./mp4record >/dev/null &
+        ./mp4record > /dev/null &
     fi
 elif [ "$ACTION" == "stop" ] ; then
     if [ "$NAME" == "rtsp" ]; then

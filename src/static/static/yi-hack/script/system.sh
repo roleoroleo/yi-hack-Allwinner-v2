@@ -146,6 +146,7 @@ if [[ x$(get_config USERNAME) != "x" ]] ; then
     ONVIF_USERPWD="user=$USERNAME\npassword=$PASSWORD"
     echo "/onvif::" > /tmp/httpd.conf
     echo "/:$USERNAME:$PASSWORD" >> /tmp/httpd.conf
+    chmod 0600 /tmp/httpd.conf
 fi
 
 if [[ x$(get_config SSH_PASSWORD) != "x" ]] ; then
@@ -155,8 +156,12 @@ if [[ x$(get_config SSH_PASSWORD) != "x" ]] ; then
     sed -i 's|^root::|root:x:|g' /etc/passwd
     sed -i 's|:/root:|:/tmp/sd/yi-hack:|g' /etc/passwd
     sed -i 's|^root::|root:'${PASSWORD_MD5}':|g' /etc/shadow
+    chmod 0600 /etc/passwd
+    chmod 0600 /etc/shadow
 else
     sed -i 's|:/root:|:/tmp/sd/yi-hack:|g' /etc/passwd
+    chmod 0600 /etc/passwd
+    chmod 0600 /etc/shadow
 fi
 
 case $(get_config RTSP_PORT) in

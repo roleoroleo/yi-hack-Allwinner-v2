@@ -4,3 +4,4 @@ ipc_cmd/ipc_cmd
 ipc_cmd/ipc_multiplex.so
 ipc_cmd/ipc_read
 ipc_cmd/ipc_notify
+ipc_cmd/ipc2file

@@ -89,25 +89,28 @@ start_rtsp()
     if [ "$1" == "low" ] || [ "$1" == "high" ] || [ "$1" == "both" ]; then
         RTSP_RES=$1
     fi
+    if [ "$2" == "aac" ]; then
+        H264GRABBER_AUDIO="-a"
+    fi
     if [ "$2" == "no" ] || [ "$2" == "yes" ] || [ "$2" == "alaw" ] || [ "$2" == "ulaw" ] || [ "$2" == "pcm" ] || [ "$2" == "aac" ] ; then
         RTSP_AUDIO_COMPRESSION="-a "$2
     fi
 
     if [[ $RTSP_RES == "low" ]]; then
         if [ "$RTSP_ALT" == "yes" ]; then
-            h264grabber -m $MODEL_SUFFIX -r low -f &
+            h264grabber -m $MODEL_SUFFIX -r low $H264GRABBER_AUDIO -f &
             sleep 1
         fi
         $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &
     elif [[ $RTSP_RES == "high" ]]; then
         if [ "$RTSP_ALT" == "yes" ]; then
-            h264grabber -m $MODEL_SUFFIX -r high -f &
+            h264grabber -m $MODEL_SUFFIX -r high $H264GRABBER_AUDIO -f &
             sleep 1
         fi
         $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &
     elif [[ $RTSP_RES == "both" ]]; then
         if [ "$RTSP_ALT" == "yes" ]; then
-            h264grabber -m $MODEL_SUFFIX -r both -f &
+            h264grabber -m $MODEL_SUFFIX -r both $H264GRABBER_AUDIO -f &
             sleep 1
         fi
         $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &

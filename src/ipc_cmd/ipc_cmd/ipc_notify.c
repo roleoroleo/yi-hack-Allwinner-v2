@@ -72,8 +72,10 @@ char lookup[16] = {
 
 static int parse_message(char *buffer, char *cmd, ssize_t len)
 {
+    int i;
+
     // Convert message to hex string
-    for (int i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) {
         message_buffer[i * 2]     = lookup[buffer[i] >>  4];
         message_buffer[i * 2 + 1] = lookup[buffer[i] & 0xF];
     }

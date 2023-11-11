@@ -19,6 +19,8 @@ ssize_t (*original_mq_receive)(mqd_t, char*, size_t, unsigned int*);
 **/
 void ipc_multiplex_initialize() {
 
+    int i;
+
     // Enable debug mode if requested
     if (getenv(ENV_IPC_MULTIPLEX_DEBUG)) {
         debug = true;
@@ -33,7 +35,7 @@ void ipc_multiplex_initialize() {
     };
 
     char queue_name[64];
-    for (int i = 1; i < 10; i++) {
+    for (i = 1; i < 10; i++) {
         sprintf(queue_name, "%s_%d", IPC_QUEUE_NAME, i);
 
         // Open the message queue or create a new one if it does not exist
@@ -64,6 +66,8 @@ inline unsigned int get_message_target(char *msg_ptr) {
 **/
 ssize_t mq_receive(mqd_t mqdes, char *msg_ptr, size_t msg_len, unsigned int *msg_prio) {
 
+    int i;
+
     // Initialize resources on first call.
     if (is_initialized == false) {
         ipc_multiplex_initialize();
@@ -74,7 +78,7 @@ ssize_t mq_receive(mqd_t mqdes, char *msg_ptr, size_t msg_len, unsigned int *msg
 
     if (debug) {
         fprintf(stderr, "*** [IPC_MULTIPLEX] ");
-        for(int i = 0; i < bytes_read; i++)
+        for(i = 0; i < bytes_read; i++)
             fprintf(stderr, "%02x ", msg_ptr[i]);
         fprintf(stderr, "\n");
     }
@@ -85,7 +89,7 @@ ssize_t mq_receive(mqd_t mqdes, char *msg_ptr, size_t msg_len, unsigned int *msg
 //    }
 
     // Resend the received message to the dispatch queues
-    for (int i = 1; i < 10; i++) {
+    for (i = 1; i < 10; i++) {
 
         // mq_send will fail with EAGAIN whenever the target message queue is full.
         if (mq_send(ipc_mq[i], msg_ptr, bytes_read, MESSAGE_PRIORITY) != 0 && errno != EAGAIN) {

@@ -93,10 +93,13 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tset Sound Detection Sensitivity: 30 - 90\n");
     fprintf(stderr, "\t-m MOVE, --move MOVE\n");
     fprintf(stderr, "\t\tsend PTZ command: RIGHT, LEFT, DOWN, UP or STOP\n");
-    fprintf(stderr, "\t-p NUM, --preset NUM\n");
-    fprintf(stderr, "\t\tsend PTZ go to preset command: NUM = [0..7]\n");
-    fprintf(stderr, "\t-P, --add_preset\n");
-    fprintf(stderr, "\t\tadd PTZ preset in the first available position\n");
+    fprintf(stderr, "\t-p TOKEN, --preset TOKEN\n");
+    fprintf(stderr, "\t\tsend PTZ go to preset command: TOKEN = [0..7]\n");
+    fprintf(stderr, "\t-P TOKEN, --add_preset TOKEN\n");
+    fprintf(stderr, "\t\tadd PTZ preset with token TOKEN in the first available position\n");
+    fprintf(stderr, "\t\tparameter TOKEN is ignored for Yi cam\n");
+    fprintf(stderr, "\t-H, --set_home_position\n");
+    fprintf(stderr, "\t\tset home position (preset 0 for Yi cam)\n");
     fprintf(stderr, "\t-R NUM, --remove_preset NUM\n");
     fprintf(stderr, "\t\tremove PTZ preset: NUM = [0..7] or \"all\"\n");
     fprintf(stderr, "\t-C MODE, --cruise MODE\n");
@@ -139,6 +142,7 @@ int main(int argc, char ** argv)
     int move = NONE;
     int preset = NONE;
     int add_preset = NONE;
+    int set_home_position = NONE;
     int remove_preset = NONE;
     int cruise = NONE;
     int debug = 0;
@@ -177,7 +181,8 @@ int main(int argc, char ** argv)
             {"move",  required_argument, 0, 'm'},
             {"move-reverse",  required_argument, 0, 'M'},
             {"preset",  required_argument, 0, 'p'},
-            {"add_preset",  no_argument, 0, 'P'},
+            {"add_preset",  required_argument, 0, 'P'},
+            {"set_home_position",  no_argument, 0, 'H'},
             {"remove_preset",  required_argument, 0, 'R'},
             {"cruise",  required_argument, 0, 'C'},
             {"file", required_argument, 0, 'f'},
@@ -191,7 +196,7 @@ int main(int argc, char ** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:E:N:O:c:o:I:b:B:n:m:M:p:PR:C:f:S:TxXdh",
+        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:E:N:O:c:o:I:b:B:n:m:M:p:P:HR:C:f:S:TxXdh",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -442,7 +447,26 @@ int main(int argc, char ** argv)
             break;
 
         case 'P':
-            add_preset = 1;
+            errno = 0;    /* To distinguish success/failure after call */
+            add_preset = strtol(optarg, &endptr, 10);
+
+            /* Check for various possible errors */
+            if ((errno == ERANGE && (add_preset == LONG_MAX || add_preset == LONG_MIN)) || (errno != 0 && add_preset == 0)) {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            if (endptr == optarg) {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            if ((add_preset < 0) || (add_preset > 7)) {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            break;
+
+        case 'H':
+            set_home_position = 1;
             break;
 
         case 'R':
@@ -686,6 +710,17 @@ int main(int argc, char ** argv)
     }
 
     if (add_preset != NONE) {
+        // Ignore token because Yi doesn't support it
+        mq_send(ipc_mq, IPC_ADD_PRESET, sizeof(IPC_ADD_PRESET) - 1, 0);
+    }
+
+    if (set_home_position != NONE) {
+        // Remove preset 0
+        memcpy(preset_msg, IPC_REMOVE_PRESET, sizeof(IPC_REMOVE_PRESET) - 1);
+        preset_msg[16] = 0;
+        mq_send(ipc_mq, preset_msg, sizeof(IPC_REMOVE_PRESET) - 1, 0);
+        // sleep 1 sec and add it again
+        sleep(1);
         mq_send(ipc_mq, IPC_ADD_PRESET, sizeof(IPC_ADD_PRESET) - 1, 0);
     }
 

@@ -6,6 +6,8 @@ Please note: bootloader saves the hash of the file and if it matches the hash of
 
 In this case, you have to use a different file: for example you can use "factory" if you have previously used "hacked" and vice versa (see below).
 
+In the "hacked" version I added a random file to force the hash to change.
+
 
 ## How to use
 

@@ -129,6 +129,12 @@ nav ul li.icon {
 		display: block;
 		text-align: left;
 	}
+	nav.mobile ul li a:after {
+		content: attr(title);
+		position: relative;
+		top: -6px;
+		padding-left: 10px;
+	}
 	nav.mobile ul li ul {
 		position: relative;
 		height: auto;

@@ -160,6 +160,7 @@ Currently this project supports only the following cameras:
 | Yi Dome Guard YRS | 9.0.46* | r35gb | - |
 | Yi Dome Guard YRS | 12.1.47* | r35gb | - |
 | Yi Pro 2K Home RFUS | 12.0.51* | y623 | - |
+| Yi Pro 2K Home YFUS | 12.0.51* | y623 | - |
 | Kami mini home IFUS | 9.0.20* | y28ga | - |
 | MIBAO G1 1296p dome | 9.0.04* | qg311r | - |
 | BLITZWOLF BW-YIC1 | 9.0.41* | b091qp | - |

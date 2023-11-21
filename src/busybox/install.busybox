@@ -19,8 +19,6 @@ echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/netstat
 chmod 0755 ../../build/yi-hack/bin/netstat
 echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/rmdir
 chmod 0755 ../../build/yi-hack/bin/rmdir
-echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/tar
-chmod 0755 ../../build/yi-hack/bin/tar
 echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/sbin/mkswap
 chmod 0755 ../../build/yi-hack/sbin/mkswap
 echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/bzip2

@@ -148,6 +148,7 @@ Currently this project supports only the following cameras:
 | Yi Outdoor 1080p RFUS | 11.1.26* | h30ga | - |
 | Yi 1080p Dome *FUS | 9.0.05* | r30gb | beta version (check this issue https://github.com/roleoroleo/yi-hack-Allwinner-v2/issues/484) |
 | Yi 1080p Dome *FUS | 12.1.05* | r30gb | beta version (check this issue https://github.com/roleoroleo/yi-hack-Allwinner-v2/issues/484) |
+| Yi Dome Guard YRS | 9.0.05* | r30gb | beta version (check this issue https://github.com/roleoroleo/yi-hack-Allwinner-v2/issues/484) |
 | Yi Dome Camera U BFUS (Full HD) | 9.0.22* | h52ga | - |
 | Yi Dome Camera U BFUS (2K) | 9.0.21* | h51ga | - |
 | Yi Dome Camera U SFUS (2K) | 9.0.21* | h51ga | - |
@@ -159,6 +160,7 @@ Currently this project supports only the following cameras:
 | Yi Dome Guard YRS | 9.0.46* | r35gb | - |
 | Yi Dome Guard YRS | 12.1.47* | r35gb | - |
 | Yi Pro 2K Home RFUS | 12.0.51* | y623 | - |
+| Yi Pro 2K Home YFUS | 12.0.51* | y623 | - |
 | Kami mini home IFUS | 9.0.20* | y28ga | - |
 | MIBAO G1 1296p dome | 9.0.04* | qg311r | - |
 | BLITZWOLF BW-YIC1 | 9.0.41* | b091qp | - |

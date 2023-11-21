@@ -43,6 +43,8 @@ echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/sort
 chmod 0755 ../../build/yi-hack/usr/bin/sort
 echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/tail
 chmod 0755 ../../build/yi-hack/usr/bin/tail
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/uptime
+chmod 0755 ../../build/yi-hack/usr/bin/uptime
 echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/xargs
 chmod 0755 ../../build/yi-hack/usr/bin/xargs
 echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/wget

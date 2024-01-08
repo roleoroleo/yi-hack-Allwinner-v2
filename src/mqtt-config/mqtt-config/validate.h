@@ -6,7 +6,7 @@
 
 #define PARAM_SIZE    128
 #define PARAM_OPTIONS 9
-#define PARAM_NUM     63
+#define PARAM_NUM     69
 
 int validate_param(char *file, char *key, char *value);
 int extract_param(char *param, char *file, char *key, int index);

@@ -146,7 +146,7 @@ void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_
         // Check if we need to run ipc_cmd
         if (extract_param(ipc_cmd_param, file, param, 8) == 0) {
             if (ipc_cmd_param[0] != '\0') {
-                sprintf(cmd_line, "ipc_cmd %s %s", ipc_cmd_param, (char *) message->payload);
+                sprintf(cmd_line, ipc_cmd_param, (char *) message->payload);
                 if (debug) printf("Running system command \"%s\"\n", cmd_line);
                 system(cmd_line);
             } else {

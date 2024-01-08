@@ -112,8 +112,8 @@
 #define H_LOW 360
 #define W_FHD 1920
 #define H_FHD 1080
-#define W_3K 2304
-#define H_3K 1296
+#define W_3M 2304
+#define H_3M 1296
 
 typedef struct {
     int sps_addr;
@@ -671,8 +671,8 @@ int main(int argc, char **argv)
             width = W_FHD;
             height = H_FHD;
         } else {
-            width = W_3K;
-            height = H_3K;
+            width = W_3M;
+            height = H_3M;
         }
     }
     if (debug) fprintf(stderr, "Resolution %d x %d\n", width, height);

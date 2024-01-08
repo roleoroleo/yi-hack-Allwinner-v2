@@ -35,19 +35,21 @@ extern int debug;
 
 VideoFramedMemorySource*
 VideoFramedMemorySource::createNew(UsageEnvironment& env,
+                                        int hNumber,
                                         cb_output_buffer *cbBuffer,
                                         unsigned preferredFrameSize,
                                         unsigned playTimePerFrame) {
     if (cbBuffer == NULL) return NULL;
 
-    return new VideoFramedMemorySource(env, cbBuffer, preferredFrameSize, playTimePerFrame);
+    return new VideoFramedMemorySource(env, hNumber, cbBuffer, preferredFrameSize, playTimePerFrame);
 }
 
 VideoFramedMemorySource::VideoFramedMemorySource(UsageEnvironment& env,
+                                                        int hNumber,
                                                         cb_output_buffer *cbBuffer,
                                                         unsigned preferredFrameSize,
                                                         unsigned playTimePerFrame)
-    : FramedSource(env), fBuffer(cbBuffer), fCurIndex(0),
+    : FramedSource(env), fHNumber(hNumber), fBuffer(cbBuffer), fCurIndex(0),
       fPreferredFrameSize(preferredFrameSize), fPlayTimePerFrame(playTimePerFrame), fLastPlayTime(0),
       fLimitNumBytesToStream(False), fNumBytesToStream(0), fHaveStartedReading(False) {
 }
@@ -132,11 +134,13 @@ void VideoFramedMemorySource::doGetNextFrame() {
                 (TaskFunc*) VideoFramedMemorySource::doGetNextFrameTask, this);
         return;
     } else if (cb_memcmp(NALU_HEADER, fBuffer->output_frame[fBuffer->frame_read_index].ptr, sizeof(NALU_HEADER)) != 0) {
+        // Maybe the buffer is too small, align read index with write index
         fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
         pthread_mutex_unlock(&(fBuffer->mutex));
         fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() error - wrong frame header\n", current_timestamp());
         fFrameSize = 0;
         fNumTruncatedBytes = 0;
+        fBuffer->frame_read_index = fBuffer->frame_write_index;
         nextTask() = envir().taskScheduler().scheduleDelayedTask(fPlayTimePerFrame/4,
                 (TaskFunc*) VideoFramedMemorySource::doGetNextFrameTask, this);
         return;
@@ -206,6 +210,16 @@ void VideoFramedMemorySource::doGetNextFrame() {
     gettimeofday(&fPresentationTime, NULL);
     fDurationInMicroseconds = fPlayTimePerFrame;
 #endif
+
+    // If it's a VPS/SPS/PPS set duration = 0
+    u_int8_t nal_unit_type;
+    if (fHNumber == 264) {
+        nal_unit_type = ptr[0]&0x1F;
+        if ((nal_unit_type == 7) || (nal_unit_type == 8)) fDurationInMicroseconds = 0;
+    } else if (fHNumber == 265) {
+        nal_unit_type = (ptr[0]&0x7E)>>1;
+        if ((nal_unit_type == 32) || (nal_unit_type == 33) || (nal_unit_type == 34)) fDurationInMicroseconds = 0;
+    }
 
      // Switch to another task, and inform the reader that he has data:
     nextTask() = envir().taskScheduler().scheduleDelayedTask(0,

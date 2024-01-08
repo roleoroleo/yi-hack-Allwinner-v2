@@ -110,7 +110,7 @@ FramedSource* H264VideoFramedMemoryServerMediaSubsession::createNewStreamSource(
         estBitrate = 500; // kbps, estimate
 
     // Create the video source:
-    VideoFramedMemorySource* memorySource = VideoFramedMemorySource::createNew(envir(), fBuffer, 0, 50000);
+    VideoFramedMemorySource* memorySource = VideoFramedMemorySource::createNew(envir(), 264, fBuffer, 0, 50000);
     if (memorySource == NULL) return NULL;
 
     // Create a framer for the Video Elementary Stream:

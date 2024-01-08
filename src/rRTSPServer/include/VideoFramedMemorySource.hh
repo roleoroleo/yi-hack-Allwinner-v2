@@ -30,6 +30,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class VideoFramedMemorySource: public FramedSource {
 public:
     static VideoFramedMemorySource* createNew(UsageEnvironment& env,
+                                                int hNumber,
                                                 cb_output_buffer *cbBuffer,
                                                 unsigned preferredFrameSize = 0,
                                                 unsigned playTimePerFrame = 0);
@@ -41,6 +42,7 @@ public:
 
 protected:
     VideoFramedMemorySource(UsageEnvironment& env,
+                                int hNumber,
                                 cb_output_buffer *cbBuffer,
                                 unsigned preferredFrameSize,
                                 unsigned playTimePerFrame);
@@ -55,6 +57,7 @@ private:
     virtual void doStopGettingFrames();
 
 private:
+    int fHNumber;
     cb_output_buffer *fBuffer;
     u_int64_t fCurIndex;
     unsigned fPreferredFrameSize;

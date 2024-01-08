@@ -1,7 +1,7 @@
-diff -Naur busybox-1_34_1.ori/networking/httpd.c busybox-1_34_1/networking/httpd.c
---- busybox-1_34_1.ori/networking/httpd.c	2023-05-19 20:00:29.413569385 +0200
-+++ busybox-1_34_1/networking/httpd.c	2023-05-19 20:02:07.024333868 +0200
-@@ -2390,6 +2390,13 @@
+diff -Naur busybox-1.36.1.ori/networking/httpd.c busybox-1.36.1/networking/httpd.c
+--- busybox-1.36.1.ori/networking/httpd.c	2024-01-08 16:45:49.504118695 +0100
++++ busybox-1.36.1/networking/httpd.c	2024-01-08 16:52:14.701167800 +0100
+@@ -2406,6 +2406,13 @@
  		}
  		cgi_type = CGI_NORMAL;
  	}

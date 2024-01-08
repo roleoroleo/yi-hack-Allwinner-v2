@@ -1,7 +1,7 @@
-diff -Naur busybox-1_34_1.ori/networking/httpd.c busybox-1_34_1/networking/httpd.c
---- busybox-1_34_1.ori/networking/httpd.c	2021-09-30 22:27:55.000000000 +0200
-+++ busybox-1_34_1/networking/httpd.c	2023-05-17 08:40:31.695924911 +0200
-@@ -2166,7 +2166,7 @@
+diff -Naur busybox-1.36.1.ori/networking/httpd.c busybox-1.36.1/networking/httpd.c
+--- busybox-1.36.1.ori/networking/httpd.c	2023-01-03 15:14:43.000000000 +0100
++++ busybox-1.36.1/networking/httpd.c	2024-01-08 16:45:49.504118695 +0100
+@@ -2182,7 +2182,7 @@
  	struct stat sb;
  	char *urlcopy;
  	char *urlp;
@@ -10,7 +10,7 @@ diff -Naur busybox-1_34_1.ori/networking/httpd.c busybox-1_34_1/networking/httpd
  #if ENABLE_FEATURE_HTTPD_ACL_IP
  	unsigned remote_ip;
  #endif
-@@ -2402,7 +2402,32 @@
+@@ -2418,7 +2418,32 @@
  			g_query = xstrdup(g_query); /* ok for NULL too */
  		strcpy(urlp, index_page);
  	}
@@ -43,7 +43,7 @@ diff -Naur busybox-1_34_1.ori/networking/httpd.c busybox-1_34_1/networking/httpd
  		/* If URL is a directory with no slash, set up
  		 * "HTTP/1.1 302 Found" "Location: /dir/" reply */
  		if (urlp[-1] != '/' && S_ISDIR(sb.st_mode)) {
-@@ -2426,6 +2451,7 @@
+@@ -2442,6 +2467,7 @@
  	}
  #if ENABLE_FEATURE_HTTPD_CGI
  	else if (urlp[-1] == '/') {

@@ -1,7 +1,8 @@
 #!/bin/bash
 
-VERSION="1_34_1"
-MAIN_URL=https://github.com/mirror/busybox/archive/refs/tags/${VERSION}.tar.gz
-PACKAGE="${VERSION}"
-ARCHIVE="${PACKAGE}.tar.gz"
+VERSION="1.36.1"
+#MAIN_URL=https://github.com/mirror/busybox/archive/refs/tags/${VERSION}.tar.gz
+MAIN_URL=https://busybox.net/downloads/busybox-${VERSION}.tar.bz2
+PACKAGE="busybox-${VERSION}"
+ARCHIVE="${PACKAGE}.tar.bz2"
 BUILD_FOLDER="busybox-${VERSION}"

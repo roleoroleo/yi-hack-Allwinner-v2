@@ -117,24 +117,24 @@ FramedSource* ADTSAudioFramedMemoryServerMediaSubsession::createNewStreamSource(
     // has a sample frequency and expected to be a WAVAudioFifoSource.
     for (int x = 0; x < 10; x++) {
         if (((AudioFramedMemorySource*)(previousSource))->samplingFrequency() != 0) {
-            if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - source found at x = %d\n", current_timestamp(), x);
+            if (debug & 8) fprintf(stderr, "%lld: ADTSAudioFramedMemoryServerMediaSubsession - source found at x = %d\n", current_timestamp(), x);
             originalSource = (AudioFramedMemorySource*)(previousSource);
             break;
         }
         previousSource = (FramedFilter*)previousSource->inputSource();
     }
-    if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - fReplicator->inputSource() = %p\n", current_timestamp(), originalSource);
+    if (debug & 8) fprintf(stderr, "%lld: ADTSAudioFramedMemoryServerMediaSubsession - fReplicator->inputSource() = %p\n", current_timestamp(), originalSource);
     resultSource = fReplicator->createStreamReplica();
     if (resultSource == NULL) {
-        fprintf(stderr, "%lld: AudioFramedMemorySource - Failed to create stream replica\n", current_timestamp());
+        fprintf(stderr, "%lld: ADTSAudioFramedMemoryServerMediaSubsession - Failed to create stream replica\n", current_timestamp());
         Medium::close(resultSource);
         return NULL;
     } else {
         fSamplingFrequency = originalSource->samplingFrequency();
         fNumChannels = originalSource->numChannels();
         sprintf(fConfigStr, originalSource->configStr());
-        if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - createStreamReplica completed successfully\n", current_timestamp());
-        if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - Sampling frequency: %d, Num channels: %d, Config string: %s\n",
+        if (debug & 8) fprintf(stderr, "%lld: ADTSAudioFramedMemoryServerMediaSubsession - createStreamReplica completed successfully\n", current_timestamp());
+        if (debug & 8) fprintf(stderr, "%lld: ADTSAudioFramedMemoryServerMediaSubsession - Sampling frequency: %d, Num channels: %d, Config string: %s\n",
             current_timestamp(), fSamplingFrequency, fNumChannels, fConfigStr);
 
         //return ADTSAudioStreamDiscreteFramer::createNew(envir(), resultSource, fConfigStr);

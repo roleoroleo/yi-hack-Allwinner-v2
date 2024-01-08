@@ -115,7 +115,7 @@ void AudioFramedMemorySource::doGetNextFrameEx() {
 void AudioFramedMemorySource::doGetNextFrame() {
     Boolean isFirstReading = !fHaveStartedReading;
     if (!fHaveStartedReading) {
-        if (debug & 8) fprintf(stderr, "%lld: aac out - doGetNextFrame() 1st start\n", current_timestamp());
+        if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() 1st start\n", current_timestamp());
         pthread_mutex_lock(&(fBuffer->mutex));
         fBuffer->frame_read_index = fBuffer->frame_write_index;
         pthread_mutex_unlock(&(fBuffer->mutex));
@@ -124,12 +124,12 @@ void AudioFramedMemorySource::doGetNextFrame() {
 
     fFrameSize = fMaxSize;
 
-    if (debug & 8) fprintf(stderr, "%lld: aac out - doGetNextFrame() start - fMaxSize %d\n", current_timestamp(), fMaxSize);
+    if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() start - fMaxSize %d\n", current_timestamp(), fMaxSize);
 
     pthread_mutex_lock(&(fBuffer->mutex));
     if (fBuffer->frame_read_index == fBuffer->frame_write_index) {
         pthread_mutex_unlock(&(fBuffer->mutex));
-        if (debug & 8) fprintf(stderr, "%lld: aac out - doGetNextFrame() read_index = write_index\n", current_timestamp());
+        if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() read_index = write_index\n", current_timestamp());
         fFrameSize = 0;
         fNumTruncatedBytes = 0;
         // Trick to avoid segfault with StreamReplicator
@@ -143,7 +143,7 @@ void AudioFramedMemorySource::doGetNextFrame() {
         return;
     } else if (fBuffer->output_frame[fBuffer->frame_read_index].ptr == NULL) {
         pthread_mutex_unlock(&(fBuffer->mutex));
-        fprintf(stderr, "%lld: aac out - doGetNextFrame() error - NULL ptr\n", current_timestamp());
+        fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() error - NULL ptr\n", current_timestamp());
         fFrameSize = 0;
         fNumTruncatedBytes = 0;
         // Trick to avoid segfault with StreamReplicator
@@ -158,7 +158,7 @@ void AudioFramedMemorySource::doGetNextFrame() {
     } else if (cb_check_sync_word(fBuffer->output_frame[fBuffer->frame_read_index].ptr) != 1) {
         fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
         pthread_mutex_unlock(&(fBuffer->mutex));
-        fprintf(stderr, "%lld: aac out - doGetNextFrame() error - wrong frame header\n", current_timestamp());
+        fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() error - wrong frame header\n", current_timestamp());
         fFrameSize = 0;
         fNumTruncatedBytes = 0;
         // Trick to avoid segfault with StreamReplicator
@@ -185,7 +185,7 @@ void AudioFramedMemorySource::doGetNextFrame() {
         // The size of the frame is smaller than the available buffer
         fNumTruncatedBytes = 0;
         fFrameSize = size;
-        if (debug & 8) fprintf(stderr, "%lld: aac out - doGetNextFrame() whole frame - fFrameSize %d - counter %d - fMaxSize %d\n", current_timestamp(), fFrameSize, fBuffer->output_frame[fBuffer->frame_read_index].counter, fMaxSize);
+        if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() whole frame - fFrameSize %d - counter %d - fMaxSize %d\n", current_timestamp(), fFrameSize, fBuffer->output_frame[fBuffer->frame_read_index].counter, fMaxSize);
         if (ptr + fFrameSize > fBuffer->buffer + fBuffer->size) {
             memmove(fTo, ptr, fBuffer->buffer + fBuffer->size - ptr);
             memmove(fTo + (fBuffer->buffer + fBuffer->size - ptr), fBuffer->buffer, fFrameSize - (fBuffer->buffer + fBuffer->size - ptr));
@@ -199,7 +199,7 @@ void AudioFramedMemorySource::doGetNextFrame() {
         // The size of the frame is greater than the available buffer
         fNumTruncatedBytes = size - fMaxSize;
         fFrameSize = fMaxSize;
-        fprintf(stderr, "%lld: aac out - doGetNextFrame() error - the size of the frame is greater than the available buffer %d/%d\n", current_timestamp(), fFrameSize, fMaxSize);
+        fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() error - the size of the frame is greater than the available buffer %d/%d\n", current_timestamp(), fFrameSize, fMaxSize);
         if (ptr + fFrameSize > fBuffer->buffer + fBuffer->size) {
             memmove(fTo, ptr, fBuffer->buffer + fBuffer->size - ptr);
             memmove(fTo + (fBuffer->buffer + fBuffer->size - ptr), fBuffer->buffer, fFrameSize - (fBuffer->buffer + fBuffer->size - ptr));

@@ -1,6 +1,6 @@
 diff -Naur onvif_simple_server.ori/onvif_notify_server.c onvif_simple_server/onvif_notify_server.c
---- onvif_simple_server.ori/onvif_notify_server.c	2023-11-07 21:36:47.640210252 +0100
-+++ onvif_simple_server/onvif_notify_server.c	2023-11-07 21:38:59.448510264 +0100
+--- onvif_simple_server.ori/onvif_notify_server.c	2023-12-09 22:58:35.403631631 +0100
++++ onvif_simple_server/onvif_notify_server.c	2023-12-09 22:59:34.011730308 +0100
 @@ -39,10 +39,10 @@
  #include "log.h"
  #include "onvif_simple_server.h"
@@ -14,10 +14,10 @@ diff -Naur onvif_simple_server.ori/onvif_notify_server.c onvif_simple_server/onv
 +#define TEMPLATE_DIR "/tmp/sd/yi-hack/etc/onvif_notify_server"
  #define INOTIFY_DIR "/tmp/onvif_notify_server"
  
- #define BD_NO_CHDIR          01
+ #define ALARM_OFF 0
 diff -Naur onvif_simple_server.ori/onvif_simple_server.c onvif_simple_server/onvif_simple_server.c
---- onvif_simple_server.ori/onvif_simple_server.c	2023-11-07 21:36:47.640210252 +0100
-+++ onvif_simple_server/onvif_simple_server.c	2023-11-07 21:39:20.952557004 +0100
+--- onvif_simple_server.ori/onvif_simple_server.c	2023-12-09 22:57:18.935503114 +0100
++++ onvif_simple_server/onvif_simple_server.c	2023-12-09 23:00:26.871819429 +0100
 @@ -36,8 +36,8 @@
  #include "utils.h"
  #include "log.h"
@@ -28,11 +28,11 @@ diff -Naur onvif_simple_server.ori/onvif_simple_server.c onvif_simple_server/onv
 +#define DEFAULT_LOG_FILE "/tmp/onvif_simple_server.log"
  #define DEBUG_FILE "/tmp/onvif_simple_server.debug"
  
- service_context_t service_ctx;
+ #define ROTATION_LOG_LENGTH 3
 diff -Naur onvif_simple_server.ori/wsd_simple_server.c onvif_simple_server/wsd_simple_server.c
---- onvif_simple_server.ori/wsd_simple_server.c	2023-11-07 21:36:47.640210252 +0100
-+++ onvif_simple_server/wsd_simple_server.c	2023-11-07 21:39:36.432590305 +0100
-@@ -37,8 +37,8 @@
+--- onvif_simple_server.ori/wsd_simple_server.c	2023-12-09 22:57:18.935503114 +0100
++++ onvif_simple_server/wsd_simple_server.c	2023-12-09 23:01:06.899886974 +0100
+@@ -38,8 +38,8 @@
  #define PORT 3702
  #define TYPE "NetworkVideoTransmitter"
  

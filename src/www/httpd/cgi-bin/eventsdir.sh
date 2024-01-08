@@ -1,20 +1,34 @@
 #!/bin/sh
 
-printf "Content-type: application/json\r\n\r\n"
-
-printf "{\"records\":[\n"
+CONF_FILE="etc/system.conf"
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
 
 HOMEVER=$(cat /home/homever)
 HV=${HOMEVER:0:2}
+
+get_config()
+{
+    key=$1
+    grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2
+}
+
+printf "Content-type: application/json\r\n\r\n"
+printf "{\"records\":[\n"
 
 COUNT=`ls -r /tmp/sd/record | grep H -c`
 IDX=1
 for f in `ls -r /tmp/sd/record | grep H`; do
     if [ ${#f} == 14 ]; then
         FS00="${f:0:4}-${f:5:2}-${f:8:2} ${f:11:2}:00"
-        if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+        if [[ $(get_config EVENTS_TIME) == "autodetect" ]] ; then
+            if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+                FS00E=$(date -d "$FS00" +"%s")
+            else
+                FS00E=$(date -u -d "$FS00" +"%s")
+            fi
+        elif [[ $(get_config EVENTS_TIME) == "local" ]] ; then
             FS00E=$(date -d "$FS00" +"%s")
-        else
+        elif [[ $(get_config EVENTS_TIME) == "gmt" ]] ; then
             FS00E=$(date -u -d "$FS00" +"%s")
         fi
         FL=$(date +%YY%mM%dD%HH -d "@$FS00E")

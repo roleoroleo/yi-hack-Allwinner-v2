@@ -1,5 +1,17 @@
 #!/bin/sh
 
+CONF_FILE="etc/system.conf"
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+
+HOMEVER=$(cat /home/homever)
+HV=${HOMEVER:0:2}
+
+get_config()
+{
+    key=$1
+    grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2
+}
+
 validateRecDir()
 {
     if [ "${#1}" != "14" ]; then
@@ -23,11 +35,6 @@ fbasename()
 {
     echo ${1:0:$((${#1} - 4))}
 }
-
-YI_HACK_PREFIX="/tmp/sd/yi-hack"
-
-HOMEVER=$(cat /home/homever)
-HV=${HOMEVER:0:2}
 
 . $YI_HACK_PREFIX/www/cgi-bin/validate.sh
 
@@ -59,9 +66,15 @@ if [ "$DIR" == "none" ] ; then
 fi
 
 DIRS00="${DIR:0:4}-${DIR:5:2}-${DIR:8:2} ${DIR:11:2}:00"
-if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+if [[ $(get_config EVENTS_TIME) == "autodetect" ]] ; then
+    if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+        DIRS00E=$(date -d "$DIRS00" +"%s")
+    else
+        DIRS00E=$(date -u -d "$DIRS00" +"%s")
+    fi
+elif [[ $(get_config EVENTS_TIME) == "local" ]] ; then
     DIRS00E=$(date -d "$DIRS00" +"%s")
-else
+elif [[ $(get_config EVENTS_TIME) == "gmt" ]] ; then
     DIRS00E=$(date -u -d "$DIRS00" +"%s")
 fi
 DIRL=$(date +%YY%mM%dD%HH -d "@$DIRS00E")

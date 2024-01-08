@@ -38,6 +38,35 @@
         </div>
         <hr class="tiny-margin">
 
+        <h4 class="no-margin">Events time</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>Select the time used by your cam to save the events</td>
+                        <td>
+                            <div class="standard-select">
+                                <select data-key="EVENTS_TIME" id="EVENTS_TIME">
+                                    <option value="autodetect">Autodetect</option>
+                                    <option value="local">Local time</option>
+                                    <option value="gmt">GMT</option>
+                                </select>
+                            </div>
+                            <span class="switch-description">
+                                If the field "Date &amp; time" is not correct, probably autodetect fails.
+                                <br/>
+                                Check the time that the cam uses to save the folders in /tmp/sd/records and select this option manually.
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <hr class="tiny-margin">
+
         <h4 class="no-margin">Events FTP Upload</h4>
         <hr class="tiny-margin">
         <div class="row">

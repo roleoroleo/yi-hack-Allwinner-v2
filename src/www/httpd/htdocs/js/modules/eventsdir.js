@@ -50,6 +50,8 @@ APP.eventsdir = (function($) {
                 $.each(response, function(key, state) {
                     if (key == "FREE_SPACE" || key == "FTP_HOST" || key == "FTP_DIR" || key == "FTP_USERNAME")
                         $('input[type="text"][data-key="' + key + '"]').prop('value', state);
+                    else if (key == "EVENTS_TIME")
+                        $('select[data-key="' + key + '"]').prop('value', state);
                     else if (key == "FTP_PASSWORD")
                         $('input[type="password"][data-key="' + key + '"]').prop('value', state);
                     else
@@ -75,6 +77,7 @@ APP.eventsdir = (function($) {
             configs[$(this).attr('data-key')] = $(this).prop('checked') ? 'yes' : 'no';
         });
 
+        configs["EVENTS_TIME"] = $('select[data-key="EVENTS_TIME"]').prop('value');
         configs["FREE_SPACE"] = $('input[type="text"][data-key="FREE_SPACE"]').prop('value');
         configs["FTP_HOST"] = $('input[type="text"][data-key="FTP_HOST"]').prop("value");
         configs["FTP_DIR"] = $('input[type="text"][data-key="FTP_DIR"]').prop("value");

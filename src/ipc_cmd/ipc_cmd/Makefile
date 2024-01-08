@@ -1,4 +1,4 @@
-OBJECTS_C = ipc_cmd.o
+OBJECTS_C = ipc_cmd.o ptz.o
 OBJECTS_R = ipc_read.o
 OBJECTS_N = ipc_notify.o
 OBJECTS_2 = ipc2file.o

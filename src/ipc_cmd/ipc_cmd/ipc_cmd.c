@@ -20,8 +20,10 @@
  */
 
 #include "ipc_cmd.h"
+#include "ptz.h"
 #include "getopt.h"
 #include "signal.h"
+#include "math.h"
 
 mqd_t ipc_mq;
 
@@ -56,7 +58,7 @@ void ipc_stop()
 
 void print_usage(char *progname)
 {
-    fprintf(stderr, "\nUsage: %s [t ON/OFF] [-s SENS] [-l LED] [-v WHEN] [-i IR] [-r ROTATE] [-1] [-a AIHUMANDETECTION] [-E AIVEHICLEDETECTION] [-N AIANIMALDETECTION] [-O AIMOTIONDETECTION] [-c FACEDETECTION] [-o MOTIONTRACKING] [-I MIC] [-b SOUNDDETECTION] [-B BABYCRYING] [-n SOUNDSENSITIVITY] [-m MOVE] [-p NUM] [-P] [-R NUM] [-C MODE] [-f FILE] [-S] [-T] [-d]\n\n", progname);
+    fprintf(stderr, "\nUsage: %s [t ON/OFF] [-s SENS] [-l LED] [-v WHEN] [-i IR] [-r ROTATE] [-1] [-a AIHUMANDETECTION] [-E AIVEHICLEDETECTION] [-N AIANIMALDETECTION] [-O AIMOTIONDETECTION] [-c FACEDETECTION] [-o MOTIONTRACKING] [-I MIC] [-b SOUNDDETECTION] [-B BABYCRYING] [-n SOUNDSENSITIVITY] [-m MOVE] [-g] [-u] [-j ABS_POSITION] [-J REL_POSITION] [-p NUM] [-P NAME] [-R NUM] [-C MODE] [-f FILE] [-S TIME] [-T] [-d]\n\n", progname);
     fprintf(stderr, "\t-t ON/OFF, --switch ON/OFF\n");
     fprintf(stderr, "\t\tswitch ON or OFF the cam\n");
     fprintf(stderr, "\t-s SENS, --sensitivity SENS\n");
@@ -93,11 +95,18 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tset Sound Detection Sensitivity: 30 - 90\n");
     fprintf(stderr, "\t-m MOVE, --move MOVE\n");
     fprintf(stderr, "\t\tsend PTZ command: RIGHT, LEFT, DOWN, UP or STOP\n");
-    fprintf(stderr, "\t-p TOKEN, --preset TOKEN\n");
+    fprintf(stderr, "\t-g, --get-ptz\n");
+    fprintf(stderr, "\t\tget PTZ position\n");
+    fprintf(stderr, "\t-u, --is_running\n");
+    fprintf(stderr, "\t\tcheck if PTZ is running\n");
+    fprintf(stderr, "\t-j ABS_POSITION, --jump-abs ABS_POSITION\n");
+    fprintf(stderr, "\t\tmove PTZ to ABS_POSITION (x,y) in degrees (example -j 500,500)\n");
+    fprintf(stderr, "\t-J REL_POSITION, --jump-rel REL_POSITION\n");
+    fprintf(stderr, "\t\tmove PTZ to REL_POSITION (x,y) in degrees (example -J 500,500)\n");
+    fprintf(stderr, "\t-p NUM, --preset NUM\n");
     fprintf(stderr, "\t\tsend PTZ go to preset command: TOKEN = [0..7]\n");
-    fprintf(stderr, "\t-P TOKEN, --add_preset TOKEN\n");
-    fprintf(stderr, "\t\tadd PTZ preset with token TOKEN in the first available position\n");
-    fprintf(stderr, "\t\tparameter TOKEN is ignored for Yi cam\n");
+    fprintf(stderr, "\t-P NAME, --add_preset NAME\n");
+    fprintf(stderr, "\t\tadd PTZ preset with name NAME in the first available position\n");
     fprintf(stderr, "\t-H, --set_home_position\n");
     fprintf(stderr, "\t\tset home position (preset 0 for Yi cam)\n");
     fprintf(stderr, "\t-R NUM, --remove_preset NUM\n");
@@ -140,6 +149,12 @@ int main(int argc, char ** argv)
     int babycrying = NONE;
     int soundsensitivity = NONE;
     int move = NONE;
+    int get_pos = NONE;
+    int is_running = NONE;
+    int jump_abs = NONE;
+    int jump_rel = NONE;
+    char jump_msg[24];
+    double x, y;
     int preset = NONE;
     int add_preset = NONE;
     int set_home_position = NONE;
@@ -180,6 +195,10 @@ int main(int argc, char ** argv)
             {"soundsensitivity",  required_argument, 0, 'n'},
             {"move",  required_argument, 0, 'm'},
             {"move-reverse",  required_argument, 0, 'M'},
+            {"get-pos", no_argument, 0, 'g'},
+            {"is_running", no_argument, 0, 'u'},
+            {"jump-abs", required_argument, 0, 'j'},
+            {"jump-rel", required_argument, 0, 'J'},
             {"preset",  required_argument, 0, 'p'},
             {"add_preset",  required_argument, 0, 'P'},
             {"set_home_position",  no_argument, 0, 'H'},
@@ -196,7 +215,7 @@ int main(int argc, char ** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:E:N:O:c:o:I:b:B:n:m:M:p:P:HR:C:f:S:TxXdh",
+        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:E:N:O:c:o:I:b:B:n:m:M:guj:J:p:P:HR:C:f:S:Txdh",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -431,6 +450,46 @@ int main(int argc, char ** argv)
             }
             break;
 
+        case 'g':
+            get_pos = 1;
+            break;
+
+        case 'u':
+            is_running = 1;
+            break;
+
+        case 'j':
+            jump_abs = 1;
+            if (sscanf(optarg, "%lf,%lf", &x, &y) != 2) {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            if ((x < 0.0) || (x > 360.0)) {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            if ((y < 0.0) || (y > 180.0)) {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            break;
+
+        case 'J':
+            jump_rel = 1;
+            if (sscanf(optarg, "%lf,%lf", &x, &y) != 2) {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            if ((x < -360.0) || (x > 360.0)) {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            if ((y < -180.0) || (y > 180.0)) {
+                print_usage(argv[0]);
+                exit(EXIT_FAILURE);
+            }
+            break;
+
         case 'p':
             errno = 0;    /* To distinguish success/failure after call */
             preset = strtol(optarg, &endptr, 10);
@@ -447,22 +506,8 @@ int main(int argc, char ** argv)
             break;
 
         case 'P':
-            errno = 0;    /* To distinguish success/failure after call */
-            add_preset = strtol(optarg, &endptr, 10);
-
-            /* Check for various possible errors */
-            if ((errno == ERANGE && (add_preset == LONG_MAX || add_preset == LONG_MIN)) || (errno != 0 && add_preset == 0)) {
-                print_usage(argv[0]);
-                exit(EXIT_FAILURE);
-            }
-            if (endptr == optarg) {
-                print_usage(argv[0]);
-                exit(EXIT_FAILURE);
-            }
-            if ((add_preset < 0) || (add_preset > 7)) {
-                print_usage(argv[0]);
-                exit(EXIT_FAILURE);
-            }
+            // Ignore argument
+            add_preset = 1;
             break;
 
         case 'H':
@@ -691,16 +736,104 @@ int main(int argc, char ** argv)
         mq_send(ipc_mq, IPC_SOUND_SENS_90, sizeof(IPC_SOUND_SENS_90) - 1, 0);
     }
 
-    if (move == MOVE_RIGHT) {
-        mq_send(ipc_mq, IPC_MOVE_RIGHT, sizeof(IPC_MOVE_RIGHT) - 1, 0);
-    } else if (move == MOVE_LEFT) {
-        mq_send(ipc_mq, IPC_MOVE_LEFT, sizeof(IPC_MOVE_LEFT) - 1, 0);
-    } else if (move == MOVE_DOWN) {
-        mq_send(ipc_mq, IPC_MOVE_DOWN, sizeof(IPC_MOVE_DOWN) - 1, 0);
-    } else if (move == MOVE_UP) {
-        mq_send(ipc_mq, IPC_MOVE_UP, sizeof(IPC_MOVE_UP) - 1, 0);
-    } else if (move == MOVE_STOP) {
-        mq_send(ipc_mq, IPC_MOVE_STOP, sizeof(IPC_MOVE_STOP) - 1, 0);
+    if (move != NONE) {
+        char model_suffix[16];
+        int is_ptz_value;
+
+        memset(model_suffix, '\0', sizeof(model_suffix));
+        get_model_suffix(model_suffix, sizeof(model_suffix));
+        is_ptz_value = is_ptz(model_suffix);
+
+        if (is_ptz_value == ALLWINNER_V2) {
+            move = -1 * move;
+        } else if ((is_ptz_value == ALLWINNER_V2_ALT) &&
+                ((move == MOVE_LEFT) || (move == MOVE_RIGHT))) {
+            move = -1 * move;
+        }
+
+        if (move == MOVE_RIGHT) {
+            mq_send(ipc_mq, IPC_MOVE_RIGHT, sizeof(IPC_MOVE_RIGHT) - 1, 0);
+        } else if (move == MOVE_LEFT) {
+            mq_send(ipc_mq, IPC_MOVE_LEFT, sizeof(IPC_MOVE_LEFT) - 1, 0);
+        } else if (move == MOVE_DOWN) {
+            mq_send(ipc_mq, IPC_MOVE_DOWN, sizeof(IPC_MOVE_DOWN) - 1, 0);
+        } else if (move == MOVE_UP) {
+            mq_send(ipc_mq, IPC_MOVE_UP, sizeof(IPC_MOVE_UP) - 1, 0);
+        } else if (move == MOVE_STOP) {
+            mq_send(ipc_mq, IPC_MOVE_STOP, sizeof(IPC_MOVE_STOP) - 1, 0);
+        }
+    }
+
+    if (jump_abs != NONE) {
+        double fx, fy;
+        int cur_x, cur_y, cur_i;
+        int fin_x, fin_y;
+        char model_suffix[16];
+        int is_ptz_value;
+
+        memset(model_suffix, '\0', sizeof(model_suffix));
+        get_model_suffix(model_suffix, sizeof(model_suffix));
+        is_ptz_value = is_ptz(model_suffix);
+
+        if (is_ptz_value == ALLWINNER_V2_ALT) {
+            y = 180.0 - y;
+        }
+
+        if (read_ptz(&cur_x, &cur_y, &cur_i) != 0) {
+            fprintf(stderr, "Error reading current ptz position\n");
+            return -1;
+        }
+        fx = x * (((double) MAX_PTZ_X) / 360.0);
+        fx = round(fx);
+        fx = (fx - ((double) cur_x)) * 100.0 / 911.0 + 50.0;
+        fin_x = (int) round(fx);
+        fy = y * (((double) MAX_PTZ_Y) / 180.0);
+        fy = round(fy);
+        fy = (fy - ((double) cur_y)) * 100.0 / 694.0 + 50.0;
+        fin_y = (int) round(fy);
+
+        if (debug) fprintf(stderr, "Current x  = %d, y  = %d\n", cur_x, cur_y);
+        if (debug) fprintf(stderr, "Command xr = %d, yr = %d\n", fin_x, fin_y);
+        memcpy(jump_msg, IPC_JUMP_POSITION, sizeof(IPC_JUMP_POSITION) - 1);
+        memcpy(&jump_msg[16], &fin_x, 4);
+        memcpy(&jump_msg[20], &fin_y, 4);
+        mq_send(ipc_mq, jump_msg, sizeof(IPC_JUMP_POSITION) - 1, 0);
+    }
+
+    if (jump_rel != NONE) {
+        double fx, fy;
+        int cur_x, cur_y, cur_i;
+        int fin_x, fin_y;
+        char model_suffix[16];
+        int is_ptz_value;
+
+        memset(model_suffix, '\0', sizeof(model_suffix));
+        get_model_suffix(model_suffix, sizeof(model_suffix));
+        is_ptz_value = is_ptz(model_suffix);
+
+        if (is_ptz_value == ALLWINNER_V2_ALT) {
+            y = -1.0 * y;
+        }
+
+        if (read_ptz(&cur_x, &cur_y, &cur_i) != 0) {
+            fprintf(stderr, "Error reading current ptz position\n");
+            return -1;
+        }
+        fx = x * (((double) MAX_PTZ_X) / 360.0);
+        fx = round(fx);
+        fx = fx * 100.0 / 911.0 + 50.0;
+        fin_x = (int) round(fx);
+        fy = y * (((double) MAX_PTZ_Y) / 180.0);
+        fy = round(fy);
+        fy = fy * 100.0 / 694.0 + 50.0;
+        fin_y = (int) round(fy);
+
+        if (debug) fprintf(stderr, "Current x  = %d, y  = %d\n", cur_x, cur_y);
+        if (debug) fprintf(stderr, "Command xr = %d, yr = %d\n", fin_x, fin_y);
+        memcpy(jump_msg, IPC_JUMP_POSITION, sizeof(IPC_JUMP_POSITION) - 1);
+        memcpy(&jump_msg[16], &fin_x, 4);
+        memcpy(&jump_msg[20], &fin_y, 4);
+        mq_send(ipc_mq, jump_msg, sizeof(IPC_JUMP_POSITION) - 1, 0);
     }
 
     if (preset != NONE) {
@@ -710,8 +843,50 @@ int main(int argc, char ** argv)
     }
 
     if (add_preset != NONE) {
-        // Ignore token because Yi doesn't support it
+        // Ignore name because Yi doesn't support it
         mq_send(ipc_mq, IPC_ADD_PRESET, sizeof(IPC_ADD_PRESET) - 1, 0);
+    }
+
+    if (get_pos != NONE) {
+        double fx, fy;
+        int cur_x, cur_y, cur_i;
+        char model_suffix[16];
+        int is_ptz_value;
+
+        memset(model_suffix, '\0', sizeof(model_suffix));
+        get_model_suffix(model_suffix, sizeof(model_suffix));
+        is_ptz_value = is_ptz(model_suffix);
+
+        if (read_ptz(&cur_x, &cur_y, &cur_i) != 0) {
+            fprintf(stderr, "Error reading current ptz position\n");
+            return -1;
+        }
+        fprintf(stderr, "Current x  = %d, y  = %d\n", cur_x, cur_y);
+        fx = ((double) cur_x) / ((double) MAX_PTZ_X) * 360.0;
+        fy = ((double) cur_y) / ((double) MAX_PTZ_Y) * 180.0;
+        if (is_ptz_value == ALLWINNER_V2_ALT) {
+            fy = 180.0 - fy;
+        }
+
+        fprintf(stderr, "Degrees x  = %.1f, y  = %.1f\n", fx, fy);
+        fprintf(stdout, "%.1f,%.1f\n", fx, fy);
+    }
+
+    if (is_running != NONE) {
+        int cur_x, cur_y, cur_i;
+        char model_suffix[16];
+        int is_ptz_value;
+
+        memset(model_suffix, '\0', sizeof(model_suffix));
+        get_model_suffix(model_suffix, sizeof(model_suffix));
+        is_ptz_value = is_ptz(model_suffix);
+
+        if (read_ptz(&cur_x, &cur_y, &cur_i) != 0) {
+            fprintf(stderr, "Error reading current ptz position\n");
+            return -1;
+        }
+
+        fprintf(stdout, "%d\n", cur_i);
     }
 
     if (set_home_position != NONE) {

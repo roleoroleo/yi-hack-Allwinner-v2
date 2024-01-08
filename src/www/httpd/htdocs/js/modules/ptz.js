@@ -129,7 +129,8 @@ APP.ptz = (function($) {
                 html = "<select id=\"select-goto\">\n";
                 for (let key in data) {
                     if (key != "NULL") {
-                        html += "<option value=\"" + key + "\">" + key + " - " + data[key] + "</option>\n";
+                        fields = data[key].split(',');
+                        html += "<option value=\"" + key + "\">" + key + " - " + fields[0] + "</option>\n";
                     }
                 }
                 html += "</select>\n";
@@ -138,7 +139,8 @@ APP.ptz = (function($) {
                 html = "<select id=\"select-del\">\n";
                 for (let key in data) {
                     if (key != "NULL") {
-                        html += "<option value=\"" + key + "\">" + key + " - " + data[key] + "</option>\n";
+                        fields = data[key].split(',');
+                        html += "<option value=\"" + key + "\">" + key + " - " + fields[0] + "</option>\n";
                     }
                 }
                 html += "</select>\n";

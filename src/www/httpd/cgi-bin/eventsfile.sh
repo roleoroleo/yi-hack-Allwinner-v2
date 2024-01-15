@@ -67,11 +67,7 @@ fi
 
 DIRS00="${DIR:0:4}-${DIR:5:2}-${DIR:8:2} ${DIR:11:2}:00"
 if [[ $(get_config EVENTS_TIME) == "autodetect" ]] ; then
-    if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
-        DIRS00E=$(date -d "$DIRS00" +"%s")
-    else
-        DIRS00E=$(date -u -d "$DIRS00" +"%s")
-    fi
+    DIRS00E=$(date -d "$DIRS00" +"%s")
 elif [[ $(get_config EVENTS_TIME) == "local" ]] ; then
     DIRS00E=$(date -d "$DIRS00" +"%s")
 elif [[ $(get_config EVENTS_TIME) == "gmt" ]] ; then

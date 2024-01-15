@@ -86,7 +86,7 @@ elif [ "$c" = "142" ]; then
     #CMD_do_get_dev_info
     TIMEZONE=$(get_config TIMEZONE)
     TZP=$(TZ="$TIMEZONE" date +%z)
-    TZP_SET=$(echo ${TZP:1:2} ${TZP:3:2} | awk '{ print ($1*3600+$2*60) }')
+    TZP_SET=$(echo ${TZP:0:1} ${TZP:1:2} ${TZP:3:2} | awk '{ print ($1$2*3600+$3*60) }')
     TZP_GMT=$(echo GMT${TZP:0:1}${TZP:1:2}:${TZP:3:2})
     #echo '{"code":"20000","data":{"timezone":"'$TZP_GMT'","language":"en-US","tz_offset":'$TZP_SET'000,"css_flag":0,"css_mode":0,"appParam":"","doorbellCoolingDuration":"0"}}'
     echo '{"code":"20000","data":{"timezone":"'$TZP_GMT'","language":"en-US","tz_offset":'$TZP_SET'000,"css_flag":0,"css_mode":0,"appParam":"","doorbellCoolingDuration":"0","allowFeature":{"Vehicle":0,"Animal":0,"Person":1}}}'

@@ -21,11 +21,7 @@ for f in `ls -r /tmp/sd/record | grep H`; do
     if [ ${#f} == 14 ]; then
         FS00="${f:0:4}-${f:5:2}-${f:8:2} ${f:11:2}:00"
         if [[ $(get_config EVENTS_TIME) == "autodetect" ]] ; then
-            if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
-                FS00E=$(date -d "$FS00" +"%s")
-            else
-                FS00E=$(date -u -d "$FS00" +"%s")
-            fi
+            FS00E=$(date -d "$FS00" +"%s")
         elif [[ $(get_config EVENTS_TIME) == "local" ]] ; then
             FS00E=$(date -d "$FS00" +"%s")
         elif [[ $(get_config EVENTS_TIME) == "gmt" ]] ; then

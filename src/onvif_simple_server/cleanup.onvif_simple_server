@@ -10,7 +10,9 @@ make clean
 cd ..
 
 rm -rf libtomcrypt*
-rm crypt*.tar.xz
+rm -f crypt*.tar.xz
 rm -rf mbedtls-3.4.0
 rm -rf mbedtls
-rm v3.4.0.tar.gz
+rm -f v3.4.0.tar.gz
+rm -f onvif_simple_server/extras/libtomcrypt
+rm -f onvif_simple_server/extras/mbedtls

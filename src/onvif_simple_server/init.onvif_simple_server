@@ -11,6 +11,9 @@ fi
 tar Jxvf ./crypt-1.18.2.tar.xz
 if [ ! -L libtomcrypt ]; then
     ln -s libtomcrypt-1.18.2 libtomcrypt
+    cd onvif_simple_server/extras
+    ln -s ../../libtomcrypt-1.18.2 libtomcrypt
+    cd ../..
 fi
 
 if [ ! -f v3.4.0.tar.gz ]; then
@@ -19,6 +22,9 @@ fi
 tar zxvf ./v3.4.0.tar.gz
 if [ ! -L mbedtls ]; then
     ln -s mbedtls-3.4.0 mbedtls
+    cd onvif_simple_server/extras
+    ln -s ../../mbedtls-3.4.0 mbedtls
+    cd ../..
 fi
 cp -f mbedtls_config.h mbedtls/include/mbedtls/
 

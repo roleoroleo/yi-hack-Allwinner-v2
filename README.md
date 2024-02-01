@@ -129,34 +129,21 @@ So, **enable swap file** even if this will waste the sd
 
 Currently this project supports only the following cameras:
 
-| Camera | Firmware | File prefix | Remarks |
-| --- | --- | --- | --- |
-| Yi 1080p Home BFUS | 9.0.19* | y21ga | - |
-| Yi 1080p Home BFUS | 12.1.19* | y21ga | - |
-| Yi 1080p Home IFUS | 9.0.19* | y21ga | - |
-| Yi 1080p Home IFUS | 12.1.19* | y21ga | - |
-| Yi 1080p Home RFUS | 9.0.19* | y21ga | - |
-| Yi 1080p Home RFUS | 12.1.19* | y21ga | - |
-| Yi 1080p Home IFUS | 9.0.36* | y211ga | - |
-| Yi 1080p Home IFUS | 12.0.37* | y211ga | - |
-| Yi 1080p Home QFUS | 9.0.36* | y211ga | - |
-| Yi 1080p Home QFUS | 12.0.37* | y211ga | - |
-| Yi 1080p Home RFUS | 9.0.36* | y211ga | - |
-| Yi 1080p Home RFUS | 12.0.37* | y211ga | - |
-| Yi 1080p Home QFUS | 9.0.35* | y291ga | - |
-| Yi 1080p Home QFUS | 12.0.35* | y291ga | - |
-| Yi 1080p Home RFUS | 9.0.35* | y291ga | - |
-| Yi 1080p Home RFUS | 12.0.35* | y291ga | - |
-| Yi Outdoor 1080p IFUS | 9.0.26* | h30ga | - |
-| Yi Outdoor 1080p IFUS | 11.1.26* | h30ga | - |
-| Yi Outdoor 1080p RFUS | 9.0.26* | h30ga | - |
-| Yi Outdoor 1080p RFUS | 11.1.26* | h30ga | - |
-| Yi 1080p Dome *FUS | 9.0.05* | r30gb | beta version (check this issue https://github.com/roleoroleo/yi-hack-Allwinner-v2/issues/484) |
-| Yi 1080p Dome *FUS | 12.1.05* | r30gb | beta version (check this issue https://github.com/roleoroleo/yi-hack-Allwinner-v2/issues/484) |
-| Yi Dome Guard YRS | 9.0.05* | r30gb | beta version (check this issue https://github.com/roleoroleo/yi-hack-Allwinner-v2/issues/484) |
-| Yi Dome Camera U BFUS (Full HD) | 9.0.22* | h52ga | - |
-| Yi Dome Camera U BFUS (2K) | 9.0.21* | h51ga | - |
-| Yi Dome Camera U SFUS (2K) | 9.0.21* | h51ga | - |
+| Camera | Firmware | SN prefix | File prefix | Remarks |
+| --- | --- | --- | --- | --- |
+| Yi 1080p Home | BFUS - IFUS - RFUS | 9.0.19* | y21ga | - |
+| Yi 1080p Home | BFUS - IFUS - RFUS | 12.1.19* | y21ga | - |
+| Yi 1080p Home | IFUS - QFUS - RFUS | 9.0.36* | y211ga | - |
+| Yi 1080p Home | IFUS - QFUS - RFUS | 12.0.37* | y211ga | - |
+| Yi 1080p Home | QFUS - RFUS | 9.0.35* | y291ga | - |
+| Yi 1080p Home | QFUS - RFUS | 12.0.35* | y291ga | - |
+| Yi Outdoor 1080p | IFUS - RFUS | 9.0.26* | h30ga | - |
+| Yi Outdoor 1080p | IFUS - RFUS | 11.1.26* | h30ga | - |
+| Yi 1080p Dome | *FUS | 9.0.05* | r30gb | beta version (check this issue https://github.com/roleoroleo/yi-hack-Allwinner-v2/issues/484) |
+| Yi 1080p Dome | *FUS | 12.1.05* | r30gb | beta version (check this issue https://github.com/roleoroleo/yi-hack-Allwinner-v2/issues/484) |
+| Yi Dome Guard | YRS | 9.0.05* | r30gb | beta version (check this issue https://github.com/roleoroleo/yi-hack-Allwinner-v2/issues/484) |
+| Yi Dome Camera U (Full HD) | BFUS - SFUS | 9.0.22* | h52ga | - |
+| Yi Dome Camera U (2K) | BFUS - SFUS | 9.0.21* | h51ga | - |
 | Yi Dome U Pro 2K LFUS | 9.0.27* | h60ga | - |
 | Yi Outdoor 1080p QFUS | 9.0.45* | r40ga | - |
 | Yi Home Y4 IFCN | 9.0.09* | y29ga | - |
@@ -164,9 +151,7 @@ Currently this project supports only the following cameras:
 | Yi Dome Guard QFUS | 12.1.47* | r35gb | - |
 | Yi Dome Guard YRS | 9.0.46* | r35gb | - |
 | Yi Dome Guard YRS | 12.1.47* | r35gb | - |
-| Yi Pro 2K Home RFUS | 12.0.51* | y623 | - |
-| Yi Pro 2K Home YFUS | 12.0.51* | y623 | - |
-| Yi Pro 2K Home ZFUS | 12.0.51* | y623 | - |
+| Yi Pro 2K Home | RFUS - YFUS - ZFUS | 12.0.51* | y623 | - |
 | Kami mini home IFUS | 9.0.20* | y28ga | - |
 | MIBAO G1 1296p dome | 9.0.04* | qg311r | - |
 | BLITZWOLF BW-YIC1 | 9.0.41* | b091qp | - |

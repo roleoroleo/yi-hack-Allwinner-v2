@@ -402,7 +402,7 @@ int frame_decode(unsigned char *outbuffer, unsigned char *p, int length, int h26
     return 0;
 }
 
-int add_watermark(unsigned char *buffer, int w_res, int h_res)
+int add_watermark(unsigned char *buffer, int w_res, int h_res, struct tm *watermark_tm)
 {
     char path_res[1024];
     FILE *fBuf;
@@ -420,10 +420,10 @@ int add_watermark(unsigned char *buffer, int w_res, int h_res)
     } else {
         if (w_res != W_LOW) {
             AddWM(&WM_info, w_res, h_res, buffer,
-                buffer + w_res*h_res, w_res-460, h_res-40, NULL);
+                buffer + w_res*h_res, w_res-460, h_res-40, watermark_tm);
         } else {
             AddWM(&WM_info, w_res, h_res, buffer,
-                buffer + w_res*h_res, w_res-230, h_res-20, NULL);
+                buffer + w_res*h_res, w_res-230, h_res-20, watermark_tm);
         }
         WMRelease(&WM_info);
     }
@@ -481,6 +481,7 @@ void usage(char *prog_name)
     fprintf(stderr, "\t-f, --file FILE         Ignore model and read frame from file FILE\n");
     fprintf(stderr, "\t-r, --res RES           Set resolution: \"low\" or \"high\" (default \"high\")\n");
     fprintf(stderr, "\t-w, --watermark         Add watermark to image\n");
+    fprintf(stderr, "\t-t, --watermark_time    String to print\n");
     fprintf(stderr, "\t-d, --debug             Enable debug\n");
     fprintf(stderr, "\t-h, --help              Show this help\n");
 }
@@ -495,6 +496,8 @@ int main(int argc, char **argv)
     unsigned char *bufferh26x, *bufferyuv;
     char file[256];
     int watermark = 0;
+    int watermark_time = 0;
+    struct tm watermark_tm;
     int model_high_res;
     int width, height;
 
@@ -507,7 +510,7 @@ int main(int argc, char **argv)
     int pps_start_found = -1, pps_end_found = -1;
     int vps_start_found = -1, vps_end_found = -1;
     int idr_start_found = -1;
-    int i, j, f, start_code;
+    int i, j, f, start_code, iret;
     unsigned char *h26x_file_buffer;
     long h26x_file_size;
     size_t nread;
@@ -527,13 +530,14 @@ int main(int argc, char **argv)
             {"file",      required_argument, 0, 'f'},
             {"res",       required_argument, 0, 'r'},
             {"watermark", no_argument,       0, 'w'},
+            {"watermark_time",  required_argument, 0, 't'},
             {"debug",     no_argument,       0, 'd'},
             {"help",      no_argument,       0, 'h'},
             {0,           0,                 0,  0 }
         };
 
         int option_index = 0;
-        c = getopt_long(argc, argv, "m:f:r:wdh",
+        c = getopt_long(argc, argv, "m:f:r:wt:dh",
             long_options, &option_index);
         if (c == -1)
             break;
@@ -626,6 +630,25 @@ int main(int argc, char **argv)
             case 'w':
                 watermark = 1;
                 break;
+
+            case 't':
+                {
+                    int d0, d1, d2, d3, d4, d5, d6;
+                    d0 = sscanf(optarg, "%d-%d-%d %d:%d:%d", &d1, &d2, &d3, &d4, &d5 ,&d6);
+                    if (d0 == 6) {
+                        watermark_tm.tm_year = d1 - 1900;
+                        watermark_tm.tm_mon = d2 - 1;
+                        watermark_tm.tm_mday = d3;
+                        watermark_tm.tm_hour = d4;
+                        watermark_tm.tm_min = d5;
+                        watermark_tm.tm_sec = d6;
+                        watermark_time = 1;
+                    } else {
+                        usage(argv[0]);
+                        exit(EXIT_FAILURE);
+                    }
+                    break;
+                }
 
             case 'd':
                 debug = 1;
@@ -987,7 +1010,13 @@ int main(int argc, char **argv)
 
     if (watermark) {
         if (debug) fprintf(stderr, "Adding watermark\n");
-        if (add_watermark(bufferyuv, width, height) < 0) {
+        if (watermark_time == 1) {
+            iret = add_watermark(bufferyuv, width, height, &watermark_tm);
+        } else {
+            iret = add_watermark(bufferyuv, width, height, NULL);
+        }
+
+        if (iret < 0) {
             fprintf(stderr, "Error adding watermark\n");
             if (bufferyuv != NULL) free(bufferyuv);
             if (file[0] == '\0') { 

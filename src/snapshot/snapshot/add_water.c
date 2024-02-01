@@ -98,7 +98,6 @@ int AddWM (WaterMarkInfo *WM_info, unsigned int bg_width, unsigned int bg_height
         time_info = localtime(&rawtime);
     }else{
         time_info = time_data;
-        time_info->tm_year = time_info->tm_year - 1900;
     }
 
     WM_Param.id_list[0] = (time_info->tm_year + 1900) / 1000;

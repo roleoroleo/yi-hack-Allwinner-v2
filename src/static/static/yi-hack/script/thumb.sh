@@ -93,7 +93,12 @@ checkFiles ()
 				logAdd "[ERROR] checkFiles: demux mp4 FAILED - [${file}]."
 				rm -f $BASE_NAME.h26x
 			fi
-			imggrabber -f $BASE_NAME.h26x -r low -w > $BASE_NAME.jpg
+			if [ "${#file}" == "44" ]; then
+				TIME_STAMP="${file:15:4}-${file:20:2}-${file:23:2} ${file:26:2}:${file:32:2}:${file:35:2}"
+			else
+				TIME_STAMP="${file:15:4}-${file:20:2}-${file:23:2} ${file:26:2}:${file:30:2}:${file:33:2}"
+			fi
+			imggrabber -f $BASE_NAME.h26x -r low -w -t "$TIME_STAMP" > $BASE_NAME.jpg
 			if [ $? -ne 0 ]; then
 				logAdd "[ERROR] checkFiles: create jpg FAILED - [${file}]. Using fallback.jpg."
 				rm -f $BASE_NAME.h26x

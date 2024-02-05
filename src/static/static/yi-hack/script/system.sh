@@ -503,6 +503,7 @@ if [[ $(get_config ONVIF) == "yes" ]] ; then
     chmod 0600 $ONVIF_SRVD_CONF
     onvif_simple_server --conf_file $ONVIF_SRVD_CONF
     ipc2file
+    mkdir -p /tmp/onvif_notify_server
     onvif_notify_server --conf_file $ONVIF_SRVD_CONF
 
     if [[ $(get_config ONVIF_WSDD) == "yes" ]] ; then

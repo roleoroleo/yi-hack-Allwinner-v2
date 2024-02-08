@@ -83,6 +83,8 @@ echo 300 > /sys/block/mmcblk0/queue/iosched/target_latency
 mount -o remount,noatime /tmp/sd
 mount -o remount,noatime /home/app/script/wifidhcp.sh
 mount -o remount,noatime /backup/tools/wifidhcp.sh
+mount -o remount,noatime /home/app/script/ethdhcp.sh
+mount -o remount,noatime /backup/tools/ethdhcp.sh
 
 # Remove core files, if any
 rm -f $YI_HACK_PREFIX/bin/core

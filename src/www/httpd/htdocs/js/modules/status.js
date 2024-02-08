@@ -43,6 +43,7 @@ APP.status = (function($) {
                     }
                 }
 
+                $('#local_ip').html(data.local_ip + "<input class=\"button-primary\" type=\"button\" id=\"button-static-ip-edit\" value=\"Edit\" style=\"margin-left:40px;\" onclick=\"window.location.href='?page=static_ip'\"/>");
                 $('#wlan_essid').html(data.wlan_essid + "<input class=\"button-primary\" type=\"button\" id=\"button-wifi-edit\" value=\"Edit\" style=\"margin-left:40px;\" onclick=\"window.location.href='?page=wifi'\"/>");
                 $('#uptime').text(String.format("%t", parseInt(data.uptime)));
                 $('#memory').text("" + data.free_memory + "/" + data.total_memory + " KB");

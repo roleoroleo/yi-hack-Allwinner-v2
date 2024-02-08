@@ -1,0 +1,83 @@
+<div class="row">
+    <div class="twelve columns">
+        <div class="row">
+            <div class="twelve columns">
+                <h3 class="no-margin inline-block" id="header">Configurations</h3>
+                <h6 id="loading-static-ip-status" class="float-right loading-text"></h6>
+            </div>
+        </div>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <p>
+                In this page you can configure a static IP address.
+                <br/>
+                If you don't configure IP address and subnet mask here, dhcp will be used.
+                <br/>
+                Please note: if you enter the wrong IP address you will no longer be able to access your cam.
+            </p>
+        </div>
+        <h4 class="no-margin">Static IP</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>IP address</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="STATIC_IP" id="STATIC_IP"/>
+                            <span class="switch-description">
+                                Enter your IP address.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Subnet mask</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="STATIC_MASK" id="STATIC_MASK"/>
+                            <span class="switch-description">
+                                Enter the subnet mask.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Gateway</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="STATIC_GW" id="STATIC_GW"/>
+                            <span class="switch-description">
+                                Enter the IP address of your gateway or leave blank.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>DNS 1</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="STATIC_DNS1" id="STATIC_DNS1"/>
+                            <span class="switch-description">
+                                Enter the IP address of your DNS server.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>DNS 2</td>
+                        <td>
+                            <input class="u-full-width" type="text" placeholder="" data-key="STATIC_DNS2" id="STATIC_DNS2"/>
+                            <span class="switch-description">
+                                Enter the IP address of your DNS server.
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="align-right">
+            <span class="strong">Any change will take effect after the reboot of the camera.</span>
+        </div>
+        <br/>
+        <div class="float-right">
+            <div class="padded-right save-text" id="save-static-ip-status"></div>
+            <input class="button-primary" type="button" id="button-save-static-ip" value="Save Configuration"/>
+        </div>
+    </div>
+</div>

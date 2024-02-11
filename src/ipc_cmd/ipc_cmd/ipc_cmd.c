@@ -97,8 +97,8 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tsend PTZ command: RIGHT, LEFT, DOWN, UP or STOP\n");
     fprintf(stderr, "\t-g, --get-ptz\n");
     fprintf(stderr, "\t\tget PTZ position\n");
-    fprintf(stderr, "\t-u, --is_running\n");
-    fprintf(stderr, "\t\tcheck if PTZ is running\n");
+    fprintf(stderr, "\t-u, --is_moving\n");
+    fprintf(stderr, "\t\tcheck if PTZ is moving\n");
     fprintf(stderr, "\t-j ABS_POSITION, --jump-abs ABS_POSITION\n");
     fprintf(stderr, "\t\tmove PTZ to ABS_POSITION (x,y) in degrees (example -j 500,500)\n");
     fprintf(stderr, "\t-J REL_POSITION, --jump-rel REL_POSITION\n");
@@ -150,7 +150,7 @@ int main(int argc, char ** argv)
     int soundsensitivity = NONE;
     int move = NONE;
     int get_pos = NONE;
-    int is_running = NONE;
+    int is_moving = NONE;
     int jump_abs = NONE;
     int jump_rel = NONE;
     char jump_msg[24];
@@ -196,7 +196,7 @@ int main(int argc, char ** argv)
             {"move",  required_argument, 0, 'm'},
             {"move-reverse",  required_argument, 0, 'M'},
             {"get-pos", no_argument, 0, 'g'},
-            {"is_running", no_argument, 0, 'u'},
+            {"is_moving", no_argument, 0, 'u'},
             {"jump-abs", required_argument, 0, 'j'},
             {"jump-rel", required_argument, 0, 'J'},
             {"preset",  required_argument, 0, 'p'},
@@ -455,7 +455,7 @@ int main(int argc, char ** argv)
             break;
 
         case 'u':
-            is_running = 1;
+            is_moving = 1;
             break;
 
         case 'j':
@@ -872,7 +872,7 @@ int main(int argc, char ** argv)
         fprintf(stdout, "%.1f,%.1f\n", fx, fy);
     }
 
-    if (is_running != NONE) {
+    if (is_moving != NONE) {
         int cur_x, cur_y, cur_i;
         char model_suffix[16];
         int is_ptz_value;

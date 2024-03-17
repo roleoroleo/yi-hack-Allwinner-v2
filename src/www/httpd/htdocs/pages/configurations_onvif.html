@@ -1,0 +1,125 @@
+<div class="row">
+    <div class="twelve columns">
+        <div class="row">
+            <div class="twelve columns">
+                <h3 class="no-margin inline-block" id="header">ONVIF configuration</h3>
+                <h6 id="loading-status" class="float-right loading-text"></h6>
+            </div>
+        </div>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <p>
+                In this page you can configure ONVIF settings.
+            </p>
+        </div>
+        <h4 class="no-margin">General</h4>
+        <hr class="tiny-margin"/>
+        <div class="row">
+            <div class="twelve columns configs-switch">
+                <table class="u-full-width padded-table config-table">
+                    <tbody>
+                    <tr class="row">
+                        <td>ONVIF WS-Discovery</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="ONVIF_WSDD"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable WS-Discovery daemon for ONVIF service.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>ONVIF Profile</td>
+                        <td>
+                            <div class="standard-select">
+                                <select data-key="ONVIF_PROFILE" id="ONVIF_PROFILE">
+                                    <option value="high">High</option>
+                                    <option value="low">Low</option>
+                                    <option value="both">Both</option>
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>ONVIF Network Interface</td>
+                        <td>
+                            <div class="standard-select">
+                                <select data-key="ONVIF_NETIF" id="ONVIF_NETIF">
+                                    <option value="eth0">Ethernet</option>
+                                    <option value="wlan0">Wireless</option>
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>ONVIF watermark</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="ONVIF_WM_SNAPSHOT"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Add watermark to snapshot.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>ONVIF audio decoder (backchannel)</td>
+                        <td>
+                            <div class="standard-select">
+                                <select data-key="ONVIF_AUDIO_BC" id="ONVIF_AUDIO_BC">
+                                    <option value="NONE">NONE</option>
+                                    <option value="G7110">G711</option>
+                                    <option value="AAC">AAC</option>
+                                </select>
+                            </div>
+                            <span class="switch-description">
+                                Select tha codec for the audio back channel.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Fault response if unknown request</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="ONVIF_FAULT_IF_UNKNOWN"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Reply with a fault response if the request is unknown.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Synology NVR compatibility</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="ONVIF_SYNOLOGY_NVR"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Check this option to improve compatibility with Synology NVRs.
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="align-right">
+            <span class="strong">Any change will take effect after the reboot of the camera.</span>
+        </div>
+        <br/>
+        <div class="float-right">
+            <div class="padded-right save-text" id="save-status"></div>
+            <input class="button-primary" type="button" id="button-save" value="Save Configuration"/>
+        </div>
+    </div>
+</div>

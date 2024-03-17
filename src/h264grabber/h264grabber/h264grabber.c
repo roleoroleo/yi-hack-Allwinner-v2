@@ -780,6 +780,8 @@ int main(int argc, char **argv) {
             fOutLow = stdout;
         } else if (resolution == RESOLUTION_HIGH) {
             fOutHigh = stdout;
+        } else if (audio == 1) {
+            fOutAac = stdout;
         }
     } else {
         pthread_t unlock_low_thread, unlock_high_thread, unlock_aac_thread;

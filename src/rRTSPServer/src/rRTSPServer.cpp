@@ -26,12 +26,16 @@
 #include "H264VideoFramedMemoryServerMediaSubsession.hh"
 #include "H265VideoFramedMemoryServerMediaSubsession.hh"
 #include "ADTSAudioFramedMemoryServerMediaSubsession.hh"
+#include "ADTSAudioFileServerMediaSubsession_BC.hh"
+#include "PCMAudioFileServerMediaSubsession_BC.hh"
 #include "WAVAudioFifoServerMediaSubsession.hh"
 #include "WAVAudioFifoSource.hh"
 #include "AudioFramedMemorySource.hh"
 #include "StreamReplicator.hh"
 #include "aLawAudioFilter.hh"
+#include "PCMFileSink.hh"
 #include "misc.hh"
+#include "Speaker.hh"
 
 #include <getopt.h>
 #include <pthread.h>
@@ -859,23 +863,21 @@ void *capture(void *ptr)
 }
 
 StreamReplicator* startReplicatorStream(const char* inputAudioFileName, int convertTo) {
-    FramedSource* resultSource;
+    FramedSource* resultSource = NULL;
 
-    if ((convertTo == WA_PCMA) || (convertTo == WA_PCMU) || (convertTo == WA_PCM)) {
-        // Create a single WAVAudioFifo source that will be replicated for mutliple streams
-        WAVAudioFifoSource* wavSource = WAVAudioFifoSource::createNew(*env, inputAudioFileName);
-        if (wavSource == NULL) {
-            *env << "Failed to create Fifo Source \n";
-        }
+    // Create a single WAVAudioFifo source that will be replicated for mutliple streams
+    WAVAudioFifoSource* wavSource = WAVAudioFifoSource::createNew(*env, inputAudioFileName);
+    if (wavSource == NULL) {
+        *env << "Failed to create Fifo Source \n";
+    }
 
-        // Optionally convert to uLaw or aLaw pcm
-        if (convertTo == WA_PCMA) {
-            resultSource = aLawFromPCMAudioSource::createNew(*env, wavSource, 1/*little-endian*/);
-        } else if (convertTo == WA_PCMU) {
-            resultSource = uLawFromPCMAudioSource::createNew(*env, wavSource, 1/*little-endian*/);
-        } else {
-            resultSource = EndianSwap16::createNew(*env, wavSource);
-        }
+    // Optionally convert to uLaw or aLaw pcm
+    if (convertTo == WA_PCMA) {
+        resultSource = aLawFromPCMAudioSource::createNew(*env, wavSource, 1/*little-endian*/);
+    } else if (convertTo == WA_PCMU) {
+        resultSource = uLawFromPCMAudioSource::createNew(*env, wavSource, 1/*little-endian*/);
+    } else {
+        resultSource = EndianSwap16::createNew(*env, wavSource);
     }
 
     // Create and start the replicator that will be given to each subsession
@@ -883,13 +885,6 @@ StreamReplicator* startReplicatorStream(const char* inputAudioFileName, int conv
 
     // Begin by creating an input stream from our replicator:
     replicator->createStreamReplica();
-//    FramedSource* source = replicator->createStreamReplica();
-
-    // Then create a 'dummy sink' object to receive the replica stream:
-//    MediaSink* sink = DummySink::createNew(*env, "dummy");
-
-    // Now, start playing, feeding the sink object from the source:
-//    sink->startPlaying(*source, NULL, NULL);
 
     return replicator;
 }
@@ -906,13 +901,6 @@ StreamReplicator* startReplicatorStream(cb_output_buffer *cbBuffer, unsigned sam
 
     // Begin by creating an input stream from our replicator:
     replicator->createStreamReplica();
-//    FramedSource* source = replicator->createStreamReplica();
-
-    // Then create a 'dummy sink' object to receive the replica stream:
-//    MediaSink* sink = DummySink::createNew(*env, "dummy");
-
-    // Now, start playing, feeding the sink object from the source:
-//    sink->startPlaying(*source, NULL, NULL);
 
     return replicator;
 }
@@ -939,6 +927,8 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tset resolution: low, high, both or none (default high)\n");
     fprintf(stderr, "\t-a AUDIO, --audio AUDIO\n");
     fprintf(stderr, "\t\tset audio: yes, no, alaw, ulaw, pcm or aac (default ulaw)\n");
+    fprintf(stderr, "\t-b CODEC, --audio_back_channel CODEC\n");
+    fprintf(stderr, "\t\tenable audio back channel and set codec: alaw, ulaw or aac\n");
     fprintf(stderr, "\t-p PORT,  --port PORT\n");
     fprintf(stderr, "\t\tset TCP port (default 554)\n");
     fprintf(stderr, "\t-s,       --sti\n");
@@ -957,6 +947,7 @@ int main(int argc, char** argv)
 {
     char *str;
     int nm;
+    int back_channel;
     char user[65];
     char pwd[65];
     int pth_ret;
@@ -967,6 +958,7 @@ int main(int argc, char** argv)
 
     int convertTo = WA_PCMU;
     char const* inputAudioFileName = "/tmp/audio_fifo";
+    char const* outputAudioFileName = "/tmp/audio_in_fifo";
     struct stat stat_buffer;
     FILE *fFS;
 
@@ -974,6 +966,7 @@ int main(int argc, char** argv)
     model = Y21GA;
     resolution = RESOLUTION_HIGH;
     audio = 1;
+    back_channel = 0;
     port = 554;
     sps_timing_info = 1;
     debug = 0;
@@ -995,6 +988,7 @@ int main(int argc, char** argv)
             {"model",  required_argument, 0, 'm'},
             {"resolution",  required_argument, 0, 'r'},
             {"audio",  required_argument, 0, 'a'},
+            {"audio_back_channel", required_argument, 0, 'b'},
             {"port",  required_argument, 0, 'p'},
             {"sti",  no_argument, 0, 's'},
             {"user",  required_argument, 0, 'u'},
@@ -1006,7 +1000,7 @@ int main(int argc, char** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "m:r:a:p:su:w:d:h",
+        c = getopt_long (argc, argv, "m:r:a:b:p:su:w:d:h",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -1081,6 +1075,18 @@ int main(int argc, char** argv)
                 convertTo = WA_PCM;
             } else if (strcasecmp("aac", optarg) == 0) {
                 audio = 2;
+            }
+            break;
+
+        case 'b':
+            if (strcasecmp("alaw", optarg) == 0) {
+                back_channel = 1;
+            } else if (strcasecmp("ulaw", optarg) == 0) {
+                back_channel = 2;
+            } else if (strcasecmp("aac", optarg) == 0) {
+                back_channel = 4;
+            } else {
+                back_channel = 0;
             }
             break;
 
@@ -1220,6 +1226,19 @@ int main(int argc, char** argv)
             convertTo = WA_PCM;
         } else if (strcasecmp("aac", str) == 0) {
             audio = 2;
+        }
+    }
+
+    str = getenv("RRTSP_AUDIO_BC");
+    if (str != NULL) {
+        if (strcasecmp("alaw", str) == 0) {
+            back_channel = 1;
+        } else if (strcasecmp("ulaw", str) == 0) {
+            back_channel = 2;
+        } else if (strcasecmp("aac", str) == 0) {
+            back_channel = 4;
+        } else {
+            back_channel = 0;
         }
     }
 
@@ -1504,6 +1523,19 @@ int main(int argc, char** argv)
             sms_high->addSubsession(ADTSAudioFramedMemoryServerMediaSubsession
                                        ::createNew(*env, replicator, reuseFirstSource));
         }
+        if (back_channel == 1) {
+            PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
+                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ALAW);
+            sms_high->addSubsession(smss_bc);
+        } else if (back_channel == 2) {
+            PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
+                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ULAW);
+            sms_high->addSubsession(smss_bc);
+        } else if (back_channel == 4) {
+            ADTSAudioFileServerMediaSubsession_BC* smss_bc = ADTSAudioFileServerMediaSubsession_BC
+                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1);
+            sms_high->addSubsession(smss_bc);
+        }
         rtspServer->addServerMediaSession(sms_high);
 
         announceStream(rtspServer, sms_high, streamName, audio);
@@ -1531,6 +1563,19 @@ int main(int argc, char** argv)
             sms_low->addSubsession(ADTSAudioFramedMemoryServerMediaSubsession
                                        ::createNew(*env, replicator, reuseFirstSource));
         }
+        if ((resolution == RESOLUTION_LOW) && (back_channel == 1)) {
+            PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
+                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ALAW);
+            sms_low->addSubsession(smss_bc);
+        } else if (back_channel == 2) {
+            PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
+                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ULAW);
+            sms_low->addSubsession(smss_bc);
+        } else if (back_channel == 4) {
+            ADTSAudioFileServerMediaSubsession_BC* smss_bc = ADTSAudioFileServerMediaSubsession_BC
+                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1);
+            sms_low->addSubsession(smss_bc);
+        }
         rtspServer->addServerMediaSession(sms_low);
 
         announceStream(rtspServer, sms_low, streamName, audio);
@@ -1550,6 +1595,19 @@ int main(int argc, char** argv)
         } else if (audio == 2) {
             sms_audio->addSubsession(ADTSAudioFramedMemoryServerMediaSubsession
                                        ::createNew(*env, replicator, reuseFirstSource));
+        }
+        if ((resolution == RESOLUTION_NONE) && (back_channel == 1)) {
+            PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
+                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ALAW);
+            sms_audio->addSubsession(smss_bc);
+        } else if (back_channel == 2) {
+            PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
+                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ULAW);
+            sms_audio->addSubsession(smss_bc);
+        } else if (back_channel == 4) {
+            ADTSAudioFileServerMediaSubsession_BC* smss_bc = ADTSAudioFileServerMediaSubsession_BC
+                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1);
+            sms_audio->addSubsession(smss_bc);
         }
         rtspServer->addServerMediaSession(sms_audio);
 

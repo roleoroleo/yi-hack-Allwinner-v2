@@ -5,3 +5,5 @@ cd $SCRIPT_DIR
 
 rm -rf live
 rm -f live.*.tar.gz
+rm -rf fdk-aac
+rm -f v*.tar.gz

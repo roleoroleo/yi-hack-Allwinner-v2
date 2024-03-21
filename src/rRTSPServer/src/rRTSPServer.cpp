@@ -1563,18 +1563,20 @@ int main(int argc, char** argv)
             sms_low->addSubsession(ADTSAudioFramedMemoryServerMediaSubsession
                                        ::createNew(*env, replicator, reuseFirstSource));
         }
-        if ((resolution == RESOLUTION_LOW) && (back_channel == 1)) {
-            PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
-                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ALAW);
-            sms_low->addSubsession(smss_bc);
-        } else if (back_channel == 2) {
-            PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
-                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ULAW);
-            sms_low->addSubsession(smss_bc);
-        } else if (back_channel == 4) {
-            ADTSAudioFileServerMediaSubsession_BC* smss_bc = ADTSAudioFileServerMediaSubsession_BC
-                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1);
-            sms_low->addSubsession(smss_bc);
+        if (resolution == RESOLUTION_LOW) {
+            if (back_channel == 1) {
+                PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
+                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ALAW);
+                sms_low->addSubsession(smss_bc);
+            } else if (back_channel == 2) {
+                PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
+                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ULAW);
+                sms_low->addSubsession(smss_bc);
+            } else if (back_channel == 4) {
+                ADTSAudioFileServerMediaSubsession_BC* smss_bc = ADTSAudioFileServerMediaSubsession_BC
+                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1);
+                sms_low->addSubsession(smss_bc);
+            }
         }
         rtspServer->addServerMediaSession(sms_low);
 
@@ -1596,18 +1598,20 @@ int main(int argc, char** argv)
             sms_audio->addSubsession(ADTSAudioFramedMemoryServerMediaSubsession
                                        ::createNew(*env, replicator, reuseFirstSource));
         }
-        if ((resolution == RESOLUTION_NONE) && (back_channel == 1)) {
-            PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
-                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ALAW);
-            sms_audio->addSubsession(smss_bc);
-        } else if (back_channel == 2) {
-            PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
-                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ULAW);
-            sms_audio->addSubsession(smss_bc);
-        } else if (back_channel == 4) {
-            ADTSAudioFileServerMediaSubsession_BC* smss_bc = ADTSAudioFileServerMediaSubsession_BC
-                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1);
-            sms_audio->addSubsession(smss_bc);
+        if (resolution == RESOLUTION_NONE) {
+            if (back_channel == 1) {
+                PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
+                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ALAW);
+                sms_audio->addSubsession(smss_bc);
+            } else if (back_channel == 2) {
+                PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
+                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ULAW);
+                sms_audio->addSubsession(smss_bc);
+            } else if (back_channel == 4) {
+                ADTSAudioFileServerMediaSubsession_BC* smss_bc = ADTSAudioFileServerMediaSubsession_BC
+                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1);
+                sms_audio->addSubsession(smss_bc);
+            }
         }
         rtspServer->addServerMediaSession(sms_audio);
 

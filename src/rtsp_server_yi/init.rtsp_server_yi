@@ -10,5 +10,6 @@ rm -rf ./_install
 cd RtspServer
 git reset --hard
 
+cp ../Makefile.rtsp_server_yi ./Makefile
 #sed -i 's/O_FLAG = -O2/O_FLAG = -Os/g' Makefile
 #sed -i 's/CXX_FLAGS += -std=c++11/CXX_FLAGS += -Os -std=c++11/g' Makefile

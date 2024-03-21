@@ -1,6 +1,6 @@
-diff -Naur live.old/config.linux-cross live/config.linux-cross
---- live.old/config.linux-cross	1970-01-01 01:00:00.000000000 +0100
-+++ live/config.linux-cross	2021-09-20 15:10:19.404636105 +0200
+diff -Naur live.ori/config.linux-cross live/config.linux-cross
+--- live.ori/config.linux-cross	1970-01-01 01:00:00.000000000 +0100
++++ live/config.linux-cross	2021-02-18 10:39:28.103846011 +0100
 @@ -0,0 +1,17 @@
 +COMPILE_OPTS =		$(INCLUDES) -I. -O0 -ffunction-sections -fdata-sections -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DNO_OPENSSL=1 -DRTP_PAYLOAD_MAX_SIZE=1352
 +C =			c
@@ -19,9 +19,9 @@ diff -Naur live.old/config.linux-cross live/config.linux-cross
 +LIBS_FOR_CONSOLE_APPLICATION =
 +LIBS_FOR_GUI_APPLICATION =
 +EXE =
-diff -Naur live.old/liveMedia/H264or5VideoStreamFramer.cpp live/liveMedia/H264or5VideoStreamFramer.cpp
---- live.old/liveMedia/H264or5VideoStreamFramer.cpp	2020-05-15 07:28:35.000000000 +0200
-+++ live/liveMedia/H264or5VideoStreamFramer.cpp	2021-09-20 15:11:00.460628257 +0200
+diff -Naur live.ori/liveMedia/H264or5VideoStreamFramer.cpp live/liveMedia/H264or5VideoStreamFramer.cpp
+--- live.ori/liveMedia/H264or5VideoStreamFramer.cpp	2021-01-29 16:48:41.000000000 +0100
++++ live/liveMedia/H264or5VideoStreamFramer.cpp	2021-02-18 10:48:26.500721004 +0100
 @@ -21,6 +21,7 @@
  #include "H264or5VideoStreamFramer.hh"
  #include "MPEGVideoStreamParser.hh"

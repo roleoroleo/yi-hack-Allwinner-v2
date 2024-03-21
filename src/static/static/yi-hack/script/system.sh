@@ -89,6 +89,7 @@ mount -o remount,noatime /backup/tools/ethdhcp.sh
 
 # Remove core files, if any
 rm -f $YI_HACK_PREFIX/bin/core
+rm -f $YI_HACK_PREFIX/script/core
 rm -f $YI_HACK_PREFIX/www/core
 rm -f $YI_HACK_PREFIX/www/cgi-bin/core
 rm -f $YI_HACK_PREFIX/core
@@ -195,7 +196,6 @@ if [[ $(get_config DISABLE_CLOUD) == "no" ]] ; then
         fi
         cd /home/app
         set_tz_offset -c osd -o off
-        sleep 2
         LD_LIBRARY_PATH="/tmp/sd/yi-hack/lib:/lib:/usr/lib:/home/lib:/home/qigan/lib:/home/app/locallib:/tmp/sd:/tmp/sd/gdb" ./rmm &
         sleep 6
         dd if=/tmp/audio_fifo of=/dev/null bs=1 count=8192
@@ -236,7 +236,6 @@ else
         fi
         cd /home/app
         set_tz_offset -c osd -o off
-        sleep 2
         LD_LIBRARY_PATH="/tmp/sd/yi-hack/lib:/lib:/usr/lib:/home/lib:/home/qigan/lib:/home/app/locallib:/tmp/sd:/tmp/sd/gdb" ./rmm &
         sleep 6
         dd if=/tmp/audio_fifo of=/dev/null bs=1 count=8192

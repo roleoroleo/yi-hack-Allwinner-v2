@@ -6,6 +6,8 @@ CAMERA_CONF_FILE="etc/camera.conf"
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
 
+START_STOP_SCRIPT=$YI_HACK_PREFIX/script/service.sh
+
 #LOG_FILE="/tmp/sd/wd_rtsp.log"
 LOG_FILE="/dev/null"
 
@@ -27,29 +29,7 @@ get_config()
 
 restart_rtsp()
 {
-    if [[ $(get_config RTSP) == "yes" ]] ; then
-        if [[ "$RTSP_STREAM" == "low" ]]; then
-            if [ "$RTSP_ALT" == "yes" ]; then
-                h264grabber -m $MODEL_SUFFIX -r low -f &
-                sleep 1
-            fi
-            $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &
-        fi
-        if [[ "$RTSP_STREAM" == "high" ]]; then
-            if [ "$RTSP_ALT" == "yes" ]; then
-                h264grabber -m $MODEL_SUFFIX -r high -f &
-                sleep 1
-            fi
-            $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &
-        fi
-        if [[ "$RTSP_STREAM" == "both" ]]; then
-            if [ "$RTSP_ALT" == "yes" ]; then
-                h264grabber -m $MODEL_SUFFIX -r both -f &
-                sleep 1
-            fi
-            $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD &
-        fi
-    fi
+    $START_STOP_SCRIPT rtsp start
 }
 
 check_rtsp()
@@ -136,41 +116,15 @@ if [[ $(get_config RTSP) == "no" ]] ; then
     exit
 fi
 
-if [[ "$(get_config USERNAME)" != "" ]] ; then
-    USERNAME=$(get_config USERNAME)
-    PASSWORD=$(get_config PASSWORD)
-fi
-
 case $(get_config RTSP_PORT) in
     ''|*[!0-9]*) RTSP_PORT=554 ;;
     *) RTSP_PORT=$(get_config RTSP_PORT) ;;
 esac
 
-RTSP_DAEMON="rRTSPServer"
-RTSP_AUDIO_COMPRESSION=$(get_config RTSP_AUDIO)
-
-if [[ $(get_config RTSP_ALT) == "yes" ]] ; then
-    RTSP_DAEMON="rtsp_server_yi"
-fi
-
-if [[ "$RTSP_AUDIO_COMPRESSION" == "none" ]] ; then
-    RTSP_AUDIO_COMPRESSION="no"
-fi
-if [ ! -z $RTSP_AUDIO_COMPRESSION ]; then
-    RTSP_AUDIO_COMPRESSION="-a "$RTSP_AUDIO_COMPRESSION
-fi
 if [ ! -z $RTSP_PORT ]; then
     RTSP_PORT_NUMBER=$RTSP_PORT
-    RTSP_PORT="-p "$RTSP_PORT
-fi
-if [ ! -z $USERNAME ]; then
-    RTSP_USER="-u "$USERNAME
-fi
-if [ ! -z $PASSWORD ]; then
-    RTSP_PASSWORD="-w "$PASSWORD
 fi
 
-RTSP_STREAM=$(get_config RTSP_STREAM)
 RTSP_ALT=$(get_config RTSP_ALT)
 
 echo "$(date +'%Y-%m-%d %H:%M:%S') - Starting RTSP watchdog..." >> $LOG_FILE

@@ -5,6 +5,7 @@ CONF_FILE="etc/system.conf"
 YI_PREFIX="/home/app"
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 YI_HACK_UPGRADE_PATH="/tmp/sd/.fw_upgrade"
+START_STOP_SCRIPT=$YI_HACK_PREFIX/script/service.sh
 
 YI_HACK_VER=$(cat /tmp/sd/yi-hack/version)
 MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
@@ -293,11 +294,7 @@ fi
 
 if [[ $(get_config FTPD) == "yes" ]] ; then
     log "Starting ftp"
-    if [[ $(get_config BUSYBOX_FTPD) == "yes" ]] ; then
-        tcpsvd -vE 0.0.0.0 21 ftpd -w &
-    else
-        pure-ftpd -B
-    fi
+    $START_STOP_SCRIPT ftpd start
 fi
 
 if [[ $(get_config SSHD) == "yes" ]] ; then
@@ -321,18 +318,10 @@ if [[ $(get_config NTPD) == "yes" ]] ; then
 fi
 
 log "Starting mqtt services"
-if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
-    if [ "$MODEL_SUFFIX" != "y291ga" ] && [ "$MODEL_SUFFIX" != "y211ga" ] && [ "$MODEL_SUFFIX" != "y623" ]; then
-        mqttv4 -t local &
-    else
-        mqttv4 &
-    fi
-else
-    mqttv4 &
-fi
+$START_STOP_SCRIPT mqtt start
 if [[ $(get_config MQTT) == "yes" ]] ; then
-    mqtt-config &
-    /tmp/sd/yi-hack/script/conf2mqtt.sh &
+    $START_STOP_SCRIPT mqtt-config start
+    $YI_HACK_PREFIX/script/conf2mqtt.sh &
 fi
 
 sleep 5
@@ -359,184 +348,15 @@ fi
 
 if [[ $(get_config RTSP) == "yes" ]] ; then
     log "Starting rtsp"
-    RTSP_DAEMON="rRTSPServer"
-    RTSP_AUDIO_COMPRESSION=$(get_config RTSP_AUDIO)
-    RTSP_ALT=$(get_config RTSP_ALT)
-    H264GRABBER_AUDIO=""
-
-    if [[ "$RTSP_ALT" == "yes" ]] ; then
-        RTSP_DAEMON="rtsp_server_yi"
-    fi
-    if [[ "$RTSP_AUDIO_COMPRESSION" == "none" ]] ; then
-        RTSP_AUDIO_COMPRESSION="no"
-    fi
-
-    if [[ "$RTSP_AUDIO_COMPRESSION" == "aac" ]] ; then
-        H264GRABBER_AUDIO="-a"
-    fi
-
-    if [ ! -z $RTSP_AUDIO_COMPRESSION ]; then
-        RTSP_AUDIO_COMPRESSION="-a "$RTSP_AUDIO_COMPRESSION
-    fi
-    if [ ! -z $RTSP_PORT ]; then
-        RTSP_PORT="-p "$RTSP_PORT
-    fi
-    if [ ! -z $USERNAME ]; then
-        RTSP_USER="-u "$USERNAME
-    fi
-    if [ ! -z $PASSWORD ]; then
-        RTSP_PASSWORD="-w "$PASSWORD
-    fi
-    RTSP_STREAM=$(get_config RTSP_STREAM)
-    ONVIF_PROFILE=$(get_config ONVIF_PROFILE)
-    ONVIF_AUDIO_BC=$(get_config ONVIF_AUDIO_BC)
-    if [ ! -z $ONVIF_AUDIO_BC ]; then
-        B_ONVIF_AUDIO_BC="-b $ONVIF_AUDIO_BC"
-    fi
-
-    if [[ "$RTSP_STREAM" == "low" ]]; then
-        if [[ "$RTSP_ALT" == "yes" ]] ; then
-            h264grabber -m $MODEL_SUFFIX -r low $H264GRABBER_AUDIO -f &
-            sleep 1
-        fi
-        $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD $B_ONVIF_AUDIO_BC &
-        ONVIF_PROFILE_1="name=Profile_1\nwidth=640\nheight=360\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_1.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK\ntype=H264\ndecoder=$ONVIF_AUDIO_BC"
-    fi
-    if [[ "$RTSP_STREAM" == "high" ]]; then
-        if [[ "$RTSP_ALT" == "yes" ]] ; then
-            h264grabber -m $MODEL_SUFFIX -r high $H264GRABBER_AUDIO -f &
-            sleep 1
-        fi
-        $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD $B_ONVIF_AUDIO_BC &
-        ONVIF_PROFILE_0="name=Profile_0\nwidth=1920\nheight=1080\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264\ndecoder=$ONVIF_AUDIO_BC"
-    fi
-    if [[ "$RTSP_STREAM" == "both" ]]; then
-        if [[ "$RTSP_ALT" == "yes" ]] ; then
-            h264grabber -m $MODEL_SUFFIX -r both $H264GRABBER_AUDIO -f &
-            sleep 1
-        fi
-        $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD $B_ONVIF_AUDIO_BC &
-        if [[ "$ONVIF_PROFILE" == "low" ]] || [[ "$ONVIF_PROFILE" == "both" ]] ; then
-            ONVIF_PROFILE_1="name=Profile_1\nwidth=640\nheight=360\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_1.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK\ntype=H264\ndecoder=$ONVIF_AUDIO_BC"
-        fi
-        if [[ "$ONVIF_PROFILE" == "high" ]] || [[ "$ONVIF_PROFILE" == "both" ]] ; then
-            ONVIF_PROFILE_0="name=Profile_0\nwidth=1920\nheight=1080\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264\ndecoder=$ONVIF_AUDIO_BC"
-        fi
-    fi
-    $YI_HACK_PREFIX/script/wd_rtsp.sh &
+    $START_STOP_SCRIPT rtsp start
 fi
-
-MFG_PART=$(grep  -oE  ".{0,0}mfg@.{0,9}" /sys/firmware/devicetree/base/chosen/bootargs | cut -c 5-14)
-SERIAL_NUMBER=$(dd bs=1 count=20 skip=36 if=/dev/$MFG_PART 2>/dev/null | tr '\0' '0' | cut -c1-20)
-HW_ID=${SERIAL_NUMBER:0:4}
 
 if [[ $(get_config ONVIF) == "yes" ]] ; then
     log "Starting onvif"
-    if [[ $(get_config ONVIF_NETIF) == "wlan0" ]] ; then
-        ONVIF_NETIF="wlan0"
-    else
-        ONVIF_NETIF="eth0"
-    fi
-    if [[ $(get_config ONVIF_FAULT_IF_UNKNOWN) == "yes" ]] ; then
-        ONVIF_FAULT_IF_UNKNOWN=1
-    else
-        ONVIF_FAULT_IF_UNKNOWN=0
-    fi
-    if [[ $(get_config ONVIF_SYNOLOGY_NVR) == "yes" ]] ; then
-        ONVIF_SYNOLOGY_NVR=1
-    else
-        ONVIF_SYNOLOGY_NVR=0
-    fi
-
-    ONVIF_SRVD_CONF="/tmp/onvif_simple_server.conf"
-
-    echo "model=Yi Hack" > $ONVIF_SRVD_CONF
-    echo "manufacturer=Yi" >> $ONVIF_SRVD_CONF
-    echo "firmware_ver=$YI_HACK_VER" >> $ONVIF_SRVD_CONF
-    echo "hardware_id=$HW_ID" >> $ONVIF_SRVD_CONF
-    echo "serial_num=$SERIAL_NUMBER" >> $ONVIF_SRVD_CONF
-    echo "ifs=$ONVIF_NETIF" >> $ONVIF_SRVD_CONF
-    echo "port=$HTTPD_PORT" >> $ONVIF_SRVD_CONF
-    echo "scope=onvif://www.onvif.org/Profile/Streaming" >> $ONVIF_SRVD_CONF
-    echo "adv_fault_if_unknown=$ONVIF_FAULT_IF_UNKNOWN" >> $ONVIF_SRVD_CONF
-    echo "adv_synology_nvr=$ONVIF_SYNOLOGY_NVR" >> $ONVIF_SRVD_CONF
-    echo "" >> $ONVIF_SRVD_CONF
-    if [ ! -z $ONVIF_USERPWD ]; then
-        echo -e $ONVIF_USERPWD >> $ONVIF_SRVD_CONF
-        echo "" >> $ONVIF_SRVD_CONF
-    fi
-    if [ ! -z $ONVIF_PROFILE_0 ]; then
-        echo "#Profile 0" >> $ONVIF_SRVD_CONF
-        echo -e $ONVIF_PROFILE_0 >> $ONVIF_SRVD_CONF
-        echo "" >> $ONVIF_SRVD_CONF
-    fi
-    if [ ! -z $ONVIF_PROFILE_1 ]; then
-        echo "#Profile 1" >> $ONVIF_SRVD_CONF
-        echo -e $ONVIF_PROFILE_1 >> $ONVIF_SRVD_CONF
-        echo "" >> $ONVIF_SRVD_CONF
-    fi
-
-    if [[ $MODEL_SUFFIX == "r30gb" ]] || [[ $MODEL_SUFFIX == "r35gb" ]] || [[ $MODEL_SUFFIX == "r40ga" ]] || [[ $MODEL_SUFFIX == "h51ga" ]] || [[ $MODEL_SUFFIX == "h52ga" ]] || [[ $MODEL_SUFFIX == "h60ga" ]] || [[ $MODEL_SUFFIX == "q321br_lsx" ]] || [[ $MODEL_SUFFIX == "qg311r" ]] || [[ $MODEL_SUFFIX == "b091qp" ]] ; then
-        echo "#PTZ" >> $ONVIF_SRVD_CONF
-        echo "ptz=1" >> $ONVIF_SRVD_CONF
-        echo "get_position=/tmp/sd/yi-hack/bin/ipc_cmd -g" >> $ONVIF_SRVD_CONF
-        echo "is_moving=/tmp/sd/yi-hack/bin/ipc_cmd -u" >> $ONVIF_SRVD_CONF
-        echo "move_left=/tmp/sd/yi-hack/bin/ipc_cmd -m left" >> $ONVIF_SRVD_CONF
-        echo "move_right=/tmp/sd/yi-hack/bin/ipc_cmd -m right" >> $ONVIF_SRVD_CONF
-        echo "move_up=/tmp/sd/yi-hack/bin/ipc_cmd -m up" >> $ONVIF_SRVD_CONF
-        echo "move_down=/tmp/sd/yi-hack/bin/ipc_cmd -m down" >> $ONVIF_SRVD_CONF
-        echo "move_stop=/tmp/sd/yi-hack/bin/ipc_cmd -m stop" >> $ONVIF_SRVD_CONF
-        echo "move_preset=/tmp/sd/yi-hack/bin/ipc_cmd -p %d" >> $ONVIF_SRVD_CONF
-        echo "set_preset=/tmp/sd/yi-hack/script/ptz_presets.sh -a add_preset -m %s" >> $ONVIF_SRVD_CONF
-        echo "set_home_position=/tmp/sd/yi-hack/script/ptz_presets.sh -a set_home_position" >> $ONVIF_SRVD_CONF
-        echo "remove_preset=/tmp/sd/yi-hack/script/ptz_presets.sh -a del_preset -n %d" >> $ONVIF_SRVD_CONF
-        echo "jump_to_abs=/tmp/sd/yi-hack/bin/ipc_cmd -j %f,%f" >> $ONVIF_SRVD_CONF
-        echo "jump_to_rel=/tmp/sd/yi-hack/bin/ipc_cmd -J %f,%f" >> $ONVIF_SRVD_CONF
-        echo "get_presets=/tmp/sd/yi-hack/script/ptz_presets.sh -a get_presets" >> $ONVIF_SRVD_CONF
-        echo "" >> $ONVIF_SRVD_CONF
-    fi
-
-    echo "#EVENT" >> $ONVIF_SRVD_CONF
-    echo "events=3" >> $ONVIF_SRVD_CONF
-    echo "#Event 0" >> $ONVIF_SRVD_CONF
-    echo "topic=tns1:VideoSource/MotionAlarm" >> $ONVIF_SRVD_CONF
-    echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
-    echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
-    echo "input_file=/tmp/onvif_notify_server/motion_alarm" >> $ONVIF_SRVD_CONF
-    echo "#Event 1" >> $ONVIF_SRVD_CONF
-    echo "topic=tns1:RuleEngine/MyRuleDetector/PeopleDetect" >> $ONVIF_SRVD_CONF
-    echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
-    echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
-    echo "input_file=/tmp/onvif_notify_server/human_detection" >> $ONVIF_SRVD_CONF
-    echo "#Event 2" >> $ONVIF_SRVD_CONF
-    echo "topic=tns1:RuleEngine/MyRuleDetector/VehicleDetect" >> $ONVIF_SRVD_CONF
-    echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
-    echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
-    echo "input_file=/tmp/onvif_notify_server/vehicle_detection" >> $ONVIF_SRVD_CONF
-    echo "#Event 3" >> $ONVIF_SRVD_CONF
-    echo "topic=tns1:RuleEngine/MyRuleDetector/DogCatDetect" >> $ONVIF_SRVD_CONF
-    echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
-    echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
-    echo "input_file=/tmp/onvif_notify_server/animal_detection" >> $ONVIF_SRVD_CONF
-    echo "#Event 4" >> $ONVIF_SRVD_CONF
-    echo "topic=tns1:RuleEngine/MyRuleDetector/BabyCryingDetect" >> $ONVIF_SRVD_CONF
-    echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
-    echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
-    echo "input_file=/tmp/onvif_notify_server/baby_crying" >> $ONVIF_SRVD_CONF
-    echo "#Event 5" >> $ONVIF_SRVD_CONF
-    echo "topic=tns1:AudioAnalytics/Audio/DetectedSound" >> $ONVIF_SRVD_CONF
-    echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
-    echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
-    echo "input_file=/tmp/onvif_notify_server/sound_detection" >> $ONVIF_SRVD_CONF
-
-    chmod 0600 $ONVIF_SRVD_CONF
-    onvif_simple_server --conf_file $ONVIF_SRVD_CONF
-    ipc2file
-    mkdir -p /tmp/onvif_notify_server
-    onvif_notify_server --conf_file $ONVIF_SRVD_CONF
+    $START_STOP_SCRIPT onvif start
 
     if [[ $(get_config ONVIF_WSDD) == "yes" ]] ; then
-        wsd_simple_server --pid_file /var/run/wsd_simple_server.pid --if_name $ONVIF_NETIF --xaddr "http://%s$D_HTTPD_PORT/onvif/device_service" -m `hostname` -n Yi
+        $START_STOP_SCRIPT wsdd start
     fi
 fi
 

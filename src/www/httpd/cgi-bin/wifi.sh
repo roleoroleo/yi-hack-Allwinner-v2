@@ -32,7 +32,7 @@ if [ $ACTION == "scan" ]; then
     printf "Content-type: application/json\r\n\r\n"
     printf "{\"wifi\":[\n"
 
-    LIST=`iwlist wlan0 scan | grep "ESSID:" | cut -d : -f 2,3,4,5,6,7,8 | grep -v -e '^$'`
+    LIST=`iwlist wlan0 scan | grep "ESSID:" | sed 's/^[ \t]*ESSID://g' | grep -v -e '^$'`
 
     IFS="\""
     for l in $LIST; do

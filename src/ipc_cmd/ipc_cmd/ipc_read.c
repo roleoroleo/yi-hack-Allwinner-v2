@@ -68,14 +68,37 @@ static int parse_message(char *msg, ssize_t len)
 {
     int i;
 
-    if (debug) fprintf(stderr, "Parsing message\n");
+    if (debug) {
+        fprintf(stderr, "Parsing message\n");
 
-    for(i=0; i<len; i++)
-        if (debug) fprintf(stderr, "%02x ", msg[i]);
-    if (debug) fprintf(stderr, "\n");
+        for (i = 0; i < len; i++)
+            if (debug) fprintf(stderr, "%02x ", msg[i]);
+        fprintf(stderr, "\n");
+    }
 
-    msg[len] = '\0';
-    printf("%s\n", msg);
+    if ((len >= sizeof(IPC_MOTION_START) - 1) && (memcmp(msg, IPC_MOTION_START, sizeof(IPC_MOTION_START) - 1)==0)) {
+        printf("IPC_MOTION_START\n");
+    } else if ((len >= sizeof(IPC_MOTION_START_C) - 1) && (memcmp(msg, IPC_MOTION_START_C, sizeof(IPC_MOTION_START_C) - 1)==0)) {
+        printf("IPC_MOTION_START_C\n");
+    } else if ((len >= sizeof(IPC_MOTION_STOP) - 1) && (memcmp(msg, IPC_MOTION_STOP, sizeof(IPC_MOTION_STOP) - 1)==0)) {
+        printf("IPC_MOTION_STOP\n");
+    } else if ((len >= sizeof(IPC_AI_HUMAN_DETECTION) - 1) && (memcmp(msg, IPC_AI_HUMAN_DETECTION, sizeof(IPC_AI_HUMAN_DETECTION) - 1)==0)) {
+        printf("IPC_AI_HUMAN_DETECTION\n");
+    } else if ((len >= sizeof(IPC_AI_BODY_DETECTION_C) - 1) && (memcmp(msg, IPC_AI_BODY_DETECTION_C, sizeof(IPC_AI_BODY_DETECTION_C) - 1)==0)) {
+        printf("IPC_AI_BODY_DETECTION_C\n");
+    } else if ((len >= sizeof(IPC_AI_VEHICLE_DETECTION_C) - 1) && (memcmp(msg, IPC_AI_VEHICLE_DETECTION_C, sizeof(IPC_AI_VEHICLE_DETECTION_C) - 1)==0)) {
+        printf("IPC_AI_VEHICLE_DETECTION_C\n");
+    } else if ((len >= sizeof(IPC_AI_ANIMAL_DETECTION_C) - 1) && (memcmp(msg, IPC_AI_ANIMAL_DETECTION_C, sizeof(IPC_AI_ANIMAL_DETECTION_C) - 1)==0)) {
+        printf("IPC_AI_ANIMAL_DETECTION_C\n");
+    } else if ((len >= sizeof(IPC_BABY_CRYING) - 1) && (memcmp(msg, IPC_BABY_CRYING, sizeof(IPC_BABY_CRYING) - 1)==0)) {
+        printf("IPC_BABY_CRYING\n");
+    } else if ((len >= sizeof(IPC_SOUND_DETECTION) - 1) && (memcmp(msg, IPC_SOUND_DETECTION, sizeof(IPC_SOUND_DETECTION) - 1)==0)) {
+        printf("IPC_SOUND_DETECTION\n");
+    }
+    fflush(stdout);
+
+    if (debug)
+        fprintf(stderr, "\n");
 
     return 0;
 }
@@ -177,7 +200,7 @@ void main(int argc, char ** argv)
 
         if (debug) fprintf(stderr, "IPC message. Len: %d. Status: %s!\n", bytes_read, strerror(errno));
 
-        if(bytes_read >= 0) {
+        if (bytes_read >= 0) {
             parse_message(buffer, bytes_read);
         }
 

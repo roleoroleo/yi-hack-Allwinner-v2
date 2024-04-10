@@ -595,7 +595,7 @@ int main(int argc, char **argv)
                 } else if (strcasecmp("y29ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Y29GA;
                     frame_header_size = FRAME_HEADER_SIZE_Y29GA;
-                    model_high_res = RESOLUTION_3M;
+                    model_high_res = RESOLUTION_FHD;
                 } else if (strcasecmp("y623", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Y623;
                     frame_header_size = FRAME_HEADER_SIZE_Y623;

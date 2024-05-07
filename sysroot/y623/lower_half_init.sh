@@ -1,4 +1,11 @@
 #!/bin/sh
+
+# protect against running this script twice and starting up a bunch of duplicate processes
+if [ -f /tmp/init_started ]; then
+    exit
+fi
+
+touch /tmp/init_started
 sdio_wifi_ssv6158='ssv6158'
 sdio_wifi_8189fs='8189fs'
 sdio_wifi_hi3881='hi3881'

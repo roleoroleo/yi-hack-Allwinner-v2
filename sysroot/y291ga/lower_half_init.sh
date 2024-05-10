@@ -1,4 +1,12 @@
 #!/bin/sh
+
+# protect against running this script twice and starting up a bunch of duplicate processes
+if [ -f /tmp/init_started ]; then
+    exit
+fi
+
+touch /tmp/init_started
+
 mount -t vfat /dev/mmcblk0 /tmp/sd
 if [ "${SUFFIX}" = "y211ga" ] || [ "${SUFFIX}" = "y211ba" ] || [ "${SUFFIX}" = "y291ga" ];then
     echo "need reset gpio198"

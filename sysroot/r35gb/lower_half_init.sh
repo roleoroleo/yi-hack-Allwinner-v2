@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# protect against running this script twice and starting up a bunch of duplicate processes
+if [ -f /tmp/init_started ]; then
+    exit
+fi
+
+touch /tmp/init_started
+
 HOMEVER=$(cat /home/homever)
 HV=${HOMEVER:0:2}
 

@@ -112,6 +112,17 @@ check_rmm()
     fi
 }
 
+check_mqtt()
+{
+#  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking mqttv4 process..." >> $LOG_FILE
+    PS=`ps ww | grep mqttv4 | grep -v grep | grep -c ^`
+
+    if [ $PS -eq 0 ]; then
+        echo "check_mqtt failed, restart it!" >> $LOG_FILE
+        $START_STOP_SCRIPT mqtt start
+    fi
+}
+
 if [[ $(get_config RTSP) == "no" ]] ; then
     exit
 fi
@@ -137,6 +148,7 @@ do
         check_rtsp_alt
     fi
     check_rmm
+    check_mqtt
 
     echo 1500 > /sys/class/net/eth0/mtu
     echo 1500 > /sys/class/net/wlan0/mtu

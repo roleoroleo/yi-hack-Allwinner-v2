@@ -243,8 +243,6 @@ else
         LD_LIBRARY_PATH="/tmp/sd/yi-hack/lib:/lib:/usr/lib:/home/lib:/home/qigan/lib:/home/app/locallib:/tmp/sd:/tmp/sd/gdb" ./rmm &
         sleep 6
         dd if=/tmp/audio_fifo of=/dev/null bs=1 count=8192
-        # Trick to start circular buffer filling
-        start_buffer
         if [[ $(get_config REC_WITHOUT_CLOUD) == "yes" ]] ; then
             if [[ $(get_config TIME_OSD) == "yes" ]] ; then
                 (sleep 30; export TZP=`TZ=$TZ_TMP date +%z`; export TZP=${TZP:0:3}:${TZP:3:2}; export TZ=GMT$TZP; ./mp4record) &

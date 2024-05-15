@@ -11,6 +11,8 @@ mkdir -p ../../build/yi-hack/usr/sbin
 cp -f ./_install/yi-hack/bin/busybox ../../build/yi-hack/bin/busybox
 echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/base64
 chmod 0755 ../../build/yi-hack/bin/base64
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/dmesg
+chmod 0755 ../../build/yi-hack/bin/dmesg
 echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/gzip
 chmod 0755 ../../build/yi-hack/bin/gzip
 echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/hostname

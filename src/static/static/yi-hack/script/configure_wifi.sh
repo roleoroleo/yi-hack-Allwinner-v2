@@ -44,6 +44,7 @@ CONNECTED_BIT=$(hexdump -s 24 -n 4 -v /dev/mtdblock7 | awk 'FNR <=1' | awk '{pri
 
 echo $SSID ${#SSID} - $CURRENT_SSID ${#CURRENT_SSID}
 echo $KEY ${#KEY} - $CURRENT_KEY ${#CURRENT_KEY}
+echo $CONNECTED_BIT
 
 if [ "$SSID" == "$CURRENT_SSID" ] && [ "$KEY" == "$CURRENT_KEY" ] && [ "$CONNECTED_BIT" == "00000000" ]; then
     echo "ssid and key already configured"

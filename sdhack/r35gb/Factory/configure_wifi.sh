@@ -40,12 +40,22 @@ fi
 
 CURRENT_SSID=$(dd bs=1 skip=28 count=64 if=/dev/mtdblock7 2>/dev/null)
 CURRENT_KEY=$(dd bs=1 skip=92 count=64 if=/dev/mtdblock7 2>/dev/null)
+CURRENT_BIT=$(hexdump -C -s 16 -n 16 /dev/mtdblock7 2>/dev/null | awk 'NR==1 {print}' | cut -d " " -f 12)
 
 echo $SSID ${#SSID} - $CURRENT_SSID ${#CURRENT_SSID}
 echo $KEY ${#KEY} - $CURRENT_KEY ${#CURRENT_KEY}
+echo $CONNECTED_BIT
 
 if [ "$SSID" == "$CURRENT_SSID" ] && [ "$KEY" == "$CURRENT_KEY" ]; then
     echo "ssid and key already configured"
+    if [ "$CONNECTED_BIT" != "00000000" ]; then
+        #write "connected" bit
+        printf "\00\00\00\00" | dd of=/dev/mtdblock7 bs=1 seek=24 count=4 conv=notrunc
+        sync
+        sync
+        sync
+        reboot
+    fi
     exit
 fi
 

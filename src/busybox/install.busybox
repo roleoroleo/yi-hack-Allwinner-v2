@@ -13,6 +13,8 @@ echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/base64
 chmod 0755 ../../build/yi-hack/bin/base64
 echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/dmesg
 chmod 0755 ../../build/yi-hack/bin/dmesg
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/grep
+chmod 0755 ../../build/yi-hack/bin/grep
 echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/gzip
 chmod 0755 ../../build/yi-hack/bin/gzip
 echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/bin/hostname

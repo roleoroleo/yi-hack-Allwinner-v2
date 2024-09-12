@@ -86,7 +86,11 @@ init_config()
     ONVIF_AUDIO_BC=$(get_config ONVIF_AUDIO_BC)
     if [ ! -z $ONVIF_AUDIO_BC ]; then
         if [ "$ONVIF_AUDIO_BC" != "NONE" ] && [ "$ONVIF_AUDIO_BC" != "none" ]; then
-            B_ONVIF_AUDIO_BC="-b $ONVIF_AUDIO_BC"
+            if [ "$ONVIF_AUDIO_BC" == "G711" ]; then
+                B_ONVIF_AUDIO_BC="-b ulaw"
+            else
+                B_ONVIF_AUDIO_BC="-b $ONVIF_AUDIO_BC"
+            fi
         fi
     fi
     if [[ $(get_config ONVIF_FAULT_IF_UNKNOWN) == "yes" ]] ; then

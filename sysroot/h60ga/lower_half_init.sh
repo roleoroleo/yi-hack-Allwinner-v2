@@ -98,6 +98,12 @@ else
     ifconfig eth0 up
 fi
 
+HOMEVER=$(cat /home/homever)
+HV=${HOMEVER:0:2}
+
+if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+    ln -s /home/model/BodyVehicleAnimal3.model /tmp/BodyVehicleAnimal3.model
+fi
 echo "============================================= home low_half_init.sh... ========================================="
 echo "============================================= begin to start app... ========================================="
 cd /home/app

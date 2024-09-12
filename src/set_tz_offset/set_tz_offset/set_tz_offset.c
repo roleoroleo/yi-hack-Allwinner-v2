@@ -17,7 +17,7 @@
 #include <errno.h>
 #include "set_tz_offset.h"
 
-int tz_offset_osd_addr[34][2] = {
+int tz_offset_osd_addr[35][2] = {
     { 0x4f4, 1 },    // Y203C
     { 0x4a0, 1 },    // Y23
     { 0x4f4, 1 },    // Y25
@@ -36,7 +36,8 @@ int tz_offset_osd_addr[34][2] = {
     { 0x56c, 1 },    // H30GA_11
     { 0x4e0, 1 },    // H51GA
     { 0x4e0, 1 },    // H52GA
-    { 0x560, 1 },    // H60GA
+    { 0x560, 1 },    // H60GA_9
+    { 0x564, 1 },    // H60GA_12
     { 0x4e0, 1 },    // Q321BR_LSX
     { 0x4e0, 1 },    // Q705BR
     { 0x4e0, 1 },    // QG311R

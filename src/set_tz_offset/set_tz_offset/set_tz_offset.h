@@ -62,7 +62,8 @@ typedef enum {
     H30GA_11,
     H51GA,
     H52GA,
-    H60GA,
+    H60GA,        // 9
+    H60GA_12,
     Q321BR_LSX,
     Q705BR,
     QG311R,

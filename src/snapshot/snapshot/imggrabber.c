@@ -21,6 +21,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#define _GNU_SOURCE
+#include <string.h>
 #include <sys/mman.h>
 #include <dirent.h>
 #include <libgen.h>
@@ -42,6 +44,8 @@
 #include <semaphore.h>
 #endif
 
+#define FRAME_HEADER_SIZE_AUTODETECT 0
+
 #define BUF_OFFSET_Y21GA 368
 #define FRAME_HEADER_SIZE_Y21GA 28
 
@@ -58,7 +62,8 @@
 #define FRAME_HEADER_SIZE_H30GA 28
 
 #define BUF_OFFSET_R30GB 300
-#define FRAME_HEADER_SIZE_R30GB 22
+//#define FRAME_HEADER_SIZE_R30GB 22
+#define FRAME_HEADER_SIZE_R30GB 0
 
 #define BUF_OFFSET_R35GB 300
 #define FRAME_HEADER_SIZE_R35GB 26
@@ -114,6 +119,9 @@
 #define H_FHD 1080
 #define W_3M 2304
 #define H_3M 1296
+
+unsigned char PPS4_START[]          = {0x00, 0x00, 0x00, 0x01, 0x68};
+unsigned char PPS4_HEADER[]         = {0x08, 0x00, 0x00, 0x00};
 
 typedef struct {
     int sps_addr;
@@ -493,6 +501,7 @@ int main(int argc, char **argv)
     uint32_t offset, length;
 
     unsigned char *buf_idx, *buf_idx_cur, *buf_idx_end;
+    unsigned char *header_a1, *header_a2;
     unsigned char *bufferh26x, *bufferyuv;
     char file[256];
     int watermark = 0;
@@ -746,6 +755,25 @@ int main(int argc, char **argv)
         fhp_addr = NULL;
         fhv_addr = NULL;
         fhi_addr = NULL;
+
+        // Autodetect header size if not defined
+        if ((frame_header_size == FRAME_HEADER_SIZE_AUTODETECT) && (debug)) fprintf(stderr, "Detecting frame header size\n");
+        while (frame_header_size == FRAME_HEADER_SIZE_AUTODETECT) {
+            header_a2 = (unsigned char *) memmem(addr + buf_offset, buf_size - buf_offset, PPS4_START, sizeof(PPS4_START));
+            if ((header_a2 != NULL) && (header_a2 - 40 > addr + buf_offset)) {
+                header_a1 = cb_move(header_a2, -40);
+                header_a1 = (unsigned char *) memmem(header_a1, 40, PPS4_HEADER, sizeof(PPS4_HEADER));
+                if (header_a1 != NULL) {
+                    frame_header_size = header_a2 - header_a1;
+                    if (frame_header_size < 0)
+                            frame_header_size += (buf_size - buf_offset);
+                    if ((frame_header_size < 0) && (frame_header_size > 40))
+                        frame_header_size = FRAME_HEADER_SIZE_AUTODETECT;
+                }
+            }
+            usleep(1000);
+        }
+        if (debug) fprintf(stderr, "Frame header size = %d\n", frame_header_size);
 
         while (1) {
 #ifdef USE_SEMAPHORE

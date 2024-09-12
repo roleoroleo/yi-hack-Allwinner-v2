@@ -70,6 +70,8 @@ unsigned char PPS4_START[]          = {0x00, 0x00, 0x00, 0x01, 0x68};
 unsigned char PPS5_START[]          = {0x00, 0x00, 0x00, 0x01, 0x44};
 unsigned char VPS5_START[]          = {0x00, 0x00, 0x00, 0x01, 0x40};
 
+unsigned char PPS4_HEADER[]         = {0x08, 0x00, 0x00, 0x00};
+
 unsigned char SPS4_640X360[]        = {0x00, 0x00, 0x00, 0x01, 0x67, 0x4D, 0x00, 0x14,
                                        0x96, 0x54, 0x05, 0x01, 0x7B, 0xCB, 0x37, 0x01,
                                        0x01, 0x01, 0x02};
@@ -436,6 +438,7 @@ void *capture(void *ptr)
 {
     unsigned char *buf_idx, *buf_idx_cur, *buf_idx_end, *buf_idx_end_prev;
     unsigned char *buf_idx_start = NULL;
+    unsigned char *header_a1, *header_a2;
     int fshm;
 
     int frame_type = TYPE_NONE;
@@ -501,6 +504,25 @@ void *capture(void *ptr)
     sem_write_unlock();
 #endif
     last_counter = 0;
+
+    // Autodetect header size if not defined
+    if ((frame_header_size == FRAME_HEADER_SIZE_AUTODETECT) && (debug & 3)) fprintf(stderr, "%lld: capture - detecting frame header size\n", current_timestamp());
+    while (frame_header_size == FRAME_HEADER_SIZE_AUTODETECT) {
+        header_a2 = (unsigned char *) memmem(input_buffer.buffer + input_buffer.offset, input_buffer.size - input_buffer.offset, PPS4_START, sizeof(PPS4_START));
+        if ((header_a2 != NULL) && (header_a2 - 40 > input_buffer.buffer + input_buffer.offset)) {
+            header_a1 = cb_move(header_a2, -40);
+            header_a1 = (unsigned char *) memmem(header_a1, 40, PPS4_HEADER, sizeof(PPS4_HEADER));
+            if (header_a1 != NULL) {
+                frame_header_size = header_a2 - header_a1;
+                if (frame_header_size < 0)
+                        frame_header_size += (input_buffer.size - input_buffer.offset);
+                if ((frame_header_size < 0) && (frame_header_size > 40))
+                    frame_header_size = FRAME_HEADER_SIZE_AUTODETECT;
+            }
+        }
+        usleep(1000);
+    }
+    if (debug & 3) fprintf(stderr, "%lld: capture - frame header size = %d\n", current_timestamp(), frame_header_size);
 
     if (debug & 3) fprintf(stderr, "%lld: capture - starting capture main loop\n", current_timestamp());
 

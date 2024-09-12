@@ -25,6 +25,7 @@ declare -A CAMERAS
 
 CAMERAS["y21ga"]="y21ga"
 CAMERAS["y211ga"]="y211ga"
+CAMERAS["y211ba"]="y211ba"
 CAMERAS["y213ga"]="y213ga"
 CAMERAS["h30ga"]="h30ga"
 CAMERAS["r30gb"]="r30gb"

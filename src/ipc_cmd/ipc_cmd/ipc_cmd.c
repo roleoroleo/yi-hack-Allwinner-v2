@@ -37,11 +37,33 @@ int open_queue()
     return 0;
 }
 
+int open_queue_w()
+{
+    ipc_mq = mq_open(IPC_W_QUEUE_NAME, O_RDWR);
+    if(ipc_mq == -1) {
+        fprintf(stderr, "Can't open mqueue %s\n", IPC_QUEUE_NAME);
+        return -1;
+    }
+    return 0;
+}
+
 int ipc_start()
 {
     int ret = -1;
 
     ret = open_queue();
+    if(ret != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int ipc_start_w()
+{
+    int ret = -1;
+
+    ret = open_queue_w();
     if(ret != 0) {
         return -1;
     }
@@ -120,6 +142,8 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\t(0<TIME<=300 seconds)\n");
     fprintf(stderr, "\t-T, --stop_motion\n");
     fprintf(stderr, "\t\tstop a motion detection event\n");
+    fprintf(stderr, "\t-w, --save_config\n");
+    fprintf(stderr, "\t\tsave config\n");
     fprintf(stderr, "\t-d, --debug\n");
     fprintf(stderr, "\t\tenable debug\n");
     fprintf(stderr, "\t-h, --help\n");
@@ -164,6 +188,7 @@ int main(int argc, char ** argv)
     unsigned char preset_msg[20];
     int start = 0;
     int stop = 0;
+    int save_config = 0;
     int time_to_stop = 60;
     char file[1024];
     unsigned char msg_file[1024];
@@ -207,6 +232,7 @@ int main(int argc, char ** argv)
             {"file", required_argument, 0, 'f'},
             {"start", required_argument, 0, 'S'},
             {"stop", no_argument, 0, 'T'},
+            {"save_config", no_argument, 0, 'w'},
             {"xxx", no_argument, 0, 'x'},
             {"debug",  no_argument, 0, 'd'},
             {"help",  no_argument, 0, 'h'},
@@ -215,7 +241,7 @@ int main(int argc, char ** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:E:N:O:c:o:I:b:B:n:m:M:guj:J:p:P:HR:C:f:S:Txdh",
+        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:E:N:O:c:o:I:b:B:n:m:M:guj:J:p:P:HR:C:f:S:Twxdh",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -589,6 +615,10 @@ int main(int argc, char ** argv)
         case 'd':
             fprintf (stderr, "debug on\n");
             debug = 1;
+            break;
+
+        case 'w':
+            save_config = 1;
             break;
 
         case 'x':
@@ -994,6 +1024,18 @@ int main(int argc, char ** argv)
 
     if (stop == 1) {
         mq_send(ipc_mq, IPC_MOTION_STOP, sizeof(IPC_MOTION_STOP) - 1, 0);
+    }
+
+    if (save_config == 1) {
+        // We need to use a different queue
+        ipc_stop();
+        ret = ipc_start_w();
+        if (ret != 0) {
+            exit(EXIT_FAILURE);
+        }
+        mq_send(ipc_mq, IPC_SAVE_CONFIG, sizeof(IPC_SAVE_CONFIG) - 1, 0);
+        ipc_stop();
+        return 0;
     }
 
     if (xxx_0 == 1) {

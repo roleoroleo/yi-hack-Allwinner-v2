@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 
 #define IPC_QUEUE_NAME          "/ipc_dispatch"
+#define IPC_W_QUEUE_NAME        "/ipc_dispatch_worker"
 #define IPC_MESSAGE_MAX_SIZE    512
 
 #define NONE -1
@@ -184,3 +185,5 @@
 #define SOUND_SENS_70 70
 #define SOUND_SENS_80 80
 #define SOUND_SENS_90 90
+
+#define IPC_SAVE_CONFIG "\x40\x00\x00\x00\x01\x00\x00\x00\xFF\x00\xFF\x00\x00\x00\x00\x00"

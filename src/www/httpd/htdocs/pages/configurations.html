@@ -76,15 +76,19 @@
                         </td>
                     </tr>
                     <tr class="row">
-                        <td>RTSP alternative server</td>
+                        <td>RTSP server program</td>
                         <td>
-                            <label class="switch small">
-                                <input type="checkbox" data-key="RTSP_ALT"/>
-                                <span class="slider round"></span>
-                                <span class="switch-text"></span>
-                            </label>
+                            <div class="standard-select">
+                                <select data-key="RTSP_ALT" id="RTSP_ALT">
+                                    <option value="standard">Standard (based on live555 library)</option>
+                                    <option value="alternative">Alternative</option>
+                                    <option value="go2rtc">go2rtc</option>
+                                </select>
+                            </div>
                             <span class="switch-description">
-                                Use alternative RTSP server instead of the live555 based one.
+                                Select the RTSP server program.
+                                <br/>
+                                Note: go2rtc supports only aac audio.
                             </span>
                         </td>
                     </tr>

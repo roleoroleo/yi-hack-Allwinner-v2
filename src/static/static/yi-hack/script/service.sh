@@ -48,24 +48,27 @@ init_config()
     fi
 
     if [[ $(get_config RTSP) == "yes" ]] ; then
-        RTSP_DAEMON="rRTSPServer"
-        RTSP_AUDIO_COMPRESSION=$(get_config RTSP_AUDIO)
-        if [ "$RTSP_AUDIO" == "aac" ]; then
-            H264GRABBER_AUDIO="-a"
+        if [[ $(get_config RTSP_ALT) == "alternative" ]] ; then
+            RTSP_DAEMON="rtsp_server_yi"
+        elif [[ $(get_config RTSP_ALT) == "go2rtc" ]] ; then
+            RTSP_DAEMON="go2rtc"
+        else
+            RTSP_DAEMON="rRTSPServer"
         fi
 
-        if [[ $(get_config RTSP_ALT) == "yes" ]] ; then
-            RTSP_DAEMON="rtsp_server_yi"
+        RTSP_AUDIO_COMPRESSION=$(get_config RTSP_AUDIO)
+        if [ "$RTSP_AUDIO_COMPRESSION" == "aac" ]; then
+            H264GRABBER_AUDIO="-a"
         fi
 
         if [[ "$RTSP_AUDIO_COMPRESSION" == "none" ]] ; then
             RTSP_AUDIO_COMPRESSION="no"
         fi
         if [ ! -z $RTSP_AUDIO_COMPRESSION ]; then
-            RTSP_AUDIO_COMPRESSION="-a "$RTSP_AUDIO_COMPRESSION
+            RTSP_AUDIO="-a "$RTSP_AUDIO_COMPRESSION
         fi
         if [ ! -z $RTSP_PORT ]; then
-            RTSP_PORT="-p "$RTSP_PORT
+            P_RTSP_PORT="-p "$RTSP_PORT
         fi
         if [ ! -z $USERNAME ]; then
             RTSP_USER="-u "$USERNAME
@@ -107,6 +110,8 @@ init_config()
 
 start_rtsp()
 {
+    # If "null" use default
+
     if [ "$1" == "low" ] || [ "$1" == "high" ] || [ "$1" == "both" ]; then
         RTSP_RES=$1
     fi
@@ -114,32 +119,68 @@ start_rtsp()
         H264GRABBER_AUDIO="-a"
     fi
     if [ "$2" == "no" ] || [ "$2" == "yes" ] || [ "$2" == "alaw" ] || [ "$2" == "ulaw" ] || [ "$2" == "pcm" ] || [ "$2" == "aac" ] ; then
-        RTSP_AUDIO_COMPRESSION="-a "$2
+        RTSP_AUDIO_COMPRESSION=$2
+        RTSP_AUDIO="-a "$2
     fi
 
-    if [[ $RTSP_RES == "low" ]]; then
-        if [ "$RTSP_ALT" == "yes" ]; then
-            h264grabber -m $MODEL_SUFFIX -r low $H264GRABBER_AUDIO -f &
-            sleep 1
+    if [ "$RTSP_ALT" == "go2rtc" ]; then
+        echo "streams:" > /tmp/go2rtc.yaml
+        if [ "$RTSP_RES" == "high" ] || [ "$RTSP_RES" == "both" ]; then
+            echo "  ch0_0.h264:" >> /tmp/go2rtc.yaml
+            echo "    - exec:h264grabber -m h52ga -r high#backchannel=0" >> /tmp/go2rtc.yaml
         fi
-        $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD $B_ONVIF_AUDIO_BC &
-    elif [[ $RTSP_RES == "high" ]]; then
-        if [ "$RTSP_ALT" == "yes" ]; then
-            h264grabber -m $MODEL_SUFFIX -r high $H264GRABBER_AUDIO -f &
-            sleep 1
+        if [ "$RTSP_RES" != "low" ] && [ "$RTSP_AUDIO_COMPRESSION" == "aac" ] ; then
+            echo "    - exec:h264grabber -m $MODEL_SUFFIX -r none -a#backchannel=0" >> /tmp/go2rtc.yaml
         fi
-        $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD $B_ONVIF_AUDIO_BC &
-    elif [[ $RTSP_RES == "both" ]]; then
-        if [ "$RTSP_ALT" == "yes" ]; then
-            h264grabber -m $MODEL_SUFFIX -r both $H264GRABBER_AUDIO -f &
-            sleep 1
+        if [ "$RTSP_RES" == "low" ] || [ "$RTSP_RES" == "both" ]; then
+            echo "  ch0_1.h264:" >> /tmp/go2rtc.yaml
+            echo "    - exec:h264grabber -m $MODEL_SUFFIX -r low#backchannel=0" >> /tmp/go2rtc.yaml
         fi
-        $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_AUDIO_COMPRESSION $RTSP_PORT $RTSP_USER $RTSP_PASSWORD $B_ONVIF_AUDIO_BC &
-    fi
+        if [ "$RTSP_RES" == "low" ] && [ "$RTSP_AUDIO_COMPRESSION" == "aac" ] ; then
+            echo "    - exec:h264grabber -m $MODEL_SUFFIX -r none -a#backchannel=0" >> /tmp/go2rtc.yaml
+        fi
 
-    WD_COUNT=$(ps | grep wd_rtsp.sh | grep -v grep | grep -c ^)
-    if [ $WD_COUNT -eq 0 ]; then
-        (sleep 30; $YI_HACK_PREFIX/script/wd_rtsp.sh >/dev/null) &
+        echo "" >> /tmp/go2rtc.yaml
+        echo "api:" >> /tmp/go2rtc.yaml
+        echo "  listen: \"\"" >> /tmp/go2rtc.yaml
+        echo "" >> /tmp/go2rtc.yaml
+        echo "webrtc:" >> /tmp/go2rtc.yaml
+        echo "  listen: \"\"" >> /tmp/go2rtc.yaml
+        echo "" >> /tmp/go2rtc.yaml
+        echo "rtsp:" >> /tmp/go2rtc.yaml
+        echo "  listen: \":$RTSP_PORT\"" >> /tmp/go2rtc.yaml
+        if [ ! -z $USERNAME ]; then
+            echo "  username: \"$USERNAME\"" >> /tmp/go2rtc.yaml
+            echo "  password: \"$PASSWORD\"" >> /tmp/go2rtc.yaml
+        fi
+
+        $RTSP_DAEMON -c /tmp/go2rtc.yaml -d
+    else
+
+        if [[ $RTSP_RES == "low" ]]; then
+            if [ "$RTSP_ALT" == "yes" ]; then
+                h264grabber -m $MODEL_SUFFIX -r low $H264GRABBER_AUDIO -f &
+                sleep 1
+            fi
+            $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_AUDIO $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $B_ONVIF_AUDIO_BC &
+        elif [[ $RTSP_RES == "high" ]]; then
+            if [ "$RTSP_ALT" == "yes" ]; then
+                h264grabber -m $MODEL_SUFFIX -r high $H264GRABBER_AUDIO -f &
+                sleep 1
+            fi
+            $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_AUDIO $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $B_ONVIF_AUDIO_BC &
+        elif [[ $RTSP_RES == "both" ]]; then
+            if [ "$RTSP_ALT" == "yes" ]; then
+                h264grabber -m $MODEL_SUFFIX -r both $H264GRABBER_AUDIO -f &
+                sleep 1
+            fi
+            $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_AUDIO $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $B_ONVIF_AUDIO_BC &
+        fi
+
+        WD_COUNT=$(ps | grep wd_rtsp.sh | grep -v grep | grep -c ^)
+        if [ $WD_COUNT -eq 0 ]; then
+            (sleep 30; $YI_HACK_PREFIX/script/wd_rtsp.sh >/dev/null) &
+        fi
     fi
 }
 
@@ -151,13 +192,15 @@ stop_rtsp()
 
 start_onvif()
 {
-    if [[ "$2" == "none" ]]; then
+    # If "null" use default
+
+    if [[ "$2" == "null" ]]; then
         ONVIF_WM_SNAPSHOT=$(get_config ONVIF_WM_SNAPSHOT)
         WATERMARK="&watermark="$ONVIF_WM_SNAPSHOT
     elif [[ "$2" == "yes" ]]; then
         WATERMARK="&watermark=yes"
     fi
-    if [[ "$1" == "none" ]]; then
+    if [[ "$1" == "null" ]]; then
         ONVIF_PROFILE=$(get_config ONVIF_PROFILE)
     elif [[ "$1" == "low" ]] || [[ "$1" == "high" ]] || [[ "$1" == "both" ]]; then
         ONVIF_PROFILE=$1
@@ -289,7 +332,7 @@ stop_wsdd()
 
 start_ftpd()
 {
-    if [[ "$1" == "none" ]] ; then
+    if [[ "$1" == "null" ]] ; then
         if [[ $(get_config BUSYBOX_FTPD) == "yes" ]] ; then
             FTPD_DAEMON="busybox"
         else
@@ -308,7 +351,7 @@ start_ftpd()
 
 stop_ftpd()
 {
-    if [[ "$1" == "none" ]] ; then
+    if [[ "$1" == "null" ]] ; then
         if [[ $(get_config BUSYBOX_FTPD) == "yes" ]] ; then
             FTPD_DAEMON="busybox"
         else
@@ -335,10 +378,10 @@ ps_program()
     fi
 }
 
-NAME="none"
-ACTION="none"
-PARAM1="none"
-PARAM2="none"
+NAME="null"
+ACTION="null"
+PARAM1="null"
+PARAM2="null"
 RES=""
 
 if [ $# -lt 2 ]; then

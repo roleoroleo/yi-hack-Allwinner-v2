@@ -1,0 +1,7 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+mkdir -p ./_install/bin || exit 1
+cp go2rtc/go2rtc ./_install/bin || exit 1

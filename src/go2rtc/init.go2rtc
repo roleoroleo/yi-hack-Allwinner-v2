@@ -5,6 +5,7 @@ cd $SCRIPT_DIR
 
 rm -rf ./_install
 
+mkdir -p go2rtc
 cd go2rtc
 rm -f go2rtc
 wget https://github.com/AlexxIT/go2rtc/releases/download/v1.9.4/go2rtc_linux_arm || exit 1

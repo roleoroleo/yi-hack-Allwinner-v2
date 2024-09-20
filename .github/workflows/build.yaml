@@ -35,7 +35,7 @@ jobs:
       - name: Pack
         run: sudo bash -ex scripts/pack_fw.all.sh
       - name: Upload
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: build
           path: out/**/*.tgz

@@ -884,8 +884,6 @@ int main(int argc, char **argv) {
     }
     if (debug) fprintf(stderr, "frame header size = %d\n", frame_header_size);
 
-
-
     if (debug) fprintf(stderr, "starting capture main loop\n");
 
     // Infinite loop

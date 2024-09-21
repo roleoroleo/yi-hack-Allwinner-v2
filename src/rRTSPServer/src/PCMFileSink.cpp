@@ -37,21 +37,16 @@ extern int debug;
 
 // ulaw and alaw functions
 static int16_t linear16FromuLaw(unsigned char uLawByte) {
-    unsigned char sign = 0;
-    unsigned char position = 0;
-    int16_t result = 0;
-
-    u_int16_t BIAS = 33;
-
+    static int const exp_lut[8] = {0,132,396,924,1980,4092,8316,16764};
     uLawByte = ~uLawByte;
-    if (uLawByte & 0x80) {
-        uLawByte &= ~(1 << 7);
-        sign = -1;
-    }
-    position = ((uLawByte & 0xF0) >> 4) + 5;
-    result = ((1 << position) | ((uLawByte & 0x0F) << (position - 4)) | (1 << (position - 5))) - BIAS;
 
-    return (sign == 0) ? (result) : (-(result));
+    int sign = (uLawByte & 0x80) != 0;
+    unsigned char exponent = (uLawByte >> 4) & 0x07;
+    unsigned char mantissa = uLawByte & 0x0F;
+
+    int16_t result = exp_lut[exponent] + (mantissa << (exponent + 3));
+    if (sign) result = -result;
+    return result;
 }
 
 static int16_t alaw_decode[256] = {
@@ -137,7 +132,7 @@ Boolean PCMFileSink::continuePlaying() {
 
 void PCMFileSink::addData(unsigned char* data, unsigned dataSize,
                                struct timeval presentationTime) {
-    int16_t distance;
+    double distance;
 
     // fPCMBuffer must be 4x larger than dataSize: 8 KHz -> 16 KHz and 8 bit -> 16 bit
     if (dataSize * 2 * (fDestSampleRate / 8000) > fBufferSize) {
@@ -152,15 +147,15 @@ void PCMFileSink::addData(unsigned char* data, unsigned dataSize,
             for (unsigned i = 0; i < dataSize * 2; ++i) {
                 if (i % 2 == 0) {
                     if (fSrcLaw == ULAW) {
-                        distance = linear16FromuLaw(data[i / 2]) - fLastSample;
+                        distance = (((double) linear16FromuLaw(data[i / 2])) * 2.0) - fLastSample;
                     } else {
-                        distance = linear16FromaLaw(data[i / 2]) - fLastSample;
+                        distance = (((double) linear16FromaLaw(data[i / 2])) * 2.0) - fLastSample;
                     }
                 } else {
-                    distance = 0 - fLastSample;
+                    distance = 0.0 - fLastSample;
                 }
                 fLastSample += distance * FILTER_M;
-                fPCMBuffer[i] = fLastSample * 2;
+                fPCMBuffer[i] = (int16_t) fLastSample;
             }
 
             if (fSpeaker != NULL)

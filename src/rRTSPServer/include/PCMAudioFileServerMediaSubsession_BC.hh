@@ -52,7 +52,6 @@ protected: // redefined virtual functions
     virtual RTPSource* createNewRTPSource(Groupsock* rtpGroupsock,
 					  unsigned char rtpPayloadTypeIfDynamic,
 					  MediaSink* outputSink);
-    virtual char const* getAuxSDPLineForBackChannel(MediaSink* mediaSink, RTPSource* rtpSource);
 
 private:
     int fSampleRate;

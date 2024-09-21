@@ -81,18 +81,6 @@ RTPSource* PCMAudioFileServerMediaSubsession_BC
     return rtpSource;
 }
 
-char const* PCMAudioFileServerMediaSubsession_BC::getAuxSDPLineForBackChannel(MediaSink* mediaSink, RTPSource* rtpSource)
-{
-    char pTmpStr[1024] = {0};
-
-    if(fAuxSDPLine != NULL)  return fAuxSDPLine;
-
-    sprintf(pTmpStr, "a=fmtp:%d\r\n", fRTPPayloadFormat);
-    fAuxSDPLine = strDup(pTmpStr);
-
-    return fAuxSDPLine;
-}
-
 FramedSource* PCMAudioFileServerMediaSubsession_BC
 ::createNewStreamSource(unsigned clientSessionId,
 			unsigned& estBitrate) {

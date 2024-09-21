@@ -12,6 +12,11 @@ if [ "$MODEL_SUFFIX" == "r30gb" ] || [ "$MODEL_SUFFIX" == "r35gb" ] || [ "$MODEL
 else
     PTZ="no"
 fi
+if [ -f /tmp/sd/yi-hack/bin/go2rtc ]; then
+    GO2RTC="yes"
+else
+    GO2RTC="no"
+fi
 MFG_PART=$(grep  -oE  ".{0,0}mfg@.{0,9}" /sys/firmware/devicetree/base/chosen/bootargs | cut -c 5-14)
 SERIAL_NUMBER=$(dd bs=1 count=20 skip=36 if=/dev/$MFG_PART 2>/dev/null | tr '\0' '0' | cut -c1-20)
 LOCAL_TIME=$(date)
@@ -47,6 +52,7 @@ printf "\"%s\":\"%s\",\n" "fw_version"      "$FW_VERSION"
 printf "\"%s\":\"%s\",\n" "home_version"    "$HOME_VERSION"
 printf "\"%s\":\"%s\",\n" "model_suffix"    "$MODEL_SUFFIX"
 printf "\"%s\":\"%s\",\n" "ptz"             "$PTZ"
+printf "\"%s\":\"%s\",\n" "go2rtc"          "$GO2RTC"
 printf "\"%s\":\"%s\",\n" "serial_number"   "$SERIAL_NUMBER"
 printf "\"%s\":\"%s\",\n" "local_time"      "$LOCAL_TIME"
 printf "\"%s\":\"%s\",\n" "uptime"          "$UPTIME"

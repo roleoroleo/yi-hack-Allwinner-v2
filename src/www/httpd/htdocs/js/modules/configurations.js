@@ -5,6 +5,7 @@ APP.configurations = (function($) {
     function init() {
         registerEventHandler();
         fetchConfigs();
+        fetchStatus();
     }
 
     function registerEventHandler() {
@@ -93,6 +94,24 @@ APP.configurations = (function($) {
             },
             error: function(response) {
                 saveStatusElem.text("Error while saving");
+                console.log('error', response);
+            }
+        });
+    }
+
+    function fetchStatus() {
+        $.ajax({
+            type: "GET",
+            url: 'cgi-bin/status.json',
+            dataType: "json",
+            success: function(response) {
+                $.each(response, function(key, state) {
+                    if (key == "go2rtc" && state == "no") {
+                        $("#RTSP_ALT option[value='go2rtc']").remove();
+                    }
+                });
+            },
+            error: function(response) {
                 console.log('error', response);
             }
         });

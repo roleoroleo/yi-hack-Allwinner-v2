@@ -127,7 +127,7 @@ start_rtsp()
         echo "streams:" > /tmp/go2rtc.yaml
         if [ "$RTSP_RES" == "high" ] || [ "$RTSP_RES" == "both" ]; then
             echo "  ch0_0.h264:" >> /tmp/go2rtc.yaml
-            echo "    - exec:h264grabber -m h52ga -r high#backchannel=0" >> /tmp/go2rtc.yaml
+            echo "    - exec:h264grabber -m $MODEL_SUFFIX -r high#backchannel=0" >> /tmp/go2rtc.yaml
         fi
         if [ "$RTSP_RES" != "low" ] && [ "$RTSP_AUDIO_COMPRESSION" == "aac" ] ; then
             echo "    - exec:h264grabber -m $MODEL_SUFFIX -r none -a#backchannel=0" >> /tmp/go2rtc.yaml

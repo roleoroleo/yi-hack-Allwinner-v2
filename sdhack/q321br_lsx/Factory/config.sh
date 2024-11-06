@@ -53,11 +53,11 @@ else
 
     cp /tmp/init.sh /backup/init.sh
     rm /tmp/init.sh
+fi
 
-    ### Set wireless credentials if configure_wifi.cfg exists
-    if [ -e /tmp/sd/Factory/configure_wifi.cfg ]; then
-        /tmp/sd/Factory/configure_wifi.sh
-    fi
+### Set wireless credentials if configure_wifi.cfg exists
+if [ -e /tmp/sd/Factory/configure_wifi.cfg ]; then
+    /tmp/sd/Factory/configure_wifi.sh
 fi
 
 ### Disable the hack for next reboot

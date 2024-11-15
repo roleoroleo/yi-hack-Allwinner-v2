@@ -56,16 +56,20 @@ init_config()
             RTSP_DAEMON="rRTSPServer"
         fi
 
-        RTSP_AUDIO_COMPRESSION=$(get_config RTSP_AUDIO)
-        if [ "$RTSP_AUDIO_COMPRESSION" == "aac" ]; then
+        RTSP_AUDIO=$(get_config RTSP_AUDIO)
+        if [ "$RTSP_AUDIO" == "aac" ]; then
             H264GRABBER_AUDIO="-a"
+            ONVIF_AUDIO_ENCODER="audio_encoder=aac"
+        elif [ "$RTSP_AUDIO" == "pcm" ]; then
+            ONVIF_AUDIO_ENCODER="audio_encoder=none"
+        elif [ "$RTSP_AUDIO" == "none" ] || [ "$RTSP_AUDIO" == "no" ] ; then
+            RTSP_AUDIO="no"
+            ONVIF_AUDIO_ENCODER="audio_encoder=none"
+        else
+            ONVIF_AUDIO_ENCODER="audio_encoder=$RTSP_AUDIO"
         fi
-
-        if [[ "$RTSP_AUDIO_COMPRESSION" == "none" ]] ; then
-            RTSP_AUDIO_COMPRESSION="no"
-        fi
-        if [ ! -z $RTSP_AUDIO_COMPRESSION ]; then
-            RTSP_AUDIO="-a "$RTSP_AUDIO_COMPRESSION
+        if [ ! -z $RTSP_AUDIO ]; then
+            RTSP_AUDIO_OPTION="-a "$RTSP_AUDIO
         fi
         if [ ! -z $RTSP_PORT ]; then
             P_RTSP_PORT="-p "$RTSP_PORT
@@ -88,18 +92,32 @@ init_config()
     fi
     ONVIF_AUDIO_BC=$(get_config ONVIF_AUDIO_BC)
     if [ ! -z $ONVIF_AUDIO_BC ]; then
+        ONVIF_AUDIO_DECODER="audio_decoder=$ONVIF_AUDIO_BC"
         if [ "$ONVIF_AUDIO_BC" != "NONE" ] && [ "$ONVIF_AUDIO_BC" != "none" ]; then
             if [ "$ONVIF_AUDIO_BC" == "G711" ]; then
-                B_ONVIF_AUDIO_BC="-b ulaw"
+                RTSP_AUDIO_BC="-b ulaw"
             else
-                B_ONVIF_AUDIO_BC="-b $ONVIF_AUDIO_BC"
+                RTSP_AUDIO_BC="-b $ONVIF_AUDIO_BC"
             fi
         fi
+    else
+        ONVIF_AUDIO_BC="none"
+        ONVIF_AUDIO_DECODER="audio_decoder=$ONVIF_AUDIO_BC"
+    fi
+    if [[ $(get_config ONVIF_ENABLE_MEDIA2) == "yes" ]] ; then
+        ONVIF_ENABLE_MEDIA2=1
+    else
+        ONVIF_ENABLE_MEDIA2=0
     fi
     if [[ $(get_config ONVIF_FAULT_IF_UNKNOWN) == "yes" ]] ; then
         ONVIF_FAULT_IF_UNKNOWN=1
     else
         ONVIF_FAULT_IF_UNKNOWN=0
+    fi
+    if [[ $(get_config ONVIF_FAULT_IF_SET) == "yes" ]] ; then
+        ONVIF_FAULT_IF_SET=1
+    else
+        ONVIF_FAULT_IF_SET=0
     fi
     if [[ $(get_config ONVIF_SYNOLOGY_NVR) == "yes" ]] ; then
         ONVIF_SYNOLOGY_NVR=1
@@ -119,8 +137,8 @@ start_rtsp()
         H264GRABBER_AUDIO="-a"
     fi
     if [ "$2" == "no" ] || [ "$2" == "yes" ] || [ "$2" == "alaw" ] || [ "$2" == "ulaw" ] || [ "$2" == "pcm" ] || [ "$2" == "aac" ] ; then
-        RTSP_AUDIO_COMPRESSION=$2
-        RTSP_AUDIO="-a "$2
+        RTSP_AUDIO=$2
+        RTSP_AUDIO_OPTION="-a "$2
     fi
 
     if [ "$RTSP_ALT" == "go2rtc" ]; then
@@ -129,14 +147,14 @@ start_rtsp()
             echo "  ch0_0.h264:" >> /tmp/go2rtc.yaml
             echo "    - exec:h264grabber -m $MODEL_SUFFIX -r high#backchannel=0" >> /tmp/go2rtc.yaml
         fi
-        if [ "$RTSP_RES" != "low" ] && [ "$RTSP_AUDIO_COMPRESSION" == "aac" ] ; then
+        if [ "$RTSP_RES" != "low" ] && [ "$RTSP_AUDIO" == "aac" ] ; then
             echo "    - exec:h264grabber -m $MODEL_SUFFIX -r none -a#backchannel=0" >> /tmp/go2rtc.yaml
         fi
         if [ "$RTSP_RES" == "low" ] || [ "$RTSP_RES" == "both" ]; then
             echo "  ch0_1.h264:" >> /tmp/go2rtc.yaml
             echo "    - exec:h264grabber -m $MODEL_SUFFIX -r low#backchannel=0" >> /tmp/go2rtc.yaml
         fi
-        if [ "$RTSP_RES" == "low" ] && [ "$RTSP_AUDIO_COMPRESSION" == "aac" ] ; then
+        if [ "$RTSP_RES" == "low" ] && [ "$RTSP_AUDIO" == "aac" ] ; then
             echo "    - exec:h264grabber -m $MODEL_SUFFIX -r none -a#backchannel=0" >> /tmp/go2rtc.yaml
         fi
 
@@ -162,19 +180,19 @@ start_rtsp()
                 h264grabber -m $MODEL_SUFFIX -r low $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
-            $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_AUDIO $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $B_ONVIF_AUDIO_BC &
+            $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
         elif [[ $RTSP_RES == "high" ]]; then
             if [ "$RTSP_ALT" == "yes" ]; then
                 h264grabber -m $MODEL_SUFFIX -r high $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
-            $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_AUDIO $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $B_ONVIF_AUDIO_BC &
+            $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
         elif [[ $RTSP_RES == "both" ]]; then
             if [ "$RTSP_ALT" == "yes" ]; then
                 h264grabber -m $MODEL_SUFFIX -r both $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
-            $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_AUDIO $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $B_ONVIF_AUDIO_BC &
+            $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
         fi
 
         WD_COUNT=$(ps | grep wd_rtsp.sh | grep -v grep | grep -c ^)
@@ -207,21 +225,21 @@ start_onvif()
     fi
     if [[ $ONVIF_PROFILE == "high" ]]; then
         if [[ "$MODEL_SUFFIX" == "h51ga" ]] || [[ "$MODEL_SUFFIX" == "h60ga" ]] || [[ "$MODEL_SUFFIX" == "y623" ]]  || [[ "$MODEL_SUFFIX" == "qg311r" ]]; then
-            ONVIF_PROFILE_0="name=Profile_0\nwidth=2304\nheight=1296\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264\ndecoder=$ONVIF_AUDIO_BC"
+            ONVIF_PROFILE_0="name=Profile_0\nwidth=2304\nheight=1296\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264\n$ONVIF_AUDIO_ENCODER\n$ONVIF_AUDIO_DECODER"
         else
-            ONVIF_PROFILE_0="name=Profile_0\nwidth=1920\nheight=1080\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264\ndecoder=$ONVIF_AUDIO_BC"
+            ONVIF_PROFILE_0="name=Profile_0\nwidth=1920\nheight=1080\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264\n$ONVIF_AUDIO_ENCODER\n$ONVIF_AUDIO_DECODER"
         fi
     fi
     if [[ $ONVIF_PROFILE == "low" ]]; then
-        ONVIF_PROFILE_1="name=Profile_1\nwidth=640\nheight=360\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_1.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK\ntype=H264\ndecoder=$ONVIF_AUDIO_BC"
+        ONVIF_PROFILE_1="name=Profile_1\nwidth=640\nheight=360\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_1.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK\ntype=H264\n$ONVIF_AUDIO_ENCODER\n$ONVIF_AUDIO_DECODER"
     fi
     if [[ $ONVIF_PROFILE == "both" ]]; then
         if [[ "$MODEL_SUFFIX" == "h51ga" ]] || [[ "$MODEL_SUFFIX" == "h60ga" ]] || [[ "$MODEL_SUFFIX" == "y623" ]]  || [[ "$MODEL_SUFFIX" == "qg311r" ]]; then
-            ONVIF_PROFILE_0="name=Profile_0\nwidth=2304\nheight=1296\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264\ndecoder=$ONVIF_AUDIO_BC"
+            ONVIF_PROFILE_0="name=Profile_0\nwidth=2304\nheight=1296\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264\n$ONVIF_AUDIO_ENCODER\n$ONVIF_AUDIO_DECODER"
         else
-            ONVIF_PROFILE_0="name=Profile_0\nwidth=1920\nheight=1080\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264\ndecoder=$ONVIF_AUDIO_BC"
+            ONVIF_PROFILE_0="name=Profile_0\nwidth=1920\nheight=1080\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_0.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=high$WATERMARK\ntype=H264\n$ONVIF_AUDIO_ENCODER\n$ONVIF_AUDIO_DECODER"
         fi
-        ONVIF_PROFILE_1="name=Profile_1\nwidth=640\nheight=360\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_1.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK\ntype=H264\ndecoder=$ONVIF_AUDIO_BC"
+        ONVIF_PROFILE_1="name=Profile_1\nwidth=640\nheight=360\nurl=rtsp://$RTSP_USERPWD%s$D_RTSP_PORT/ch0_1.h264\nsnapurl=http://$RTSP_USERPWD%s$D_HTTPD_PORT/cgi-bin/snapshot.sh?res=low$WATERMARK\ntype=H264\n$ONVIF_AUDIO_ENCODER\n$ONVIF_AUDIO_DECODER"
     fi
 
     ONVIF_SRVD_CONF="/tmp/onvif_simple_server.conf"
@@ -234,7 +252,12 @@ start_onvif()
     echo "ifs=$ONVIF_NETIF" >> $ONVIF_SRVD_CONF
     echo "port=$HTTPD_PORT" >> $ONVIF_SRVD_CONF
     echo "scope=onvif://www.onvif.org/Profile/Streaming" >> $ONVIF_SRVD_CONF
+    echo "scope=onvif://www.onvif.org/Profile/T" >> $ONVIF_SRVD_CONF
+    echo "scope=onvif://www.onvif.org/hardware" >> $ONVIF_SRVD_CONF
+    echo "scope=onvif://www.onvif.org/name" >> $ONVIF_SRVD_CONF
+    echo "adv_enable_media2=$ONVIF_ENABLE_MEDIA2" >> $ONVIF_SRVD_CONF
     echo "adv_fault_if_unknown=$ONVIF_FAULT_IF_UNKNOWN" >> $ONVIF_SRVD_CONF
+    echo "adv_fault_if_set=$ONVIF_FAULT_IF_SET" >> $ONVIF_SRVD_CONF
     echo "adv_synology_nvr=$ONVIF_SYNOLOGY_NVR" >> $ONVIF_SRVD_CONF
     echo "" >> $ONVIF_SRVD_CONF
     if [ ! -z $ONVIF_USERPWD ]; then
@@ -255,6 +278,8 @@ start_onvif()
     if [[ $MODEL_SUFFIX == "r30gb" ]] || [[ $MODEL_SUFFIX == "r35gb" ]] || [[ $MODEL_SUFFIX == "r40gb" ]] || [[ $MODEL_SUFFIX == "h51ga" ]] || [[ $MODEL_SUFFIX == "h52ga" ]] || [[ $MODEL_SUFFIX == "h60ga" ]] || [[ $MODEL_SUFFIX == "q321br_lsx" ]] || [[ $MODEL_SUFFIX == "qg311r" ]] || [[ $MODEL_SUFFIX == "b091qp" ]] ; then
         echo "#PTZ" >> $ONVIF_SRVD_CONF
         echo "ptz=1" >> $ONVIF_SRVD_CONF
+        echo "max_step_x=360" >> $ONVIF_SRVD_CONF
+        echo "max_step_y=180" >> $ONVIF_SRVD_CONF
         echo "get_position=/tmp/sd/yi-hack/bin/ipc_cmd -g" >> $ONVIF_SRVD_CONF
         echo "is_moving=/tmp/sd/yi-hack/bin/ipc_cmd -u" >> $ONVIF_SRVD_CONF
         echo "move_left=/tmp/sd/yi-hack/bin/ipc_cmd -m left" >> $ONVIF_SRVD_CONF
@@ -297,13 +322,13 @@ start_onvif()
     echo "input_file=/tmp/onvif_notify_server/animal_detection" >> $ONVIF_SRVD_CONF
     echo "#Event 4" >> $ONVIF_SRVD_CONF
     echo "topic=tns1:RuleEngine/MyRuleDetector/BabyCryingDetect" >> $ONVIF_SRVD_CONF
-    echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
-    echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
+    echo "source_name=AudioSourceConfigurationToken" >> $ONVIF_SRVD_CONF
+    echo "source_value=AudioSourceToken" >> $ONVIF_SRVD_CONF
     echo "input_file=/tmp/onvif_notify_server/baby_crying" >> $ONVIF_SRVD_CONF
     echo "#Event 5" >> $ONVIF_SRVD_CONF
     echo "topic=tns1:AudioAnalytics/Audio/DetectedSound" >> $ONVIF_SRVD_CONF
-    echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
-    echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
+    echo "source_name=AudioSourceConfigurationToken" >> $ONVIF_SRVD_CONF
+    echo "source_value=AudioSourceToken" >> $ONVIF_SRVD_CONF
     echo "input_file=/tmp/onvif_notify_server/sound_detection" >> $ONVIF_SRVD_CONF
 
     chmod 0600 $ONVIF_SRVD_CONF

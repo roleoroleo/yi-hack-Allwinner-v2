@@ -363,18 +363,15 @@ if [[ $(get_config ONVIF) == "yes" ]] ; then
     fi
 fi
 
-MDNSD_ENABLED=0
 if [[ $(get_config HTTPD) == "yes" ]] ; then
     mkdir -p /tmp/mdns.d
     echo -e "type _http._tcp\nport $HTTPD_PORT\n" > /tmp/mdns.d/http.service
-    MDNSD_ENABLED=1
 fi
 if [[ $(get_config SSHD) == "yes" ]] ; then
     mkdir -p /tmp/mdns.d
     echo -e "type _ssh._tcp\nport 22\n" > /tmp/mdns.d/ssh.service
-    MDNSD_ENABLED=1
 fi
-if [[ "$MDNSD_ENABLED" == "1" ]] ; then
+if [[ $(get_config MDNSD) == "yes" ]] ; then
     /tmp/sd/yi-hack/sbin/mdnsd /tmp/mdns.d
 fi
 

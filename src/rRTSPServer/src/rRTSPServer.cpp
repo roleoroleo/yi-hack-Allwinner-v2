@@ -560,7 +560,7 @@ void *capture(void *ptr)
         while (buf_idx_cur != buf_idx_end) {
             cb2s_headercpy((unsigned char *) &fhs[i], buf_idx_cur, frame_header_size);
             // Check the len
-            if (fhs[i].len > input_buffer.size - input_buffer.offset) {
+            if (fhs[i].len > input_buffer.size - input_buffer.offset - frame_header_size) {
                 frame_sync = 0;
                 if (debug & 3) fprintf(stderr, "%lld: capture - fhs[i].len > input_buffer.size - input_buffer.offset\n", current_timestamp());
                 break;
@@ -678,6 +678,12 @@ void *capture(void *ptr)
 
             write_enable = 1;
             frame_counter = fhs[i].stream_counter;
+
+            // (fhs[i].type & 0x0002) -> SPS
+            // (fhs[i].type & 0x0008) -> VPS
+            // (fhs[i].type & 0x0800) -> low res frame
+            // (fhs[i].type & 0x0400) -> high res frame
+            // (fhs[i].type & 0x0100) -> aac frame
             if (fhs[i].type & 0x0800) {
                 frame_type = TYPE_LOW;
             } else if (fhs[i].type & 0x0400) {
@@ -687,7 +693,7 @@ void *capture(void *ptr)
             } else {
                 frame_type = TYPE_NONE;
             }
-            if ((frame_type == TYPE_LOW) && (resolution != RESOLUTION_HIGH)) {
+            if ((frame_type == TYPE_LOW) && ((resolution == RESOLUTION_LOW) || (resolution == RESOLUTION_BOTH))) {
                 if ((65536 + frame_counter - frame_counter_last_valid_low) % 65536 > 1) {
 
                     if (debug & 1) fprintf(stderr, "%lld: h26x in - warning - %d low res frame(s) lost - frame_counter: %d - frame_counter_last_valid: %d\n",
@@ -709,7 +715,7 @@ void *capture(void *ptr)
                 }
 
                 buf_idx_start = buf_idx_cur;
-            } else if ((frame_type == TYPE_HIGH) && (resolution != RESOLUTION_LOW)) {
+            } else if ((frame_type == TYPE_HIGH) && ((resolution == RESOLUTION_HIGH) || (resolution == RESOLUTION_BOTH))) {
                 if ((65536 + frame_counter - frame_counter_last_valid_high) % 65536 > 1) {
 
                     if (debug & 1) fprintf(stderr, "%lld: h26x in - warning - %d high res frame(s) lost - frame_counter: %d - frame_counter_last_valid: %d\n",
@@ -731,13 +737,13 @@ void *capture(void *ptr)
                 }
 
                 buf_idx_start = buf_idx_cur;
-            } else if (frame_type == TYPE_AAC) {
+            } else if ((frame_type == TYPE_AAC) && (audio == 2)) {
                 if ((65536 + frame_counter - frame_counter_last_valid_audio) % 65536 > 1) {
                     if (debug & 2) fprintf(stderr, "%lld: aac in - warning - %d AAC frame(s) lost - frame_counter: %d - frame_counter_last_valid: %d\n",
                                 current_timestamp(), (65536 + frame_counter - frame_counter_last_valid_audio - 1) % 65536, frame_counter, frame_counter_last_valid_audio);
                     frame_counter_last_valid_audio = frame_counter;
                 } else {
-                    if ((audio == 2) && (debug & 2)) fprintf(stderr, "%lld: aac in - frame detected - frame_len: %d - frame_counter: %d - audio AAC\n",
+                    if (debug & 2) fprintf(stderr, "%lld: aac in - frame detected - frame_len: %d - frame_counter: %d - audio AAC\n",
                                 current_timestamp(), frame_len, fhs[i].stream_counter);
 
                     frame_counter_last_valid_audio = frame_counter;

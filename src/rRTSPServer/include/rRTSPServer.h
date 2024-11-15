@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 roleo.
+ * Copyright (c) 2024 roleo.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,21 +42,22 @@
 
 #define Y21GA 0
 #define Y211GA 1
-#define Y213GA 2
-#define Y291GA 3
-#define H30GA 4
-#define R30GB 5
-#define R35GB 6
-#define R40GA 7
-#define H51GA 8
-#define H52GA 9
-#define H60GA 10
-#define Y28GA 11
-#define Y29GA 12
-#define Y623 13
-#define Q321BR_LSX 14
-#define QG311R 15
-#define B091QP 16
+#define Y211BA 2
+#define Y213GA 3
+#define Y291GA 4
+#define H30GA 5
+#define R30GB 6
+#define R35GB 7
+#define R40GA 8
+#define H51GA 9
+#define H52GA 10
+#define H60GA 11
+#define Y28GA 12
+#define Y29GA 13
+#define Y623 14
+#define Q321BR_LSX 15
+#define QG311R 16
+#define B091QP 17
 
 #define FRAME_HEADER_SIZE_AUTODETECT 0
 
@@ -65,6 +66,9 @@
 
 #define BUF_OFFSET_Y211GA 368
 #define FRAME_HEADER_SIZE_Y211GA 28
+
+#define BUF_OFFSET_Y211BA 368
+#define FRAME_HEADER_SIZE_Y211BA 28
 
 #define BUF_OFFSET_Y213GA 368
 #define FRAME_HEADER_SIZE_Y213GA 28
@@ -145,7 +149,7 @@ typedef struct
     unsigned char *read_index;              // read absolute index
 } cb_input_buffer;
 
-// Frame position inside the output buffer, needed to use DiscreteFramer instead Framer.
+// Frame position inside the output buffer, needed to use DiscreteFramer instead of Framer.
 typedef struct
 {
     unsigned char *ptr;                     // pointer to the frame start
@@ -159,7 +163,7 @@ typedef struct
     unsigned int size;                      // size of the output buffer
     int type;                               // type of the stream in this buffer
     unsigned char *write_index;             // write absolute index
-    cb_output_frame output_frame[42];       // array of frames that buffer contains 42 = SPS + PPS + iframe + GOP
+    cb_output_frame output_frame[42];       // array of frames that buffer contains 42 = SPS + PPS + iframe + GOP - 1
     int output_frame_size;                  // number of frames that buffer contains
     unsigned int frame_read_index;          // index of the next frame to read
     unsigned int frame_write_index;         // index of the next frame to write

@@ -24,9 +24,6 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include <pthread.h>
 
-#define MILLIS_25 25000
-#define MILLIS_10 10000
-
 unsigned char NALU_HEADER[] = { 0x00, 0x00, 0x00, 0x01 };
 
 extern int debug;

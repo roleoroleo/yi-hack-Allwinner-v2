@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 roleo.
+ * Copyright (c) 2024 roleo.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,9 @@
 
 #define BUF_OFFSET_Y211GA 368
 #define FRAME_HEADER_SIZE_Y211GA 28
+
+#define BUF_OFFSET_Y211BA 368
+#define FRAME_HEADER_SIZE_Y211BA 28
 
 #define BUF_OFFSET_Y213GA 368
 #define FRAME_HEADER_SIZE_Y213GA 28
@@ -485,7 +488,7 @@ pid_t proc_find(const char* process_name, pid_t process_pid)
 void usage(char *prog_name)
 {
     fprintf(stderr, "Usage: %s [options]\n", prog_name);
-    fprintf(stderr, "\t-m, --model MODEL       Set model: y21ga, y211ga, y213, y291ga, h30ga, r30gb, r35gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, y623, q321br_lsx, qg311r or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t-m, --model MODEL       Set model: y21ga, y211ga, y211ba, y213, y291ga, h30ga, r30gb, r35gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, y623, q321br_lsx, qg311r or b091qp (default y21ga)\n");
     fprintf(stderr, "\t-f, --file FILE         Ignore model and read frame from file FILE\n");
     fprintf(stderr, "\t-r, --res RES           Set resolution: \"low\" or \"high\" (default \"high\")\n");
     fprintf(stderr, "\t-w, --watermark         Add watermark to image\n");
@@ -560,6 +563,10 @@ int main(int argc, char **argv)
                 } else if (strcasecmp("y211ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Y211GA;
                     frame_header_size = FRAME_HEADER_SIZE_Y211GA;
+                    model_high_res = RESOLUTION_FHD;
+                } else if (strcasecmp("y211ba", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_Y211BA;
+                    frame_header_size = FRAME_HEADER_SIZE_Y211BA;
                     model_high_res = RESOLUTION_FHD;
                 } else if (strcasecmp("y213ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Y213GA;

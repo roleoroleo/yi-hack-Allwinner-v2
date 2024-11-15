@@ -34,20 +34,18 @@ VideoFramedMemorySource*
 VideoFramedMemorySource::createNew(UsageEnvironment& env,
                                         int hNumber,
                                         cb_output_buffer *cbBuffer,
-                                        unsigned preferredFrameSize,
                                         unsigned playTimePerFrame) {
     if (cbBuffer == NULL) return NULL;
 
-    return new VideoFramedMemorySource(env, hNumber, cbBuffer, preferredFrameSize, playTimePerFrame);
+    return new VideoFramedMemorySource(env, hNumber, cbBuffer, playTimePerFrame);
 }
 
 VideoFramedMemorySource::VideoFramedMemorySource(UsageEnvironment& env,
                                                         int hNumber,
                                                         cb_output_buffer *cbBuffer,
-                                                        unsigned preferredFrameSize,
                                                         unsigned playTimePerFrame)
     : FramedSource(env), fHNumber(hNumber), fBuffer(cbBuffer), fCurIndex(0),
-      fPreferredFrameSize(preferredFrameSize), fPlayTimePerFrame(playTimePerFrame), fLastPlayTime(0),
+      fPlayTimePerFrame(playTimePerFrame), fLastPlayTime(0),
       fLimitNumBytesToStream(False), fNumBytesToStream(0), fHaveStartedReading(False) {
 }
 
@@ -102,16 +100,13 @@ void VideoFramedMemorySource::doGetNextFrame() {
         return;
     }
 
-    // Try to read as many bytes as will fit in the buffer provided (or "fPreferredFrameSize" if less)
+    // Try to read as many bytes as will fit in the buffer provided
     fFrameSize = fMaxSize;
     if (fLimitNumBytesToStream && fNumBytesToStream < (u_int64_t)fFrameSize) {
         fFrameSize = (unsigned)fNumBytesToStream;
     }
-    if (fPreferredFrameSize > 0 && fPreferredFrameSize < fFrameSize) {
-        fFrameSize = fPreferredFrameSize;
-    }
 
-    if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() start - fMaxSize %d - fLimitNumBytesToStream %d - fPreferredFrameSize %d\n", current_timestamp(), fMaxSize, fLimitNumBytesToStream, fPreferredFrameSize);
+    if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() start - fMaxSize %d - fLimitNumBytesToStream %d\n", current_timestamp(), fMaxSize, fLimitNumBytesToStream);
 
     pthread_mutex_lock(&(fBuffer->mutex));
     if (fBuffer->frame_read_index == fBuffer->frame_write_index) {
@@ -164,7 +159,6 @@ void VideoFramedMemorySource::doGetNextFrame() {
             memmove(fTo, ptr, fFrameSize);
         }
         fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
-
         pthread_mutex_unlock(&(fBuffer->mutex));
         fNumTruncatedBytes = 0;
         if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() whole frame completed\n", current_timestamp());
@@ -178,35 +172,11 @@ void VideoFramedMemorySource::doGetNextFrame() {
         fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() frame lost\n", current_timestamp());
     }
 
-#ifndef PRES_TIME_CLOCK
     // Set the 'presentation time':
-    if (fPlayTimePerFrame > 0 && fPreferredFrameSize > 0) {
-        struct timeval newPT;
-        gettimeofday(&newPT, NULL);
-        if ((fPresentationTime.tv_sec == 0 && fPresentationTime.tv_usec == 0) || (newPT.tv_sec % 60 == 0)) {
-            // At the first frame and every minute use the current time:
-            gettimeofday(&fPresentationTime, NULL);
-        } else {
-            // Increment by the play time of the previous data:
-            unsigned uSeconds = fPresentationTime.tv_usec + fLastPlayTime;
-            fPresentationTime.tv_sec += uSeconds/1000000;
-            fPresentationTime.tv_usec = uSeconds%1000000;
-        }
-
-        // Remember the play time of this data:
-        fLastPlayTime = (fPlayTimePerFrame*fFrameSize)/fPreferredFrameSize;
-        fDurationInMicroseconds = fLastPlayTime;
-    } else {
-        // We don't know a specific play time duration for this data,
-        // so just record the current time as being the 'presentation time':
+    if ((fPresentationTime.tv_sec == 0 && fPresentationTime.tv_usec == 0)) {
+        // At the first frame use the current time:
         gettimeofday(&fPresentationTime, NULL);
-        fDurationInMicroseconds = fPlayTimePerFrame;
     }
-#else
-    // Use system clock to set presentation time
-    gettimeofday(&fPresentationTime, NULL);
-    fDurationInMicroseconds = fPlayTimePerFrame;
-#endif
 
     // If it's a VPS/SPS/PPS set duration = 0
     u_int8_t nal_unit_type;

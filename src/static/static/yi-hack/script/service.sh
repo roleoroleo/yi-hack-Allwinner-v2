@@ -83,6 +83,9 @@ init_config()
 
         RTSP_RES=$(get_config RTSP_STREAM)
         RTSP_ALT=$(get_config RTSP_ALT)
+        if [[ $(get_config RTSP_ALT) == "standard" ]] && [[ $(get_config RTSP_STI) != "yes" ]]; then
+            RTSP_STI="-s"
+        fi
     fi
 
     if [[ $(get_config ONVIF_NETIF) == "wlan0" ]] ; then
@@ -180,19 +183,19 @@ start_rtsp()
                 h264grabber -m $MODEL_SUFFIX -r low $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
-            $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
+            $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
         elif [[ $RTSP_RES == "high" ]]; then
             if [ "$RTSP_ALT" == "yes" ]; then
                 h264grabber -m $MODEL_SUFFIX -r high $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
-            $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
+            $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
         elif [[ $RTSP_RES == "both" ]]; then
             if [ "$RTSP_ALT" == "yes" ]; then
                 h264grabber -m $MODEL_SUFFIX -r both $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
-            $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
+            $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
         fi
 
         WD_COUNT=$(ps | grep wd_rtsp.sh | grep -v grep | grep -c ^)

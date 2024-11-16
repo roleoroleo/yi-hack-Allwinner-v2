@@ -72,9 +72,9 @@ APP.maintenance = (function($) {
     }
 
     function rebootCamera() {
-        $('#button-reboot').attr("disabled", true);
-        var x=confirm("Are you sure you want to reboot?");
-        if (x) {
+        var confirmation = confirm("Are you sure you want to reboot?");
+        if (confirmation) {
+            $('#button-reboot').attr("disabled", true);
             $.ajax({
                 type: "GET",
                 url: 'cgi-bin/reboot.sh',
@@ -86,6 +86,9 @@ APP.maintenance = (function($) {
                 success: function(data) {
                     setRebootStatus("Camera is rebooting.");
                     waitForBoot();
+                },
+                complete: function() {
+                    $('#button-reboot').attr("disabled", false);
                 }
             });
         }
@@ -110,19 +113,21 @@ APP.maintenance = (function($) {
     }
 
     function resetCamera() {
-        $('#button-reset').attr("disabled", true);
-        var x=confirm("Are you sure you want to reset?");
-        if (x) {
+        var confirmation = confirm("Are you sure you want to reset?");
+        if (confirmation) {
+            $('#button-reset').attr("disabled", true);
             $.ajax({
                 type: "GET",
                 url: 'cgi-bin/reset.sh',
                 dataType: "json",
                 error: function(response) {
                     console.log('error', response);
-                    $('#button-reset').attr("disabled", false);
                 },
                 success: function(data) {
                     setResetStatus("Reset completed, reboot your camera.");
+                }
+                complete: funtion() {
+                    $('#button-reset').attr("disabled", false);
                 }
             });
         }
@@ -136,11 +141,13 @@ APP.maintenance = (function($) {
             url: 'cgi-bin/fw_upgrade.sh?get=upgrade',
             error: function(response) {
                 console.log('error', response);
-                $('#button-upgrade').attr("disabled", false);
             },
             success: function(response) {
                 setFwStatus(response);
                 waitForUpgrade();
+            },
+            complete: function () {
+                $('#button-upgrade').attr("disabled", false);
             }
         });
     }

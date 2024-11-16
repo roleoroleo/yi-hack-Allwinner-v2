@@ -173,38 +173,18 @@ void VideoFramedMemorySource::doGetNextFrame() {
     }
 
     // Set the 'presentation time':
-    if ((fPresentationTime.tv_sec == 0 && fPresentationTime.tv_usec == 0)) {
-        // At the first frame use the current time:
-        gettimeofday(&fPresentationTime, NULL);
-    }
+    // Use system clock to set presentation time
+    gettimeofday(&fPresentationTime, NULL);
+    fDurationInMicroseconds = fPlayTimePerFrame;
 
     // If it's a VPS/SPS/PPS set duration = 0
     u_int8_t nal_unit_type;
     if (fHNumber == 264) {
         nal_unit_type = ptr[0]&0x1F;
-        if ((nal_unit_type == 7) || (nal_unit_type == 8)) {
-            fDurationInMicroseconds = 0;
-        } else {
-            fDurationInMicroseconds = fPlayTimePerFrame;
-            gettimeofday(&fPresentationTime, NULL);
-        }
+        if ((nal_unit_type == 7) || (nal_unit_type == 8)) fDurationInMicroseconds = 0;
     } else if (fHNumber == 265) {
         nal_unit_type = (ptr[0]&0x7E)>>1;
-        if ((nal_unit_type == 32) || (nal_unit_type == 33) || (nal_unit_type == 34)) {
-            fDurationInMicroseconds = 0;
-        } else {
-            fDurationInMicroseconds = fPlayTimePerFrame;
-            gettimeofday(&fPresentationTime, NULL);
-        }
-    } else {
-        // We don't know a specific play time duration for this data,
-        // so just record the current time as being the 'presentation time':
-        fDurationInMicroseconds = fPlayTimePerFrame;
-        gettimeofday(&fPresentationTime, NULL);
-    }
-    if (debug & 4) {
-        fprintf(stderr, "%lld: fHNumber = %d, nal_unit_type = %d\n", current_timestamp(), fHNumber, nal_unit_type);
-        fprintf(stderr, "%lld: VideoFramedMemorySource - fDurationInMicroseconds = %d\n", current_timestamp(), fDurationInMicroseconds);
+        if ((nal_unit_type == 32) || (nal_unit_type == 33) || (nal_unit_type == 34)) fDurationInMicroseconds = 0;
     }
 
      // Switch to another task, and inform the reader that he has data:

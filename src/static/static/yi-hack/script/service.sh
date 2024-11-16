@@ -83,8 +83,14 @@ init_config()
 
         RTSP_RES=$(get_config RTSP_STREAM)
         RTSP_ALT=$(get_config RTSP_ALT)
-        if [[ $(get_config RTSP_ALT) == "standard" ]] && [[ $(get_config RTSP_STI) != "yes" ]]; then
-            RTSP_STI="-s"
+        if [[ $(get_config RTSP_STI) != "yes" ]]; then
+            if [[ "$RTSP_ALT" == "standard" ]]; then
+                RTSP_G_STI=""
+                RTSP_STI="-s"
+            else
+                RTSP_G_STI="-s"
+                RTSP_STI=""
+            fi
         fi
     fi
 
@@ -148,14 +154,14 @@ start_rtsp()
         echo "streams:" > /tmp/go2rtc.yaml
         if [ "$RTSP_RES" == "high" ] || [ "$RTSP_RES" == "both" ]; then
             echo "  ch0_0.h264:" >> /tmp/go2rtc.yaml
-            echo "    - exec:h264grabber -m $MODEL_SUFFIX -r high#backchannel=0" >> /tmp/go2rtc.yaml
+            echo "    - exec:h264grabber -m $MODEL_SUFFIX $RTSP_G_STI -r high#backchannel=0" >> /tmp/go2rtc.yaml
         fi
         if [ "$RTSP_RES" != "low" ] && [ "$RTSP_AUDIO" == "aac" ] ; then
             echo "    - exec:h264grabber -m $MODEL_SUFFIX -r none -a#backchannel=0" >> /tmp/go2rtc.yaml
         fi
         if [ "$RTSP_RES" == "low" ] || [ "$RTSP_RES" == "both" ]; then
             echo "  ch0_1.h264:" >> /tmp/go2rtc.yaml
-            echo "    - exec:h264grabber -m $MODEL_SUFFIX -r low#backchannel=0" >> /tmp/go2rtc.yaml
+            echo "    - exec:h264grabber -m $MODEL_SUFFIX $RTSP_G_STI -r low#backchannel=0" >> /tmp/go2rtc.yaml
         fi
         if [ "$RTSP_RES" == "low" ] && [ "$RTSP_AUDIO" == "aac" ] ; then
             echo "    - exec:h264grabber -m $MODEL_SUFFIX -r none -a#backchannel=0" >> /tmp/go2rtc.yaml
@@ -180,19 +186,19 @@ start_rtsp()
 
         if [[ $RTSP_RES == "low" ]]; then
             if [ "$RTSP_ALT" == "alternative" ]; then
-                h264grabber -m $MODEL_SUFFIX -r low $H264GRABBER_AUDIO -f &
+                h264grabber -m $MODEL_SUFFIX $RTSP_G_STI -r low $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
             $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
         elif [[ $RTSP_RES == "high" ]]; then
             if [ "$RTSP_ALT" == "alternative" ]; then
-                h264grabber -m $MODEL_SUFFIX -r high $H264GRABBER_AUDIO -f &
+                h264grabber -m $MODEL_SUFFIX $RTSP_G_STI -r high $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
             $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
         elif [[ $RTSP_RES == "both" ]]; then
             if [ "$RTSP_ALT" == "alternative" ]; then
-                h264grabber -m $MODEL_SUFFIX -r both $H264GRABBER_AUDIO -f &
+                h264grabber -m $MODEL_SUFFIX $RTSP_G_STI -r both $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
             $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &

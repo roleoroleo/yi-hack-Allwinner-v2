@@ -142,7 +142,7 @@ echo "$(date +'%Y-%m-%d %H:%M:%S') - Starting RTSP watchdog..." >> $LOG_FILE
 
 while true
 do
-    if [[ "$RTSP_ALT" == "no" ]] ; then
+    if [[ "$RTSP_ALT" == "standard" ]] ; then
         check_rtsp
     else
         check_rtsp_alt

@@ -179,19 +179,19 @@ start_rtsp()
     else
 
         if [[ $RTSP_RES == "low" ]]; then
-            if [ "$RTSP_ALT" == "yes" ]; then
+            if [ "$RTSP_ALT" == "alternative" ]; then
                 h264grabber -m $MODEL_SUFFIX -r low $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
             $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
         elif [[ $RTSP_RES == "high" ]]; then
-            if [ "$RTSP_ALT" == "yes" ]; then
+            if [ "$RTSP_ALT" == "alternative" ]; then
                 h264grabber -m $MODEL_SUFFIX -r high $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
             $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
         elif [[ $RTSP_RES == "both" ]]; then
-            if [ "$RTSP_ALT" == "yes" ]; then
+            if [ "$RTSP_ALT" == "alternative" ]; then
                 h264grabber -m $MODEL_SUFFIX -r both $H264GRABBER_AUDIO -f &
                 sleep 1
             fi

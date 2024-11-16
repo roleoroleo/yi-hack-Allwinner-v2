@@ -125,8 +125,8 @@ APP.maintenance = (function($) {
                 },
                 success: function(data) {
                     setResetStatus("Reset completed, reboot your camera.");
-                }
-                complete: funtion() {
+                },
+                complete: function() {
                     $('#button-reset').attr("disabled", false);
                 }
             });

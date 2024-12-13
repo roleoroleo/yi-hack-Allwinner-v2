@@ -25,6 +25,7 @@ int is_ptz(char *model) {
 
     } else if ((strcmp("r30gb", model) == 0) ||
             (strcmp("r35gb", model) == 0) ||
+            (strcmp("r37gb", model) == 0) ||
             (strcmp("r40ga", model) == 0) ||
             (strcmp("q321br_lsx", model) == 0) ||
             (strcmp("qg311r", model) == 0) ||

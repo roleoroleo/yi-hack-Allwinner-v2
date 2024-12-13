@@ -169,7 +169,7 @@ APP.ptz = (function($) {
             url: 'cgi-bin/status.json',
             dataType: "json",
             success: function(data) {
-                ptz_enabled = ["r30gb", "r35gb", "r40ga", "h51ga", "h52ga", "h60ga", "q321br_lsx", "qg311r", "b091qp"];
+                ptz_enabled = ["r30gb", "r35gb", "r37gb", "r40ga", "h51ga", "h52ga", "h60ga", "q321br_lsx", "qg311r", "b091qp"];
                 this_model = data["model_suffix"] || "unknown";
                 if (ptz_enabled.includes(this_model)) {
                     $('#ptz_description').show();

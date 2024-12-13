@@ -17,7 +17,7 @@
 #include <errno.h>
 #include "set_tz_offset.h"
 
-int tz_offset_osd_addr[35][2] = {
+int tz_offset_osd_addr[37][2] = {
     { 0x4f4, 1 },    // Y203C
     { 0x4a0, 1 },    // Y23
     { 0x4f4, 1 },    // Y25
@@ -43,10 +43,12 @@ int tz_offset_osd_addr[35][2] = {
     { 0x4e0, 1 },    // QG311R
     { 0x4e0, 1 },    // R30GB
     { 0x56c, 1 },    // R35GB
+    { 0x570, 1 },    // R37GB
     { 0x560, 1 },    // R40GA
+    { 0x56c, 1 },    // Y211BA
     { 0x4e0, 1 },    // Y211GA_9
     { 0x570, 1 },    // Y211GA_12
-    { 0x56c, 1 },    // Y213
+    { 0x56c, 1 },    // Y213GA
     { 0x4e0, 1 },    // Y21GA_9
     { 0x564, 1 },    // Y21GA_12
     { 0x4e0, 1 },    // Y28GA
@@ -236,7 +238,7 @@ void print_usage(char *progname)
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
     fprintf(stderr, "\t\tset model: y203c, y23, y25, y30, h201c, h305r, h307\n");
     fprintf(stderr, "\t\tset model: y20ga, y25ga, y30qa, y501gc\n");
-    fprintf(stderr, "\t\tset model: h30ga, h51ga, h52ga, h60ga, q321br_lsx, qg311r, q705br r30gb, r35gb, r40ga, y211ga, y213ga, y21ga, y28ga, y291ga, y29ga, y623 or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: h30ga, h51ga, h52ga, h60ga, q321br_lsx, qg311r, q705br r30gb, r35gb, r37gb, r40ga, y211ba, y211ga, y213ga, y21ga, y28ga, y291ga, y29ga, y623 or b091qp (default y21ga)\n");
     fprintf(stderr, "\t\t(required if tz_offset_osd command is specified)\n");
     fprintf(stderr, "\t-f FIRMWARE_VERSION, --fwver FIRMWARE_VERSION\n");
     fprintf(stderr, "\t\tfirmware version (required if tz_offset_osd command is specified)\n");
@@ -349,8 +351,12 @@ int main(int argc, char **argv)
                 model = R30GB;
             } else if (strcasecmp("r35gb", optarg) == 0) {
                 model = R35GB;
+            } else if (strcasecmp("r37gb", optarg) == 0) {
+                model = R37GB;
             } else if (strcasecmp("r40ga", optarg) == 0) {
                 model = R40GA;
+            } else if (strcasecmp("y211ba", optarg) == 0) {
+                model = Y211BA;
             } else if (strcasecmp("y211ga", optarg) == 0) {
                 model = Y211GA;
             } else if (strcasecmp("y213ga", optarg) == 0) {

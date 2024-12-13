@@ -17,32 +17,6 @@
 #define MID_DISPATCH 4
 #define MID_RCD 0x10
 
-/*
-#define Y20GA_9_TZ_OFFSET_OSD      0x4a0
-#define Y20GA_12_TZ_OFFSET_OSD     0x4a4
-#define Y25GA_TZ_OFFSET_OSD        0x4a0
-#define Y30QA_TZ_OFFSET_OSD        0x4a0
-
-#define H30GA_9_TZ_OFFSET_OSD      0x4e0
-#define H30GA_11_TZ_OFFSET_OSD     0x56c   // Already present
-#define H51GA_TZ_OFFSET_OSD        0x4e0
-#define H52GA_TZ_OFFSET_OSD        0x4e0
-#define H60GA_TZ_OFFSET_OSD        0x560   // Already present
-#define Q321BR_LSX_TZ_OFFSET_OSD   0x4e0
-#define QG311R_TZ_OFFSET_OSD       0x4e0
-#define R30GB_TZ_OFFSET_OSD        0x4e0
-#define R35GB_TZ_OFFSET_OSD        0x56c   // Already present
-#define R40GA_TZ_OFFSET_OSD        0x560   // Already present
-#define Y211GA_9_TZ_OFFSET_OSD     0x4e0
-#define Y211GA_12_TZ_OFFSET_OSD    0x570   // Already present
-#define Y21GA_9_TZ_OFFSET_OSD      0x4e0
-#define Y21GA_12_TZ_OFFSET_OSD     0x564   // Already present
-#define Y28GA_TZ_OFFSET_OSD        0x4e0
-#define Y291GA_9_TZ_OFFSET_OSD     0x56c   // Already present
-#define Y291GA_12_TZ_OFFSET_OSD    0x570   // Already present
-#define Y29GA_TZ_OFFSET_OSD        0x4e0
-#define B091QP_TZ_OFFSET_OSD       0x000   // 0x560 or 0x56c but already present
-*/
 typedef enum {
     Y203C,
     Y23,
@@ -69,7 +43,9 @@ typedef enum {
     QG311R,
     R30GB,
     R35GB,
+    R37GB,
     R40GA,
+    Y211BA,
     Y211GA,        // 9
     Y211GA_12,
     Y213GA,

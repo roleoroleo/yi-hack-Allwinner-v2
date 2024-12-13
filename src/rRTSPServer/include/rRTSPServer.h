@@ -48,16 +48,17 @@
 #define H30GA 5
 #define R30GB 6
 #define R35GB 7
-#define R40GA 8
-#define H51GA 9
-#define H52GA 10
-#define H60GA 11
-#define Y28GA 12
-#define Y29GA 13
-#define Y623 14
-#define Q321BR_LSX 15
-#define QG311R 16
-#define B091QP 17
+#define R37GB 8
+#define R40GA 9
+#define H51GA 10
+#define H52GA 11
+#define H60GA 12
+#define Y28GA 13
+#define Y29GA 14
+#define Y623 15
+#define Q321BR_LSX 16
+#define QG311R 17
+#define B091QP 18
 
 #define FRAME_HEADER_SIZE_AUTODETECT 0
 
@@ -85,6 +86,9 @@
 
 #define BUF_OFFSET_R35GB 300
 #define FRAME_HEADER_SIZE_R35GB 26
+
+#define BUF_OFFSET_R37GB 368
+#define FRAME_HEADER_SIZE_R37GB 28
 
 #define BUF_OFFSET_R40GA 300
 #define FRAME_HEADER_SIZE_R40GA 26

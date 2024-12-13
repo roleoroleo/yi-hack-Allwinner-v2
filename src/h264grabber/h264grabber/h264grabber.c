@@ -67,6 +67,9 @@
 #define BUF_OFFSET_R35GB 300
 #define FRAME_HEADER_SIZE_R35GB 26
 
+#define BUF_OFFSET_R37GB 368
+#define FRAME_HEADER_SIZE_R37GB 28
+
 #define BUF_OFFSET_R40GA 300
 #define FRAME_HEADER_SIZE_R40GA 26
 
@@ -561,7 +564,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-m MODEL] [-r RES] [-s] [-f] [-d]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, y211ga, y211ba, y213ga, y291ga, h30ga, r30gb, r35gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, y623, q321br_lsx, qg311r or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, y211ga, y211ba, y213ga, y291ga, h30ga, r30gb, r35gb, r37gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, y623, q321br_lsx, qg311r or b091qp (default y21ga)\n");
     fprintf(stderr, "\t-r RES, --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: LOW, HIGH, BOTH or NONE (default HIGH)\n");
     fprintf(stderr, "\t-a, --audio\n");
@@ -654,6 +657,9 @@ int main(int argc, char **argv) {
             } else if (strcasecmp("r35gb", optarg) == 0) {
                 buf_offset = BUF_OFFSET_R35GB;
                 frame_header_size = FRAME_HEADER_SIZE_R35GB;
+            } else if (strcasecmp("r37gb", optarg) == 0) {
+                buf_offset = BUF_OFFSET_R37GB;
+                frame_header_size = FRAME_HEADER_SIZE_R37GB;
             } else if (strcasecmp("r40ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_R40GA;
                 frame_header_size = FRAME_HEADER_SIZE_R40GA;

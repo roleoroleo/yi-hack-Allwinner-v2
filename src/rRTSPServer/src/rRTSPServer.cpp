@@ -950,7 +950,7 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [options]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, y211ga, y211ba, y213ga, y291ga, h30ga, r30gb, r35gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, y623, q321br_lsx, qg311r or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y21ga, y211ga, y211ba, y213ga, y291ga, h30ga, r30gb, r35gb, r37gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, y623, q321br_lsx, qg311r or b091qp (default y21ga)\n");
     fprintf(stderr, "\t-r RES,   --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: low, high, both or none (default high)\n");
     fprintf(stderr, "\t-a AUDIO, --audio AUDIO\n");
@@ -1053,6 +1053,8 @@ int main(int argc, char** argv)
                 model = R30GB;
             } else if (strcasecmp("r35gb", optarg) == 0) {
                 model = R35GB;
+            } else if (strcasecmp("r37gb", optarg) == 0) {
+                model = R37GB;
             } else if (strcasecmp("r40ga", optarg) == 0) {
                 model = R40GA;
             } else if (strcasecmp("h51ga", optarg) == 0) {
@@ -1204,6 +1206,8 @@ int main(int argc, char** argv)
             model = R30GB;
         } else if (strcasecmp("r35gb", str) == 0) {
             model = R35GB;
+        } else if (strcasecmp("r37gb", str) == 0) {
+            model = R37GB;
         } else if (strcasecmp("r40ga", str) == 0) {
             model = R40GA;
         } else if (strcasecmp("h51ga", str) == 0) {
@@ -1334,6 +1338,9 @@ int main(int argc, char** argv)
     } else if (model == R35GB) {
         buf_offset = BUF_OFFSET_R35GB;
         frame_header_size = FRAME_HEADER_SIZE_R35GB;
+    } else if (model == R37GB) {
+        buf_offset = BUF_OFFSET_R37GB;
+        frame_header_size = FRAME_HEADER_SIZE_R37GB;
     } else if (model == R40GA) {
         buf_offset = BUF_OFFSET_R40GA;
         frame_header_size = FRAME_HEADER_SIZE_R40GA;

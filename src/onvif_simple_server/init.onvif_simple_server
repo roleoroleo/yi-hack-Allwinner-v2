@@ -28,6 +28,17 @@ if [ ! -L mbedtls ]; then
 fi
 cp -f mbedtls_config.h mbedtls/include/mbedtls/
 
+if [ ! -f v5.7.4-stable.tar.gz ]; then
+    wget https://github.com/wolfSSL/wolfssl/archive/refs/tags/v5.7.4-stable.tar.gz
+fi
+tar zxvf ./v5.7.4-stable.tar.gz
+if [ ! -L wolfssl ]; then
+    ln -s wolfssl-5.7.4-stable wolfssl
+    cd onvif_simple_server/extras
+    ln -s ../../wolfssl-5.7.4-stable wolfssl
+    cd ../..
+fi
+
 cd onvif_simple_server
 
 git reset --hard

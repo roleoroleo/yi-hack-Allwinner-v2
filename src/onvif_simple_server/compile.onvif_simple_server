@@ -19,18 +19,31 @@ export AR=${CROSSPREFIX}ar
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
+#export HAVE_WOLFSSL=1
 #export HAVE_MBEDTLS=1
 
-if [ "$HAVE_MBEDTLS" == "1" ]; then
-    cd mbedtls
-    make clean
-    CFLAGS="-ffunction-sections -fdata-sections" LDFLAGS="-Wl,--gc-sections" make no_test
+if [ "$HAVE_WOLFSSL" == "1" ]; then
+    cd wolfssl
+    ./autogen.sh
+    ./configure --host=arm-openwrt-linux --enable-static --enable-base64encode \
+        --disable-aescbc --disable-aesgcm --disable-aes --disable-md5 --disable-sha384 \
+        --disable-sha512 --disable-chacha --disable-pwdbased \
+        --disable-hkdf --disable-poly1305 --disable-rsa --disable-rsapss --disable-dh \
+        --disable-tls13 --disable-pkcs8 --disable-crypttests --disable-crypttests-libs
+    CFLAGS="-ffunction-sections -fdata-sections" LDFLAGS="-Wl,--gc-sections" make
     cd ..
 else
-    cd libtomcrypt
-    make clean
-    CFLAGS="-DLTC_NOTHING -DLTC_SHA1 -DLTC_BASE64 -ffunction-sections -fdata-sections" LDFLAGS="-Wl,--gc-sections" make
-    cd ..
+    if [ "$HAVE_MBEDTLS" == "1" ]; then
+        cd mbedtls
+        make clean
+        CFLAGS="-ffunction-sections -fdata-sections" LDFLAGS="-Wl,--gc-sections" make no_test
+        cd ..
+    else
+        cd libtomcrypt
+        make clean
+        CFLAGS="-DLTC_NOTHING -DLTC_SHA1 -DLTC_BASE64 -ffunction-sections -fdata-sections" LDFLAGS="-Wl,--gc-sections" make
+        cd ..
+    fi
 fi
 
 cd onvif_simple_server || exit 1
@@ -50,6 +63,8 @@ echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/e
 chmod 0755 ../_install/www/onvif/events_service
 echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/media_service || exit 1
 chmod 0755 ../_install/www/onvif/media_service
+echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/media2_service || exit 1
+chmod 0755 ../_install/www/onvif/media2_service
 echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/ptz_service || exit 1
 chmod 0755 ../_install/www/onvif/ptz_service
 cp -R ./device_service_files ../_install/www/onvif

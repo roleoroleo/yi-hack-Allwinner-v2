@@ -15,7 +15,7 @@ tar xvf "${ARCHIVE}"
 
 cd "${BUILD_FOLDER}"
 
-autoconf; autoheader || exit 1
+#autoconf; autoheader || exit 1
 
 ./configure CC=arm-openwrt-linux-gcc \
     --prefix=$SCRIPT_DIR/_install \

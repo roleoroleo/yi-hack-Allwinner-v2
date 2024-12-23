@@ -14,6 +14,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * Class to handle GPIOS to activate speaker
+ */
+
 #include "Speaker.hh"
 
 extern int debug;

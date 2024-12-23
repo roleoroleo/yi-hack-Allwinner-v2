@@ -84,11 +84,16 @@ static u_int16_t linear16FromaLaw(unsigned char aLawByte) {
 
 // PCMFileSink class implementation
 PCMFileSink::PCMFileSink(UsageEnvironment& env, FILE* fid,
-                         int destSampleRate, int srcLaw, unsigned bufferSize)
+                         int destSampleRate, int srcLaw,
+                         Boolean enableSpeaker, unsigned bufferSize)
     : FileSink(env, fid, bufferSize, NULL), fDestSampleRate(destSampleRate),
       fSrcLaw(srcLaw), fPacketCounter(0) {
 
-    fSpeaker = Speaker::createNew();
+    if (enableSpeaker) {
+        fSpeaker = Speaker::createNew();
+    } else {
+        fSpeaker = NULL;
+    }
     fPCMBuffer = new int16_t[bufferSize];
     fLastSample = 0;
 }
@@ -101,7 +106,8 @@ PCMFileSink::~PCMFileSink() {
 
 PCMFileSink* PCMFileSink::createNew(UsageEnvironment& env,
                                     char const* fileName, int destSampleRate,
-                                    int srcLaw, unsigned bufferSize) {
+                                    int srcLaw, Boolean enableSpeaker,
+                                    unsigned bufferSize) {
 
     if ((destSampleRate != 8000) && (destSampleRate != 16000)) {
         fprintf(stderr, "PCMFileSink::createNew(): The sample rate is not supported\n");
@@ -113,7 +119,7 @@ PCMFileSink* PCMFileSink::createNew(UsageEnvironment& env,
         fid = OpenOutputFile(env, fileName);
         if (fid == NULL) break;
 
-        return new PCMFileSink(env, fid, destSampleRate, srcLaw, bufferSize);
+        return new PCMFileSink(env, fid, destSampleRate, srcLaw, enableSpeaker, bufferSize);
     } while (0);
 
     return NULL;

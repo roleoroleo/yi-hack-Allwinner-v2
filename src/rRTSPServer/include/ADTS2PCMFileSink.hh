@@ -27,24 +27,26 @@
 
 class ADTS2PCMFileSink: public FileSink {
 public:
-  static ADTS2PCMFileSink* createNew(UsageEnvironment& env, char const* fileName,
-			     int sampleRate, int numChannels, unsigned bufferSize = 1024);
-  // "bufferSize" should be at least as large as the largest expected
-  //   input frame.
+    static ADTS2PCMFileSink* createNew(UsageEnvironment& env, char const* fileName,
+                                       int sampleRate, int numChannels, Boolean enableSpeaker,
+                                       unsigned bufferSize = 1024);
+    // "bufferSize" should be at least as large as the largest expected
+    //   input frame.
 
-  char* getConfigStr();
+    char* getConfigStr();
 
-  virtual void addData(unsigned char* data, unsigned dataSize,
-		       struct timeval presentationTime);
-  // (Available in case a client wants to add extra data to the output file)
+    virtual void addData(unsigned char* data, unsigned dataSize,
+                         struct timeval presentationTime);
+    // (Available in case a client wants to add extra data to the output file)
 
 protected:
-  ADTS2PCMFileSink(UsageEnvironment& env, FILE* fid, int sampleRate, int numChannels, unsigned bufferSize);
-      // called only by createNew()
-  virtual ~ADTS2PCMFileSink();
+    ADTS2PCMFileSink(UsageEnvironment& env, FILE* fid, int sampleRate, int numChannels,
+                     Boolean enableSpeaker, unsigned bufferSize);
+    // called only by createNew()
+    virtual ~ADTS2PCMFileSink();
 
 protected: // redefined virtual functions:
-  virtual Boolean continuePlaying();
+    virtual Boolean continuePlaying();
 
 protected:
     static void afterGettingFrame(void* clientData, unsigned frameSize,

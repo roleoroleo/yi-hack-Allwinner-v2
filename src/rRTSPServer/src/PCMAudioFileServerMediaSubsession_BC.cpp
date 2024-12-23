@@ -19,29 +19,29 @@
  * on demand, to a PCM Audio
  */
 
-#if (defined(__WIN32__) || defined(_WIN32)) && !defined(_WIN32_WCE)
-#include <io.h>
-#include <fcntl.h>
-#endif
 #include "PCMAudioFileServerMediaSubsession_BC.hh"
 #include "SimpleRTPSource.hh"
 #include "PCMFileSink.hh"
 
 PCMAudioFileServerMediaSubsession_BC*
 PCMAudioFileServerMediaSubsession_BC::createNew(UsageEnvironment& env,
-						char const* fileName,
-						Boolean reuseFirstSource,
-						int sampleRate, int numChannels, int law) {
+                                                char const* fileName,
+                                                Boolean reuseFirstSource,
+                                                int sampleRate, int numChannels,
+                                                int law, Boolean enableSpeaker) {
     return new PCMAudioFileServerMediaSubsession_BC(env, fileName, reuseFirstSource,
-                                                    sampleRate, numChannels, law);
+                                                    sampleRate, numChannels,
+                                                    law, enableSpeaker);
 }
 
 PCMAudioFileServerMediaSubsession_BC
 ::PCMAudioFileServerMediaSubsession_BC(UsageEnvironment& env,
-				       char const* fileName, Boolean reuseFirstSource,
-				       int sampleRate, int numChannels, int law)
+                                       char const* fileName, Boolean reuseFirstSource,
+                                       int sampleRate, int numChannels,
+                                       int law, Boolean enableSpeaker)
   : FileServerMediaSubsession_BC(env, fileName, reuseFirstSource),
     fSampleRate(sampleRate), fNumChannels(numChannels), fLaw(law),
+    fEnableSpeaker(enableSpeaker),
     fAuxSDPLine(NULL), fRTPTimestampFrequency(sampleRate) {
 }
 
@@ -53,7 +53,7 @@ MediaSink* PCMAudioFileServerMediaSubsession_BC
 ::createNewStreamDestination(unsigned clientSessionId, unsigned& estBitrate) {
     estBitrate = 8; // kbps, estimate
 
-    return PCMFileSink::createNew(envir(), fFileName, fSampleRate, fLaw);
+    return PCMFileSink::createNew(envir(), fFileName, fSampleRate, fLaw, fEnableSpeaker);
 }
 
 RTPSource* PCMAudioFileServerMediaSubsession_BC

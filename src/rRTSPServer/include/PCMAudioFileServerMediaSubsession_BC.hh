@@ -30,12 +30,12 @@ class PCMAudioFileServerMediaSubsession_BC: public FileServerMediaSubsession_BC 
 public:
     static PCMAudioFileServerMediaSubsession_BC*
     createNew(UsageEnvironment& env, char const* fileName, Boolean reuseFirstSource,
-	      int sampleRate, int numChannels, int law);
+	      int sampleRate, int numChannels, int law, Boolean enableSpeaker);
 
 protected:
     PCMAudioFileServerMediaSubsession_BC(UsageEnvironment& env,
 					 char const* fileName, Boolean reuseFirstSource,
-					 int sampleRate, int numChannels, int law);
+					 int sampleRate, int numChannels, int law, Boolean enableSpeaker);
       // called only by createNew();
     virtual ~PCMAudioFileServerMediaSubsession_BC();
 
@@ -57,9 +57,11 @@ private:
     int fSampleRate;
     int fNumChannels;
     int fLaw;
+    Boolean fEnableSpeaker;
     char* fAuxSDPLine;
     unsigned char fRTPPayloadFormat;
     unsigned fRTPTimestampFrequency;
+
 };
 
 #endif

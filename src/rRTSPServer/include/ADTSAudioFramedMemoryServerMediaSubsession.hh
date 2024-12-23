@@ -31,7 +31,8 @@ class ADTSAudioFramedMemoryServerMediaSubsession: public OnDemandServerMediaSubs
 public:
     static ADTSAudioFramedMemoryServerMediaSubsession*
     createNew(UsageEnvironment& env, StreamReplicator *replicator,
-                                Boolean reuseFirstSource);
+              Boolean reuseFirstSource, unsigned samplingFrequency,
+              unsigned char numChannels);
 
     // Used to implement "getAuxSDPLine()":
     void checkForAuxSDPLine1();
@@ -39,8 +40,10 @@ public:
 
 protected:
     ADTSAudioFramedMemoryServerMediaSubsession(UsageEnvironment& env,
-                                        StreamReplicator *replicator,
-                                        Boolean reuseFirstSource);
+                                               StreamReplicator *replicator,
+                                               Boolean reuseFirstSource,
+                                               unsigned samplingFrequency,
+                                               unsigned char numChannels);
         // called only by createNew();
     virtual ~ADTSAudioFramedMemoryServerMediaSubsession();
 
@@ -48,22 +51,21 @@ protected:
 
 protected: // redefined virtual functions
     virtual char const* getAuxSDPLine(RTPSink* rtpSink,
-                                    FramedSource* inputSource);
+                                      FramedSource* inputSource);
     virtual FramedSource* createNewStreamSource(unsigned clientSessionId,
                                                 unsigned& estBitrate);
     virtual RTPSink* createNewRTPSink(Groupsock* rtpGroupsock,
-                                    unsigned char rtpPayloadTypeIfDynamic,
-                                    FramedSource* inputSource);
+                                      unsigned char rtpPayloadTypeIfDynamic,
+                                      FramedSource* inputSource);
 
 private:
-    cb_output_buffer *fBuffer;
     char* fAuxSDPLine;
     char fDoneFlag; // used when setting up "fAuxSDPLine"
-    unsigned fSamplingFrequency;
-    unsigned fNumChannels;
-    char fConfigStr[5];
     RTPSink* fDummyRTPSink; // ditto
     StreamReplicator *fReplicator;
+    unsigned fSamplingFrequency;
+    unsigned char fNumChannels;
+    char fConfigStr[5];
 };
 
 #endif

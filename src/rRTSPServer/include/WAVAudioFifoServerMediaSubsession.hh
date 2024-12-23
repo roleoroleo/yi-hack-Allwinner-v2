@@ -29,39 +29,43 @@
 
 class WAVAudioFifoServerMediaSubsession: public OnDemandServerMediaSubsession {
 public:
-  static WAVAudioFifoServerMediaSubsession*
-  createNew(UsageEnvironment& env, StreamReplicator* replicator, Boolean reuseFirstSource, int convertToxLaw);
+    static WAVAudioFifoServerMediaSubsession*
+    createNew(UsageEnvironment& env, StreamReplicator* replicator, Boolean reuseFirstSource,
+              unsigned sampleFrequency, unsigned char numChannels, unsigned char bitsPerSample,
+              unsigned char convertToxLaw);
 
 protected:
-  WAVAudioFifoServerMediaSubsession(UsageEnvironment& env, StreamReplicator* replicator,
-				    Boolean reuseFirstSource, int convertToxLaw);
-      // called only by createNew();
-  virtual ~WAVAudioFifoServerMediaSubsession();
+    WAVAudioFifoServerMediaSubsession(UsageEnvironment& env, StreamReplicator* replicator,
+                                      Boolean reuseFirstSource,
+                                      unsigned sampleFrequency, unsigned char numChannels,
+                                      unsigned char bitsPerSample, unsigned char convertToxLaw);
+    // called only by createNew();
+    virtual ~WAVAudioFifoServerMediaSubsession();
 
 protected: // redefined virtual functions
-  virtual void seekStreamSource(FramedSource* inputSource, double& seekNPT, double streamDuration, u_int64_t& numBytes);
-  virtual void setStreamSourceScale(FramedSource* inputSource, float scale);
-  virtual void setStreamSourceDuration(FramedSource* inputSource, double streamDuration, u_int64_t& numBytes);
+    virtual void seekStreamSource(FramedSource* inputSource, double& seekNPT, double streamDuration, u_int64_t& numBytes);
+    virtual void setStreamSourceScale(FramedSource* inputSource, float scale);
+    virtual void setStreamSourceDuration(FramedSource* inputSource, double streamDuration, u_int64_t& numBytes);
 
-  virtual FramedSource* createNewStreamSource(unsigned clientSessionId,
-					      unsigned& estBitrate);
-  virtual RTPSink* createNewRTPSink(Groupsock* rtpGroupsock,
-                                    unsigned char rtpPayloadTypeIfDynamic,
-				    FramedSource* inputSource);
-  virtual void testScaleFactor(float& scale);
-  virtual float duration() const;
+    virtual FramedSource* createNewStreamSource(unsigned clientSessionId,
+                                                unsigned& estBitrate);
+    virtual RTPSink* createNewRTPSink(Groupsock* rtpGroupsock,
+                                      unsigned char rtpPayloadTypeIfDynamic,
+                                      FramedSource* inputSource);
+    virtual void testScaleFactor(float& scale);
+    virtual float duration() const;
 
 protected:
 
-  // The following parameters of the input stream are set after
-  // "createNewStreamSource" is called:
-  unsigned char fAudioFormat;
-  unsigned char fBitsPerSample;
-  unsigned fSamplingFrequency;
-  unsigned fNumChannels;
-  float fFileDuration;
-  StreamReplicator* fReplicator;
-  int fConvertToxLaw;
+    // The following parameters of the input stream are set after
+    // "createNewStreamSource" is called:
+    unsigned char fAudioFormat;
+    StreamReplicator* fReplicator;
+    unsigned fSamplingFrequency;
+    unsigned char fNumChannels;
+    unsigned char fBitsPerSample;
+    unsigned char fConvertToxLaw;
+    float fFileDuration;
 };
 
 #endif

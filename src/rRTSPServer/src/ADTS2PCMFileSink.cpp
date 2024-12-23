@@ -38,6 +38,7 @@ unsigned samplingFrequencyTable[16] = {
 
 ADTS2PCMFileSink::ADTS2PCMFileSink(UsageEnvironment& env, FILE* fid,
                                    int sampleRate, int numChannels,
+                                   Boolean enableSpeaker,
                                    unsigned bufferSize)
     : FileSink(env, fid, bufferSize, NULL), fSampleRate(sampleRate),
       fNumChannels(numChannels), fPacketCounter(0) {
@@ -67,7 +68,11 @@ ADTS2PCMFileSink::ADTS2PCMFileSink(UsageEnvironment& env, FILE* fid,
         fprintf(stderr, "Couldn't open AAC decoder\n");
     }
 
-    fSpeaker = Speaker::createNew();
+    if (enableSpeaker) {
+        fSpeaker = Speaker::createNew();
+    } else {
+        fSpeaker = NULL; 
+    }
 }
 
 ADTS2PCMFileSink::~ADTS2PCMFileSink() {
@@ -79,13 +84,13 @@ ADTS2PCMFileSink::~ADTS2PCMFileSink() {
 ADTS2PCMFileSink* ADTS2PCMFileSink::createNew(UsageEnvironment& env,
                                               char const* fileName,
                                               int sampleRate, int numChannels,
-                                              unsigned bufferSize) {
+                                              Boolean enableSpeaker, unsigned bufferSize) {
     do {
         FILE* fid;
         fid = OpenOutputFile(env, fileName);
         if (fid == NULL) break;
 
-        return new ADTS2PCMFileSink(env, fid, sampleRate, numChannels, bufferSize);
+        return new ADTS2PCMFileSink(env, fid, sampleRate, numChannels, enableSpeaker, bufferSize);
     } while (0);
 
     return NULL;

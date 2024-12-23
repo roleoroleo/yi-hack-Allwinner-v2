@@ -26,16 +26,18 @@
 
 H265VideoFramedMemoryServerMediaSubsession*
 H265VideoFramedMemoryServerMediaSubsession::createNew(UsageEnvironment& env,
-                                                cb_output_buffer *cbBuffer,
+                                                output_queue *qBuffer,
+                                                Boolean useTimeForPres,
                                                 Boolean reuseFirstSource) {
-    return new H265VideoFramedMemoryServerMediaSubsession(env, cbBuffer, reuseFirstSource);
+    return new H265VideoFramedMemoryServerMediaSubsession(env, qBuffer, reuseFirstSource, useTimeForPres);
 }
 
 H265VideoFramedMemoryServerMediaSubsession::H265VideoFramedMemoryServerMediaSubsession(UsageEnvironment& env,
-                                                                        cb_output_buffer *cbBuffer,
+                                                                        output_queue *qBuffer,
+                                                                        Boolean useTimeForPres,
                                                                         Boolean reuseFirstSource)
     : OnDemandServerMediaSubsession(env, reuseFirstSource),
-      fBuffer(cbBuffer), fAuxSDPLine(NULL), fDoneFlag(0), fDummyRTPSink(NULL) {
+      fQBuffer(qBuffer), fUseTimeForPres(useTimeForPres), fAuxSDPLine(NULL), fDoneFlag(0), fDummyRTPSink(NULL) {
 }
 
 H265VideoFramedMemoryServerMediaSubsession::~H265VideoFramedMemoryServerMediaSubsession() {
@@ -103,15 +105,15 @@ char const* H265VideoFramedMemoryServerMediaSubsession::getAuxSDPLine(RTPSink* r
 }
 
 FramedSource* H265VideoFramedMemoryServerMediaSubsession::createNewStreamSource(unsigned /*clientSessionId*/, unsigned& estBitrate) {
-    if (fBuffer->type == 360)
+    if (fQBuffer->type == 360)
         estBitrate = 200; // kbps, estimate
-    else if (fBuffer->type == 1080)
+    else if (fQBuffer->type == 1080)
         estBitrate = 700; // kbps, estimate
     else
         estBitrate = 500; // kbps, estimate
 
     // Create the video source:
-    VideoFramedMemorySource* memorySource = VideoFramedMemorySource::createNew(envir(), 265, fBuffer, 50000);
+    VideoFramedMemorySource* memorySource = VideoFramedMemorySource::createNew(envir(), 265, fQBuffer, fUseTimeForPres, 50000);
     if (memorySource == NULL) return NULL;
 
     // Create a framer for the Video Elementary Stream:

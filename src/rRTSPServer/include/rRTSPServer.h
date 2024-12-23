@@ -15,9 +15,9 @@
  */
 
 /*
- * Dump h264 content from /dev/shm/fshare_frame_buffer and copy it to
- * a circular buffer.
- * Then send the circular buffer to live555.
+ * Dump h264, h265 and aac content from /dev/shm/fshare_frame_buffer and
+ * copy it to a queue.
+ * Then send the queue to live555.
  */
 
 #ifndef _R_RTSP_SERVER_H
@@ -25,42 +25,53 @@
 
 //#define _GNU_SOURCE
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
+#include <queue>
+#include <vector>
+
 #include <sys/types.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <getopt.h>
 
 #define BUFFER_FILE "/dev/shm/fshare_frame_buf"
 #define BUFFER_SHM "fshare_frame_buf"
 #define READ_LOCK_FILE "fshare_read_lock"
 #define WRITE_LOCK_FILE "fshare_write_lock"
 
-#define Y21GA 0
-#define Y211GA 1
-#define Y211BA 2
-#define Y213GA 3
-#define Y291GA 4
-#define H30GA 5
-#define R30GB 6
-#define R35GB 7
-#define R37GB 8
-#define R40GA 9
-#define H51GA 10
-#define H52GA 11
-#define H60GA 12
-#define Y28GA 13
-#define Y29GA 14
-#define Y623 15
-#define Q321BR_LSX 16
-#define QG311R 17
-#define B091QP 18
+#define Y20GA 0
+#define Y25GA 1
+#define Y30QA 2
+#define Y501GC 3
+#define Y21GA 4
+#define Y211GA 5
+#define Y211BA 6
+#define Y213GA 7
+#define Y291GA 8
+#define H30GA 9
+#define R30GB 10
+#define R35GB 11
+#define R37GB 12
+#define R40GA 13
+#define H51GA 14
+#define H52GA 15
+#define H60GA 16
+#define Y28GA 17
+#define Y29GA 18
+#define Y623 19
+#define Q321BR_LSX 20
+#define QG311R 21
+#define B091QP 22
 
 #define FRAME_HEADER_SIZE_AUTODETECT 0
+
+#define BUF_OFFSET_Y20GA 300
+#define FRAME_HEADER_SIZE_Y20GA 22
+
+#define BUF_OFFSET_Y25GA 300
+#define FRAME_HEADER_SIZE_Y25GA 22
+
+#define BUF_OFFSET_Y30QA 300
+#define FRAME_HEADER_SIZE_Y30QA 22
+
+#define BUF_OFFSET_Y501GC 368
+#define FRAME_HEADER_SIZE_Y501GC 24
 
 #define BUF_OFFSET_Y21GA 368
 #define FRAME_HEADER_SIZE_Y21GA 28
@@ -153,26 +164,19 @@ typedef struct
     unsigned char *read_index;              // read absolute index
 } cb_input_buffer;
 
-// Frame position inside the output buffer, needed to use DiscreteFramer instead of Framer.
 typedef struct
 {
-    unsigned char *ptr;                     // pointer to the frame start
-    unsigned int counter;                   // frame counter
-    unsigned int size;                      // frame size
-} cb_output_frame;
+    std::vector<unsigned char> frame;
+    uint32_t time;
+    int counter;
+} output_frame;
 
 typedef struct
 {
-    unsigned char *buffer;                  // pointer to the base of the output buffer
-    unsigned int size;                      // size of the output buffer
-    int type;                               // type of the stream in this buffer
-    unsigned char *write_index;             // write absolute index
-    cb_output_frame output_frame[42];       // array of frames that buffer contains 42 = SPS + PPS + iframe + GOP - 1
-    int output_frame_size;                  // number of frames that buffer contains
-    unsigned int frame_read_index;          // index of the next frame to read
-    unsigned int frame_write_index;         // index of the next frame to write
-    pthread_mutex_t mutex;                  // mutex of the structure
-} cb_output_buffer;
+    std::queue<output_frame> frame_queue;
+    pthread_mutex_t mutex;
+    unsigned int type;
+} output_queue;
 
 struct __attribute__((__packed__)) frame_header {
     uint32_t len;
@@ -233,5 +237,7 @@ struct stream_type_s {
     int vps_type_low;
     int vps_type_high;
 };
+
+long long current_timestamp();
 
 #endif

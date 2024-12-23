@@ -18,7 +18,14 @@
  * Class to handle GPIOS to activate speaker
  */
 
+#include "Boolean.hh"
+#include "strDup.hh"
 #include "Speaker.hh"
+
+#include <cstdio>
+
+#include "unistd.h"
+#include "sys/ioctl.h"
 
 extern int debug;
 

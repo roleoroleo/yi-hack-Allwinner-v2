@@ -21,22 +21,23 @@
 #include "WAVAudioFifoSource.hh"
 #include "InputFile.hh"
 #include "GroupsockHelper.hh"
-#include "misc.hh"
+#include "rRTSPServer.h"
 
 #include <fcntl.h>
-#include <sys/ioctl.h>
 
 ////////// WAVAudioFifoSource //////////
 
 extern int debug;
 
 WAVAudioFifoSource*
-WAVAudioFifoSource::createNew(UsageEnvironment& env, char const* fileName) {
+WAVAudioFifoSource::createNew(UsageEnvironment& env, char const* fileName,
+                              unsigned samplingFrequency, unsigned char numChannels,
+                              unsigned char bitsPerSample) {
     do {
         FILE* fid = OpenInputFile(env, fileName);
         if (fid == NULL) break;
 
-        WAVAudioFifoSource* newSource = new WAVAudioFifoSource(env, fid);
+        WAVAudioFifoSource* newSource = new WAVAudioFifoSource(env, fid, samplingFrequency, numChannels, bitsPerSample);
         if (newSource != NULL && newSource->bitsPerSample() == 0) {
             // The WAV file header was apparently invalid.
             Medium::close(newSource);
@@ -103,17 +104,18 @@ void WAVAudioFifoSource::cleanFifo() {
     if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoSource - fifo cleaned\n", current_timestamp());
 }
 
-WAVAudioFifoSource::WAVAudioFifoSource(UsageEnvironment& env, FILE* fid)
+WAVAudioFifoSource::WAVAudioFifoSource(UsageEnvironment& env, FILE* fid,
+    unsigned samplingFrequency, unsigned char numChannels, unsigned char bitPerSample)
     : AudioInputDevice(env, 0, 0, 0, 0)/* set the real parameters later */,
       fFid(fid), fLastPlayTime(0), fHaveStartedReading(False), fWAVHeaderSize(0), fFileSize(0),
       fScaleFactor(1), fLimitNumBytesToStream(False), fNumBytesToStream(0), fAudioFormat(WA_UNKNOWN) {
 
-    // Header vaules: 8 Khz, 16 bit,  mono
+    // Header vaules
     fWAVHeaderSize = 0;
-    fBitsPerSample = 16;
-    fSamplingFrequency = 8000;
-    fNumChannels = 1;
     fAudioFormat = (unsigned char) WA_PCM;
+    fSamplingFrequency = samplingFrequency;
+    fNumChannels = numChannels;
+    fBitsPerSample = bitPerSample;
 
     fPlayTimePerSample = 1e6/(double)fSamplingFrequency;
 
@@ -223,29 +225,28 @@ void WAVAudioFifoSource::doReadFromFile() {
 
     if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoSource - doReadFromFile() - fFrameSize %d - fMaxSize %d\n", current_timestamp(), fFrameSize, fMaxSize);
 
-#ifndef PRES_TIME_CLOCK
-    // Set the 'presentation time' and 'duration' of this frame:
-    struct timeval newPT;
-    gettimeofday(&newPT, NULL);
-    if ((fPresentationTime.tv_sec == 0 && fPresentationTime.tv_usec == 0) || (newPT.tv_sec % 60 == 0)) {
-        // At the first frame and every minute use the current time:
-        gettimeofday(&fPresentationTime, NULL);
+    if (0) {
+        // Set the 'presentation time' and 'duration' of this frame:
+        struct timeval newPT;
+        gettimeofday(&newPT, NULL);
+        if ((fPresentationTime.tv_sec == 0 && fPresentationTime.tv_usec == 0) || (newPT.tv_sec % 60 == 0)) {
+            // At the first frame and every minute use the current time:
+            gettimeofday(&fPresentationTime, NULL);
+        } else {
+            // Increment by the play time of the previous data:
+            unsigned uSeconds = fPresentationTime.tv_usec + fLastPlayTime;
+            fPresentationTime.tv_sec += uSeconds/1000000;
+            fPresentationTime.tv_usec = uSeconds%1000000;
+        }
+
+        // Remember the play time of this data:
+        fDurationInMicroseconds = fLastPlayTime
+            = (unsigned)((fPlayTimePerSample*fFrameSize)/bytesPerSample);
     } else {
-        // Increment by the play time of the previous data:
-        unsigned uSeconds = fPresentationTime.tv_usec + fLastPlayTime;
-        fPresentationTime.tv_sec += uSeconds/1000000;
-        fPresentationTime.tv_usec = uSeconds%1000000;
+        // Use system clock to set presentation time
+        gettimeofday(&fPresentationTime, NULL);
+        fDurationInMicroseconds = (unsigned)((fPlayTimePerSample*fFrameSize)/bytesPerSample);
     }
-
-    // Remember the play time of this data:
-    fDurationInMicroseconds = fLastPlayTime
-        = (unsigned)((fPlayTimePerSample*fFrameSize)/bytesPerSample);
-#else
-    // Use system clock to set presentation time
-    gettimeofday(&fPresentationTime, NULL);
-
-    fDurationInMicroseconds = (unsigned)((fPlayTimePerSample*fFrameSize)/bytesPerSample);
-#endif
 
     // Inform the reader that he has data:
     // Because the file read was done from the event loop, we can call the

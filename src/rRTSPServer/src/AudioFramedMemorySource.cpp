@@ -20,7 +20,11 @@
 
 #include "AudioFramedMemorySource.hh"
 #include "GroupsockHelper.hh"
-#include "misc.hh"
+#include "rRTSPServer.h"
+
+#include <cstring>
+#include <queue>
+#include <vector>
 
 #include <pthread.h>
 
@@ -42,20 +46,22 @@ static unsigned const samplingFrequencyTable[16] = {
 
 AudioFramedMemorySource*
 AudioFramedMemorySource::createNew(UsageEnvironment& env,
-                                        cb_output_buffer *cbBuffer,
+                                        output_queue *qBuffer,
                                         unsigned samplingFrequency,
-                                        unsigned numChannels) {
-    if (cbBuffer == NULL) return NULL;
+                                        unsigned char numChannels,
+                                        Boolean useTimeForPres) {
+    if (qBuffer == NULL) return NULL;
 
-    return new AudioFramedMemorySource(env, cbBuffer, samplingFrequency, numChannels);
+    return new AudioFramedMemorySource(env, qBuffer, samplingFrequency, numChannels, useTimeForPres);
 }
 
 AudioFramedMemorySource::AudioFramedMemorySource(UsageEnvironment& env,
-                                                        cb_output_buffer *cbBuffer,
+                                                        output_queue *qBuffer,
                                                         unsigned samplingFrequency,
-                                                        unsigned numChannels)
-    : FramedSource(env), fBuffer(cbBuffer), fProfile(1), fSamplingFrequency(samplingFrequency),
-      fNumChannels(numChannels), fHaveStartedReading(False) {
+                                                        unsigned char numChannels,
+                                                        Boolean useTimeForPres)
+    : FramedSource(env), fQBuffer(qBuffer), fProfile(1), fSamplingFrequency(samplingFrequency),
+      fNumChannels(numChannels), fUseTimeForPres(useTimeForPres), fHaveStartedReading(False) {
 
     u_int8_t samplingFrequencyIndex;
     int i;
@@ -83,17 +89,12 @@ AudioFramedMemorySource::AudioFramedMemorySource(UsageEnvironment& env,
 
 AudioFramedMemorySource::~AudioFramedMemorySource() {}
 
-int AudioFramedMemorySource::cb_check_sync_word(unsigned char *str)
+int AudioFramedMemorySource::check_sync_word(unsigned char *str)
 {
     int ret = 0, n;
 
-    if (str + 2 > fBuffer->buffer + fBuffer->size) {
-        n = ((*str & 0xFF) == 0xFF);
-        n += ((*(fBuffer->buffer) & 0xF0) == 0xF0);
-    } else {
-        n = ((*str & 0xFF) == 0xFF);
-        n += ((*(str + 1) & 0xF0) == 0xF0);
-    }
+    n = ((*str & 0xFF) == 0xFF);
+    n += ((*(str + 1) & 0xF0) == 0xF0);
     if (n == 2) ret = 1;
 
     return ret;
@@ -116,9 +117,9 @@ void AudioFramedMemorySource::doGetNextFrame() {
     Boolean isFirstReading = !fHaveStartedReading;
     if (!fHaveStartedReading) {
         if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() 1st start\n", current_timestamp());
-        pthread_mutex_lock(&(fBuffer->mutex));
-        fBuffer->frame_read_index = fBuffer->frame_write_index;
-        pthread_mutex_unlock(&(fBuffer->mutex));
+        pthread_mutex_lock(&(fQBuffer->mutex));
+        while (fQBuffer->frame_queue.size() > 1) fQBuffer->frame_queue.pop();
+        pthread_mutex_unlock(&(fQBuffer->mutex));
         fHaveStartedReading = True;
     }
 
@@ -126,9 +127,9 @@ void AudioFramedMemorySource::doGetNextFrame() {
 
     if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() start - fMaxSize %d\n", current_timestamp(), fMaxSize);
 
-    pthread_mutex_lock(&(fBuffer->mutex));
-    if (fBuffer->frame_read_index == fBuffer->frame_write_index) {
-        pthread_mutex_unlock(&(fBuffer->mutex));
+    pthread_mutex_lock(&(fQBuffer->mutex));
+    if (fQBuffer->frame_queue.size() == 0) {
+        pthread_mutex_unlock(&(fQBuffer->mutex));
         if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() read_index = write_index\n", current_timestamp());
         fFrameSize = 0;
         fNumTruncatedBytes = 0;
@@ -141,8 +142,8 @@ void AudioFramedMemorySource::doGetNextFrame() {
                     (TaskFunc*) AudioFramedMemorySource::doGetNextFrameTask, this);
         }
         return;
-    } else if (fBuffer->output_frame[fBuffer->frame_read_index].ptr == NULL) {
-        pthread_mutex_unlock(&(fBuffer->mutex));
+    } else if (fQBuffer->frame_queue.front().frame.size() == 0) {
+        pthread_mutex_unlock(&(fQBuffer->mutex));
         fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() error - NULL ptr\n", current_timestamp());
         fFrameSize = 0;
         fNumTruncatedBytes = 0;
@@ -155,9 +156,11 @@ void AudioFramedMemorySource::doGetNextFrame() {
                     (TaskFunc*) AudioFramedMemorySource::doGetNextFrameTask, this);
         }
         return;
-    } else if (cb_check_sync_word(fBuffer->output_frame[fBuffer->frame_read_index].ptr) != 1) {
-        fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
-        pthread_mutex_unlock(&(fBuffer->mutex));
+    } else if (check_sync_word(fQBuffer->frame_queue.front().frame.data()) != 1) {
+        pthread_mutex_unlock(&(fQBuffer->mutex));
+        while (fQBuffer->frame_queue.size() > 0) {
+            fQBuffer->frame_queue.pop();
+        }
         fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() error - wrong frame header\n", current_timestamp());
         fFrameSize = 0;
         fNumTruncatedBytes = 0;
@@ -172,67 +175,44 @@ void AudioFramedMemorySource::doGetNextFrame() {
         return;
     }
 
+    if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() size of queue is %d\n", current_timestamp(), fQBuffer->frame_queue.size());
+
     // Frame found, send it
     unsigned char *ptr;
-    unsigned int size;
-    ptr = fBuffer->output_frame[fBuffer->frame_read_index].ptr;
-    size = fBuffer->output_frame[fBuffer->frame_read_index].size;
+    int size = fQBuffer->frame_queue.front().frame.size();
+    uint32_t frame_time = fQBuffer->frame_queue.front().time;
+    ptr = fQBuffer->frame_queue.front().frame.data();
     ptr += HEADER_SIZE;
-    if (ptr >= fBuffer->buffer + fBuffer->size) ptr -= fBuffer->size;
     size -= HEADER_SIZE;
 
-    if (size <= fMaxSize) {
+    if ((unsigned) size <= fMaxSize) {
         // The size of the frame is smaller than the available buffer
-        fNumTruncatedBytes = 0;
         fFrameSize = size;
-        if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() whole frame - fFrameSize %d - counter %d - fMaxSize %d\n", current_timestamp(), fFrameSize, fBuffer->output_frame[fBuffer->frame_read_index].counter, fMaxSize);
-        if (ptr + fFrameSize > fBuffer->buffer + fBuffer->size) {
-            memmove(fTo, ptr, fBuffer->buffer + fBuffer->size - ptr);
-            memmove(fTo + (fBuffer->buffer + fBuffer->size - ptr), fBuffer->buffer, fFrameSize - (fBuffer->buffer + fBuffer->size - ptr));
-        } else {
-            memmove(fTo, ptr, fFrameSize);
-        }
-        fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
-
-        pthread_mutex_unlock(&(fBuffer->mutex));
+        if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() whole frame - fFrameSize %d - fMaxSize %d - counter %d - time %u\n",
+                current_timestamp(), fFrameSize, fMaxSize, fQBuffer->frame_queue.front().counter, frame_time);
+        std::memcpy(fTo, ptr, size);
+        fQBuffer->frame_queue.pop();
+        pthread_mutex_unlock(&(fQBuffer->mutex));
+        fNumTruncatedBytes = 0;
     } else {
         // The size of the frame is greater than the available buffer
-        fNumTruncatedBytes = size - fMaxSize;
-        fFrameSize = fMaxSize;
         fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() error - the size of the frame is greater than the available buffer %d/%d\n", current_timestamp(), fFrameSize, fMaxSize);
-        if (ptr + fFrameSize > fBuffer->buffer + fBuffer->size) {
-            memmove(fTo, ptr, fBuffer->buffer + fBuffer->size - ptr);
-            memmove(fTo + (fBuffer->buffer + fBuffer->size - ptr), fBuffer->buffer, fFrameSize - (fBuffer->buffer + fBuffer->size - ptr));
-        } else {
-            memmove(fTo, ptr, fFrameSize);
-        }
-        fBuffer->frame_read_index = (fBuffer->frame_read_index + 1) % fBuffer->output_frame_size;
-
-        pthread_mutex_unlock(&(fBuffer->mutex));
+        fFrameSize = 0;
+        fQBuffer->frame_queue.pop();
+        pthread_mutex_unlock(&(fQBuffer->mutex));
+        fNumTruncatedBytes = 0;
+        fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() frame lost\n", current_timestamp());
     }
 
-#ifndef PRES_TIME_CLOCK
-    // Set the 'presentation time':
-    struct timeval newPT;
-    gettimeofday(&newPT, NULL);
-    if ((fPresentationTime.tv_sec == 0 && fPresentationTime.tv_usec == 0) || (newPT.tv_sec % 60 == 0)) {
-        // At the first frame and every minute use the current time:
-        gettimeofday(&fPresentationTime, NULL);
+    if (!fUseTimeForPres) {
+        fPresentationTime.tv_usec = (frame_time % 1000) * 1000;
+        fPresentationTime.tv_sec = frame_time / 1000;
     } else {
-        // Increment by the play time of the previous data:
-        unsigned uSeconds = fPresentationTime.tv_usec + fuSecsPerFrame;
-        fPresentationTime.tv_sec += uSeconds/1000000;
-        fPresentationTime.tv_usec = uSeconds%1000000;
+        // Use system clock to set presentation time
+        gettimeofday(&fPresentationTime, NULL);
+        fDurationInMicroseconds = fuSecsPerFrame;
     }
 
-    fDurationInMicroseconds = fuSecsPerFrame;
-#else
-    // Use system clock to set presentation time
-    gettimeofday(&fPresentationTime, NULL);
-    fDurationInMicroseconds = fuSecsPerFrame;
-#endif
-
-  // Switch to another task, and inform the reader that he has data:
-    nextTask() = envir().taskScheduler().scheduleDelayedTask(0,
-            (TaskFunc*)FramedSource::afterGetting, this);
+    // Inform the reader that he has data:
+    FramedSource::afterGetting(this);
 }

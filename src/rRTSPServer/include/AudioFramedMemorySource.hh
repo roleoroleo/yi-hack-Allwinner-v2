@@ -25,42 +25,45 @@
 #include "FramedSource.hh"
 #endif
 
-#include <rRTSPServer.h>
+#include "rRTSPServer.h"
 
 class AudioFramedMemorySource: public FramedSource {
 public:
     static AudioFramedMemorySource* createNew(UsageEnvironment& env,
-                                                cb_output_buffer *cbBuffer,
+                                                output_queue *qBuffer,
                                                 unsigned samplingFrequency,
-                                                unsigned numChannels);
+                                                unsigned char numChannels,
+                                                Boolean useTimeForPres);
 
     unsigned samplingFrequency() const { return fSamplingFrequency; }
-    unsigned numChannels() const { return fNumChannels; }
+    unsigned char numChannels() const { return fNumChannels; }
     char const* configStr() const { return fConfigStr; }
     static void doGetNextFrameTask(void *clientData);
     void doGetNextFrameEx();
 
 protected:
     AudioFramedMemorySource(UsageEnvironment& env,
-                                cb_output_buffer *cbBuffer,
+                                output_queue *qBuffer,
                                 unsigned samplingFrequency,
-                                unsigned numChannels);
+                                unsigned char numChannels,
+                                Boolean useTimeForPres);
         // called only by createNew()
 
     virtual ~AudioFramedMemorySource();
 
 private:
-    int cb_check_sync_word(unsigned char *str);
+    int check_sync_word(unsigned char *str);
     // redefined virtual functions:
     virtual void doGetNextFrame();
     virtual void doStopGettingFrames();
 
 private:
-    cb_output_buffer *fBuffer;
+    output_queue *fQBuffer;
     u_int64_t fCurIndex;
     int fProfile;
-    int fSamplingFrequency;
-    int fNumChannels;
+    unsigned fSamplingFrequency;
+    unsigned char  fNumChannels;
+    Boolean fUseTimeForPres;
     unsigned fuSecsPerFrame;
     char fConfigStr[5];
     Boolean fHaveStartedReading;

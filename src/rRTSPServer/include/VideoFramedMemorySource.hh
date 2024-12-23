@@ -31,7 +31,8 @@ class VideoFramedMemorySource: public FramedSource {
 public:
     static VideoFramedMemorySource* createNew(UsageEnvironment& env,
                                                 int hNumber,
-                                                cb_output_buffer *cbBuffer,
+                                                output_queue *qBuffer,
+                                                Boolean useTimeForPres,
                                                 unsigned playTimePerFrame = 0);
 
     void seekToByteAbsolute(u_int64_t byteNumber, u_int64_t numBytesToStream = 0);
@@ -42,22 +43,23 @@ public:
 protected:
     VideoFramedMemorySource(UsageEnvironment& env,
                                 int hNumber,
-                                cb_output_buffer *cbBuffer,
+                                output_queue *qBuffer,
+                                Boolean useTimeForPres,
                                 unsigned playTimePerFrame);
         // called only by createNew()
 
     virtual ~VideoFramedMemorySource();
 
 private:
-    int cb_memcmp(unsigned char *str1, unsigned char*str2, size_t n);
     // redefined virtual functions:
     virtual void doGetNextFrame();
     virtual void doStopGettingFrames();
 
 private:
     int fHNumber;
-    cb_output_buffer *fBuffer;
+    output_queue *fQBuffer;
     u_int64_t fCurIndex;
+    Boolean fUseTimeForPres;
     unsigned fPlayTimePerFrame;
     unsigned fLastPlayTime;
     Boolean fLimitNumBytesToStream;

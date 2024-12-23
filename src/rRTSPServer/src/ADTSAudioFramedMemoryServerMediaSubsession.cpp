@@ -25,22 +25,27 @@
 #include "AudioFramedMemorySource.hh"
 #include "MPEG4GenericRTPSink.hh"
 #include "FramedFilter.hh"
-#include "misc.hh"
+#include "rRTSPServer.h"
 
 extern int debug;
 
 ADTSAudioFramedMemoryServerMediaSubsession*
 ADTSAudioFramedMemoryServerMediaSubsession::createNew(UsageEnvironment& env,
                                                 StreamReplicator *replicator,
-                                                Boolean reuseFirstSource) {
-    return new ADTSAudioFramedMemoryServerMediaSubsession(env, replicator, reuseFirstSource);
+                                                Boolean reuseFirstSource,
+                                                unsigned samplingFrequency,
+                                                unsigned char numChannels) {
+    return new ADTSAudioFramedMemoryServerMediaSubsession(env, replicator, reuseFirstSource, samplingFrequency, numChannels);
 }
 
 ADTSAudioFramedMemoryServerMediaSubsession::ADTSAudioFramedMemoryServerMediaSubsession(UsageEnvironment& env,
                                                                         StreamReplicator *replicator,
-                                                                        Boolean reuseFirstSource)
+                                                                        Boolean reuseFirstSource,
+                                                                        unsigned samplingFrequency,
+                                                                        unsigned char numChannels)
     : OnDemandServerMediaSubsession(env, reuseFirstSource),
-      fAuxSDPLine(NULL), fDoneFlag(0), fDummyRTPSink(NULL), fReplicator(replicator) {
+      fAuxSDPLine(NULL), fDoneFlag(0), fDummyRTPSink(NULL), fReplicator(replicator),
+      fSamplingFrequency(samplingFrequency), fNumChannels(numChannels) {
 }
 
 ADTSAudioFramedMemoryServerMediaSubsession::~ADTSAudioFramedMemoryServerMediaSubsession() {
@@ -114,9 +119,11 @@ FramedSource* ADTSAudioFramedMemoryServerMediaSubsession::createNewStreamSource(
     FramedFilter* previousSource = (FramedFilter*)fReplicator->inputSource();
 
     // Iterate back into the filter chain until a source is found that.
-    // has a sample frequency and expected to be a WAVAudioFifoSource.
+    // has a sample frequency and expected to be a AudioFramedMemorySource.
     for (int x = 0; x < 10; x++) {
-        if (((AudioFramedMemorySource*)(previousSource))->samplingFrequency() != 0) {
+        if ((((AudioFramedMemorySource*)(previousSource))->samplingFrequency() == fSamplingFrequency) &&
+               (((AudioFramedMemorySource*)(previousSource))->numChannels() == fNumChannels)) {
+
             if (debug & 8) fprintf(stderr, "%lld: ADTSAudioFramedMemoryServerMediaSubsession - source found at x = %d\n", current_timestamp(), x);
             originalSource = (AudioFramedMemorySource*)(previousSource);
             break;
@@ -130,8 +137,6 @@ FramedSource* ADTSAudioFramedMemoryServerMediaSubsession::createNewStreamSource(
         Medium::close(resultSource);
         return NULL;
     } else {
-        fSamplingFrequency = originalSource->samplingFrequency();
-        fNumChannels = originalSource->numChannels();
         sprintf(fConfigStr, originalSource->configStr());
         if (debug & 8) fprintf(stderr, "%lld: ADTSAudioFramedMemoryServerMediaSubsession - createStreamReplica completed successfully\n", current_timestamp());
         if (debug & 8) fprintf(stderr, "%lld: ADTSAudioFramedMemoryServerMediaSubsession - Sampling frequency: %d, Num channels: %d, Config string: %s\n",

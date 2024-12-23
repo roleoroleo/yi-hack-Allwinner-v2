@@ -23,19 +23,29 @@
 #include "WAVAudioFifoSource.hh"
 #include "aLawAudioFilter.hh"
 #include "SimpleRTPSink.hh"
-#include "misc.hh"
+#include "rRTSPServer.h"
 
 extern int debug;
 
 WAVAudioFifoServerMediaSubsession* WAVAudioFifoServerMediaSubsession
-::createNew(UsageEnvironment& env, StreamReplicator* replicator, Boolean reuseFirstSource, int convertToxLaw) {
-    return new WAVAudioFifoServerMediaSubsession(env, replicator, reuseFirstSource, convertToxLaw);
+::createNew(UsageEnvironment& env, StreamReplicator* replicator, Boolean reuseFirstSource,
+            unsigned samplingFrequency, unsigned char numChannels,
+            unsigned char bitsPerSample, unsigned char convertToxLaw) {
+
+    return new WAVAudioFifoServerMediaSubsession(env, replicator, reuseFirstSource,
+                                                 samplingFrequency, numChannels,
+                                                 bitsPerSample, convertToxLaw);
 }
 
 WAVAudioFifoServerMediaSubsession
-::WAVAudioFifoServerMediaSubsession(UsageEnvironment& env, StreamReplicator* replicator, Boolean reuseFirstSource, int convertToxLaw)
+::WAVAudioFifoServerMediaSubsession(UsageEnvironment& env, StreamReplicator* replicator, Boolean reuseFirstSource,
+                                    unsigned samplingFrequency, unsigned char numChannels,
+                                    unsigned char bitsPerSample, unsigned char convertToxLaw)
     : OnDemandServerMediaSubsession(env, reuseFirstSource),
       fReplicator(replicator),
+      fSamplingFrequency(samplingFrequency),
+      fNumChannels(numChannels),
+      fBitsPerSample(bitsPerSample),
       fConvertToxLaw(convertToxLaw) {
 }
 
@@ -102,9 +112,11 @@ FramedSource* WAVAudioFifoServerMediaSubsession
     FramedFilter* previousSource = (FramedFilter*)fReplicator->inputSource();
 
     // Iterate back into the filter chain until a source is found that 
-    // has a sample frequency and expected to be a WAVAudioFifoSource.
+    // has a bits per sample = 16 and expected to be a WAVAudioFifoSource.
     for (int x = 0; x < 10; x++) {
-        if (((WAVAudioFifoSource*)(previousSource))->bitsPerSample() != 0) {
+        if ((((WAVAudioFifoSource*)(previousSource))->bitsPerSample() == fBitsPerSample) &&
+           (((WAVAudioFifoSource*)(previousSource))->numChannels() == fNumChannels) &&
+           (((WAVAudioFifoSource*)(previousSource))->samplingFrequency() == fSamplingFrequency)) {
             if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoServerMediaSubsession - WAVAudioFifoSource found at x = %d\n", current_timestamp(), x);
             originalSource = (WAVAudioFifoSource*)(previousSource);
             break; 
@@ -119,10 +131,6 @@ FramedSource* WAVAudioFifoServerMediaSubsession
         return NULL;
     } else {
         fAudioFormat = originalSource->getAudioFormat();
-        fBitsPerSample = originalSource->bitsPerSample();
-        fSamplingFrequency = originalSource->samplingFrequency();
-//        fConvertToxLaw = WA_PCMU;
-        fNumChannels = originalSource->numChannels();
         unsigned bitsPerSecond = fSamplingFrequency*fBitsPerSample*fNumChannels;
         if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoServerMediaSubsession - Original source FMT: %d bps: %d freq: %d\n", current_timestamp(), fAudioFormat, fBitsPerSample, fSamplingFrequency);
         fFileDuration = ~0;//(float)((8.0*originalSource->numPCMBytes())/(fSamplingFrequency*fNumChannels*fBitsPerSample));
@@ -138,8 +146,8 @@ FramedSource* WAVAudioFifoServerMediaSubsession
 
 RTPSink* WAVAudioFifoServerMediaSubsession
 ::createNewRTPSink(Groupsock* rtpGroupsock,
-		   unsigned char rtpPayloadTypeIfDynamic,
-		   FramedSource* /*inputSource*/) {
+                   unsigned char rtpPayloadTypeIfDynamic,
+                   FramedSource* /*inputSource*/) {
     do {
         char const* mimeType;
         unsigned char payloadFormatCode = rtpPayloadTypeIfDynamic; // by default, unless a static RTP payload type can be used
@@ -199,8 +207,8 @@ RTPSink* WAVAudioFifoServerMediaSubsession
         }
         if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoServerMediaSubsession - Create SimpleRTPSink: %s, freq: %d, channels %d\n", current_timestamp(), mimeType, fSamplingFrequency, fNumChannels);
         return SimpleRTPSink::createNew(envir(), rtpGroupsock,
-				    payloadFormatCode, fSamplingFrequency,
-				    "audio", mimeType, fNumChannels);
+                                        payloadFormatCode, fSamplingFrequency,
+                                        "audio", mimeType, fNumChannels);
     } while (0);
 
     // An error occurred:

@@ -15,9 +15,9 @@
  */
 
 /*
- * Dump h264 content from /dev/shm/fshare_frame_buffer and copy it to
- * a circular buffer.
- * Then send the circular buffer to live555.
+ * Dump h264, h265 and aac content from /dev/shm/fshare_frame_buffer and
+ * copy it to a queue.
+ * Then send the queue to live555.
  */
 
 #include "liveMedia.hh"
@@ -34,8 +34,13 @@
 #include "StreamReplicator.hh"
 #include "aLawAudioFilter.hh"
 #include "PCMFileSink.hh"
-#include "misc.hh"
-#include "Speaker.hh"
+
+#include <cstdio>
+#include <cstring>
+#include <ctime>
+#include <algorithm>
+#include <queue>
+#include <vector>
 
 #include <getopt.h>
 #include <pthread.h>
@@ -43,7 +48,7 @@
 #include <limits.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/time.h>
+#include <sys/mman.h>
 #include <sys/resource.h>
 
 #include "rRTSPServer.h"
@@ -219,9 +224,10 @@ sem_t *sem_fshare_write_lock = SEM_FAILED;
 #endif
 
 cb_input_buffer input_buffer;
-cb_output_buffer output_buffer_low;
-cb_output_buffer output_buffer_high;
-cb_output_buffer output_buffer_audio;
+output_queue output_queue_high;
+output_queue output_queue_low;
+output_queue output_queue_audio;
+output_queue *p_output_queue;
 
 UsageEnvironment* env;
 
@@ -238,50 +244,19 @@ long long current_timestamp() {
     return milliseconds;
 }
 
-void s2cb_memcpy(cb_output_buffer *dest, unsigned char *src, size_t n)
-{
-    unsigned char *uc_dest = dest->write_index;
-
-    if (uc_dest + n > dest->buffer + dest->size) {
-        memcpy(uc_dest, src, dest->buffer + dest->size - uc_dest);
-        memcpy(dest->buffer, src + (dest->buffer + dest->size - uc_dest), n - (dest->buffer + dest->size - uc_dest));
-        dest->write_index = n + uc_dest - dest->size;
-    } else {
-        memcpy(uc_dest, src, n);
-        dest->write_index += n;
-    }
-    if (dest->write_index == dest->buffer + dest->size) {
-        dest->write_index = dest->buffer;
-    }
-}
-
-void cb2cb_memcpy(cb_output_buffer *dest, cb_input_buffer *src, size_t n)
-{
-    unsigned char *uc_src = src->read_index;
-
-    if (uc_src + n > src->buffer + src->size) {
-        s2cb_memcpy(dest, uc_src, src->buffer + src->size - uc_src);
-        s2cb_memcpy(dest, src->buffer + src->offset, n - (src->buffer + src->size - uc_src));
-        src->read_index = src->offset + n + uc_src - src->size;
-    } else {
-        s2cb_memcpy(dest, uc_src, n);
-        src->read_index += n;
-    }
-}
-
 /* Locate a string in the circular buffer */
 unsigned char *cb_memmem(unsigned char *src, int src_len, unsigned char *what, int what_len)
 {
     unsigned char *p;
 
     if (src_len >= 0) {
-        p = (unsigned char*) memmem(src, src_len, what, what_len);
+        p = (unsigned char*) std::search(src, src+src_len, what, what+what_len);
     } else {
         // From src to the end of the buffer
-        p = (unsigned char*) memmem(src, input_buffer.buffer + input_buffer.size - src, what, what_len);
+        p = (unsigned char*) std::search(src, input_buffer.buffer + input_buffer.size, what, what + what_len);
         if (p == NULL) {
             // And from the start of the buffer size src_len
-            p = (unsigned char*) memmem(input_buffer.buffer + input_buffer.offset, src + src_len - (input_buffer.buffer + input_buffer.offset), what, what_len);
+            p = (unsigned char*) std::search(input_buffer.buffer + input_buffer.offset, src + src_len, what, what + what_len);
         }
     }
     return p;
@@ -304,11 +279,11 @@ int cb_memcmp(unsigned char *str1, unsigned char *str2, size_t n)
     int ret;
 
     if (str2 + n > input_buffer.buffer + input_buffer.size) {
-        ret = memcmp(str1, str2, input_buffer.buffer + input_buffer.size - str2);
+        ret = std::memcmp(str1, str2, input_buffer.buffer + input_buffer.size - str2);
         if (ret != 0) return ret;
-        ret = memcmp(str1 + (input_buffer.buffer + input_buffer.size - str2), input_buffer.buffer + input_buffer.offset, n - (input_buffer.buffer + input_buffer.size - str2));
+        ret = std::memcmp(str1 + (input_buffer.buffer + input_buffer.size - str2), input_buffer.buffer + input_buffer.offset, n - (input_buffer.buffer + input_buffer.size - str2));
     } else {
-        ret = memcmp(str1, str2, n);
+        ret = std::memcmp(str1, str2, n);
     }
 
     return ret;
@@ -318,10 +293,10 @@ int cb_memcmp(unsigned char *str1, unsigned char *str2, size_t n)
 void cb2s_memcpy(unsigned char *dest, unsigned char *src, size_t n)
 {
     if (src + n > input_buffer.buffer + input_buffer.size) {
-        memcpy(dest, src, input_buffer.buffer + input_buffer.size - src);
-        memcpy(dest + (input_buffer.buffer + input_buffer.size - src), input_buffer.buffer + input_buffer.offset, n - (input_buffer.buffer + input_buffer.size - src));
+        std::memcpy(dest, src, input_buffer.buffer + input_buffer.size - src);
+        std::memcpy(dest + (input_buffer.buffer + input_buffer.size - src), input_buffer.buffer + input_buffer.offset, n - (input_buffer.buffer + input_buffer.size - src));
     } else {
-        memcpy(dest, src, n);
+        std::memcpy(dest, src, n);
     }
 }
 
@@ -347,10 +322,10 @@ void cb2s_headercpy(unsigned char *dest, unsigned char *src, size_t n)
     if (fp == NULL) return;
 
     if (src + n > input_buffer.buffer + input_buffer.size) {
-        memcpy(fp, src, input_buffer.buffer + input_buffer.size - src);
-        memcpy(fp + (input_buffer.buffer + input_buffer.size - src), input_buffer.buffer + input_buffer.offset, n - (input_buffer.buffer + input_buffer.size - src));
+        std::memcpy(fp, src, input_buffer.buffer + input_buffer.size - src);
+        std::memcpy(fp + (input_buffer.buffer + input_buffer.size - src), input_buffer.buffer + input_buffer.offset, n - (input_buffer.buffer + input_buffer.size - src));
     } else {
-        memcpy(fp, src, n);
+        std::memcpy(fp, src, n);
     }
     if (n == sizeof(fh22)) {
         fh->len = fh22.len;
@@ -444,12 +419,12 @@ void *capture(void *ptr)
     int frame_type = TYPE_NONE;
     int frame_len = 0;
     int frame_counter = -1;
+    uint32_t frame_time;
     int frame_counter_last_valid_low = -1;
     int frame_counter_last_valid_high = -1;
     int frame_counter_last_valid_audio = -1;
 
     int i, n;
-    cb_output_buffer *cb_current;
     int write_enable = 0;
     int frame_sync = 0;
 
@@ -460,8 +435,6 @@ void *capture(void *ptr)
 #ifdef USE_SEMAPHORE
     if (sem_fshare_open() != 0) {
         fprintf(stderr, "error - could not open semaphores\n") ;
-        free(output_buffer_low.buffer);
-        free(output_buffer_high.buffer);
         exit(EXIT_FAILURE);
     }
 #endif
@@ -470,8 +443,6 @@ void *capture(void *ptr)
     fshm = shm_open(input_buffer.filename, O_RDWR, 0);
     if (fshm == -1) {
         fprintf(stderr, "error - could not open file %s\n", input_buffer.filename) ;
-        free(output_buffer_low.buffer);
-        free(output_buffer_high.buffer);
         exit(EXIT_FAILURE);
     }
 
@@ -480,8 +451,6 @@ void *capture(void *ptr)
     if (input_buffer.buffer == MAP_FAILED) {
         fprintf(stderr, "%lld: capture - error - mapping file %s\n", current_timestamp(), input_buffer.filename);
         close(fshm);
-        free(output_buffer_low.buffer);
-        free(output_buffer_high.buffer);
         exit(EXIT_FAILURE);
     }
     if (debug & 3) fprintf(stderr, "%lld: capture - mapping file %s, size %d, to %08x\n", current_timestamp(), input_buffer.filename, input_buffer.size, (unsigned int) input_buffer.buffer);
@@ -493,10 +462,10 @@ void *capture(void *ptr)
 #ifdef USE_SEMAPHORE
     sem_write_lock();
 #endif
-    memcpy(&i, input_buffer.buffer + 16, sizeof(i));
+    std::memcpy(&i, input_buffer.buffer + 16, sizeof(i));
     buf_idx = input_buffer.buffer + input_buffer.offset + i;
     buf_idx_cur = buf_idx;
-    memcpy(&i, input_buffer.buffer + 4, sizeof(i));
+    std::memcpy(&i, input_buffer.buffer + 4, sizeof(i));
     buf_idx_end = buf_idx + i;
     if (buf_idx_end >= input_buffer.buffer + input_buffer.size) buf_idx_end -= (input_buffer.size - input_buffer.offset);
     buf_idx_end_prev = buf_idx_end;
@@ -508,10 +477,10 @@ void *capture(void *ptr)
     // Autodetect header size if not defined
     if ((frame_header_size == FRAME_HEADER_SIZE_AUTODETECT) && (debug & 3)) fprintf(stderr, "%lld: capture - detecting frame header size\n", current_timestamp());
     while (frame_header_size == FRAME_HEADER_SIZE_AUTODETECT) {
-        header_a2 = (unsigned char *) memmem(input_buffer.buffer + input_buffer.offset, input_buffer.size - input_buffer.offset, PPS4_START, sizeof(PPS4_START));
+        header_a2 = (unsigned char *) std::search(input_buffer.buffer + input_buffer.offset, input_buffer.buffer + input_buffer.size, PPS4_START, PPS4_START + sizeof(PPS4_START));
         if ((header_a2 != NULL) && (header_a2 - 40 > input_buffer.buffer + input_buffer.offset)) {
             header_a1 = cb_move(header_a2, -40);
-            header_a1 = (unsigned char *) memmem(header_a1, 40, PPS4_HEADER, sizeof(PPS4_HEADER));
+            header_a1 = (unsigned char *) std::search(header_a1, header_a1 + 40, PPS4_HEADER, PPS4_HEADER + sizeof(PPS4_HEADER));
             if (header_a1 != NULL) {
                 frame_header_size = header_a2 - header_a1;
                 if (frame_header_size < 0)
@@ -531,13 +500,13 @@ void *capture(void *ptr)
 #ifdef USE_SEMAPHORE
         sem_write_lock();
 #endif
-        memcpy(&i, input_buffer.buffer + 16, sizeof(i));
+        std::memcpy(&i, input_buffer.buffer + 16, sizeof(i));
         buf_idx = input_buffer.buffer + input_buffer.offset + i;
-        memcpy(&i, input_buffer.buffer + 4, sizeof(i));
+        std::memcpy(&i, input_buffer.buffer + 4, sizeof(i));
         buf_idx_end = buf_idx + i;
         if (buf_idx_end >= input_buffer.buffer + input_buffer.size) buf_idx_end -= (input_buffer.size - input_buffer.offset);
         // Check if the header is ok
-        memcpy(&i, input_buffer.buffer + 12, sizeof(i));
+        std::memcpy(&i, input_buffer.buffer + 12, sizeof(i));
         if (buf_idx_end != input_buffer.buffer + input_buffer.offset + i) {
             if (debug & 3) fprintf(stderr, "%lld: capture - buf_idx_end != input_buffer.buffer + input_buffer.offset + i\n", current_timestamp());
             usleep(1000);
@@ -678,6 +647,7 @@ void *capture(void *ptr)
 
             write_enable = 1;
             frame_counter = fhs[i].stream_counter;
+            frame_time = fhs[i].time;
 
             // (fhs[i].type & 0x0002) -> SPS
             // (fhs[i].type & 0x0008) -> VPS
@@ -756,117 +726,140 @@ void *capture(void *ptr)
             // Send the frame to the ouput buffer
             if (write_enable) {
                 if ((frame_type == TYPE_LOW) && (resolution != RESOLUTION_HIGH) && (stream_type.codec_low != CODEC_NONE)) {
-                    cb_current = &output_buffer_low;
+                    p_output_queue = &output_queue_low;
                 } else if ((frame_type == TYPE_HIGH) && (resolution != RESOLUTION_LOW) && (stream_type.codec_high != CODEC_NONE)) {
-                    cb_current = &output_buffer_high;
+                    p_output_queue = &output_queue_high;
                 } else if ((frame_type == TYPE_AAC) && (audio != 0)) {
-                    cb_current = &output_buffer_audio;
+                    p_output_queue = &output_queue_audio;
                 } else {
-                    cb_current = NULL;
+                    p_output_queue = NULL;
                 }
 
-                if (cb_current != NULL) {
-                    if (debug & 3) fprintf(stderr, "%lld: h264/aac in - frame_len: %d - cb_current->size: %d\n", current_timestamp(), frame_len, cb_current->size);
-                    if (frame_len > (signed) cb_current->size) {
-                        fprintf(stderr, "%lld: h264/aac in - error - frame size exceeds buffer size\n", current_timestamp());
-                    } else {
-                        pthread_mutex_lock(&(cb_current->mutex));
-                        input_buffer.read_index = buf_idx_start;
+                if (p_output_queue != NULL) {
+                    if (debug & 3) fprintf(stderr, "%lld: h264/aac in - frame_len: %d - cb_current->size: %d\n", current_timestamp(), frame_len, p_output_queue->frame_queue.size());
+                    pthread_mutex_lock(&(p_output_queue->mutex));
+                    input_buffer.read_index = buf_idx_start;
+                    unsigned char *tmp_out;
 
-                        cb_current->output_frame[cb_current->frame_write_index].ptr = cb_current->write_index;
-                        cb_current->output_frame[cb_current->frame_write_index].counter = frame_counter;
-
-                        if (sps_timing_info) {
-                            // Overwrite SPS or VPS with one that contains timing info at 20 fps
-                            if (fhs[i].type & 0x0002) {
-                                if (frame_type == TYPE_LOW) {
-                                    if (stream_type.sps_type_low & 0x0101) {
-                                        frame_len = sizeof(SPS4_640X360_TI);
-                                        s2cb_memcpy(cb_current, SPS4_640X360_TI, sizeof(SPS4_640X360_TI));
-                                    } else if (stream_type.sps_type_low & 0x0201) {
-                                        frame_len = sizeof(SPS4_2_640X360_TI);
-                                        s2cb_memcpy(cb_current, SPS4_2_640X360_TI, sizeof(SPS4_2_640X360_TI));
-                                    } else if (stream_type.sps_type_low & 0x0401) {
-                                        frame_len = sizeof(SPS4_3_640X360_TI);
-                                        s2cb_memcpy(cb_current, SPS4_3_640X360_TI, sizeof(SPS4_3_640X360_TI));
-                                    } else {
-                                        // don't change frame_len
-                                        cb2cb_memcpy(cb_current, &input_buffer, frame_len);
-                                    }
-                                } else if (frame_type == TYPE_HIGH) {
-                                    if (stream_type.sps_type_high == 0x0102) {
-                                        frame_len = sizeof(SPS4_1920X1080_TI);
-                                        s2cb_memcpy(cb_current, SPS4_1920X1080_TI, sizeof(SPS4_1920X1080_TI));
-                                    } else if (stream_type.sps_type_high == 0x0202) {
-                                        frame_len = sizeof(SPS4_2_1920X1080_TI);
-                                        s2cb_memcpy(cb_current, SPS4_2_1920X1080_TI, sizeof(SPS4_2_1920X1080_TI));
-                                    } else if (stream_type.sps_type_high == 0x0402) {
-                                        frame_len = sizeof(SPS4_3_1920X1080_TI);
-                                        s2cb_memcpy(cb_current, SPS4_3_1920X1080_TI, sizeof(SPS4_3_1920X1080_TI));
-                                    } else if (stream_type.sps_type_high == 0x0103) {
-                                        frame_len = sizeof(SPS4_2304X1296_TI);
-                                        s2cb_memcpy(cb_current, SPS4_2304X1296_TI, sizeof(SPS4_2304X1296_TI));
-                                    } else if (stream_type.sps_type_high == 0x0203) {
-                                        frame_len = sizeof(SPS4_2_2304X1296_TI);
-                                        s2cb_memcpy(cb_current, SPS4_2_2304X1296_TI, sizeof(SPS4_2_2304X1296_TI));
-                                    } else if (stream_type.sps_type_high == 0x0403) {
-                                        frame_len = sizeof(SPS4_3_2304X1296_TI);
-                                        s2cb_memcpy(cb_current, SPS4_3_2304X1296_TI, sizeof(SPS4_3_2304X1296_TI));
-/*                                    } else if (stream_type.sps_type_high & 0x0802) {
-                                        frame_len = sizeof(SPS5_1920X1080_TI);
-                                        s2cb_memcpy(cb_current, SPS5_1920X1080_TI, sizeof(SPS5_1920X1080_TI));
-                                    } else if (stream_type.sps_type_high & 0x1002) {
-                                        frame_len = sizeof(SPS5_2_1920X1080_TI);
-                                        s2cb_memcpy(cb_current, SPS5_2_1920X1080_TI, sizeof(SPS5_2_1920X1080_TI));
-                                    } else if (stream_type.sps_type_high & 0x2002) {
-                                        frame_len = sizeof(SPS5_3_2304X1296_TI);
-                                        s2cb_memcpy(cb_current, SPS5_3_2304X1296_TI, sizeof(SPS5_3_2304X1296_TI)); */
-                                    } else {
-                                        // don't change frame_len
-                                        cb2cb_memcpy(cb_current, &input_buffer, frame_len);
-                                    }
+                    if (sps_timing_info) {
+                        // Overwrite SPS or VPS with one that contains timing info at 20 fps
+                        if (fhs[i].type & 0x0002) {
+                            if (frame_type == TYPE_LOW) {
+                                if (stream_type.sps_type_low & 0x0101) {
+                                    frame_len = sizeof(SPS4_640X360_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, SPS4_640X360_TI, frame_len);
+                                } else if (stream_type.sps_type_low & 0x0201) {
+                                    frame_len = sizeof(SPS4_2_640X360_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, SPS4_2_640X360_TI, frame_len);
+                                } else if (stream_type.sps_type_low & 0x0401) {
+                                    frame_len = sizeof(SPS4_3_640X360_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, SPS4_3_640X360_TI, frame_len);
                                 } else {
                                     // don't change frame_len
-                                    cb2cb_memcpy(cb_current, &input_buffer, frame_len);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, input_buffer.read_index, frame_len);
                                 }
-                            } else if (fhs[i].type & 0x0008) {
-                                if (frame_type == TYPE_LOW) {
-                                    // don't change frame_len
-                                    cb2cb_memcpy(cb_current, &input_buffer, frame_len);
-                                } else if (frame_type == TYPE_HIGH) {
-/*                                    if (stream_type.sps_type_high == 0x0802) {
-                                        frame_len = sizeof(VPS5_1920X1080_TI);
-                                        s2cb_memcpy(cb_current, VPS5_1920X1080_TI, sizeof(VPS5_1920X1080_TI));
-                                    } else if (stream_type.sps_type_high == 0x1002) {
-                                        frame_len = sizeof(VPS5_2_1920X1080_TI);
-                                        s2cb_memcpy(cb_current, VPS5_2_1920X1080_TI, sizeof(VPS5_2_1920X1080_TI));
-                                    } else if (stream_type.sps_type_high == 0x2002) {
-                                        frame_len = sizeof(VPS5_3_2304X1296_TI);
-                                        s2cb_memcpy(cb_current, VPS5_2_2304X1296_TI, sizeof(VPS5_2_2304X1296_TI));
-                                    } else { */
-                                        // don't change frame_len
-                                        cb2cb_memcpy(cb_current, &input_buffer, frame_len);
-/*                                    } */
+                            } else if (frame_type == TYPE_HIGH) {
+                                if (stream_type.sps_type_high == 0x0102) {
+                                    frame_len = sizeof(SPS4_1920X1080_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, SPS4_1920X1080_TI, frame_len);
+                                } else if (stream_type.sps_type_high == 0x0202) {
+                                    frame_len = sizeof(SPS4_2_1920X1080_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, SPS4_2_1920X1080_TI, frame_len);
+                                } else if (stream_type.sps_type_high == 0x0402) {
+                                    frame_len = sizeof(SPS4_3_1920X1080_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, SPS4_3_1920X1080_TI, frame_len);
+                                } else if (stream_type.sps_type_high == 0x0103) {
+                                    frame_len = sizeof(SPS4_2304X1296_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, SPS4_2304X1296_TI, frame_len);
+                                } else if (stream_type.sps_type_high == 0x0203) {
+                                    frame_len = sizeof(SPS4_2_2304X1296_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, SPS4_2_2304X1296_TI, frame_len);
+                                } else if (stream_type.sps_type_high == 0x0403) {
+                                    frame_len = sizeof(SPS4_3_2304X1296_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, SPS4_3_2304X1296_TI, frame_len);
+/*                                } else if (stream_type.sps_type_high & 0x0802) {
+                                    frame_len = sizeof(SPS5_1920X1080_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, SPS5_1920X1080_TI, frame_len);
+                                } else if (stream_type.sps_type_high & 0x1002) {
+                                    frame_len = sizeof(SPS5_2_1920X1080_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, SPS5_2_1920X1080_TI, frame_len);
+                                } else if (stream_type.sps_type_high & 0x2002) {
+                                    frame_len = sizeof(SPS5_3_2304X1296_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, SPS5_3_2304X1296_TI, frame_len); */
                                 } else {
                                     // don't change frame_len
-                                    cb2cb_memcpy(cb_current, &input_buffer, frame_len);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, input_buffer.read_index, frame_len);
                                 }
                             } else {
                                 // don't change frame_len
-                                cb2cb_memcpy(cb_current, &input_buffer, frame_len);
+                                tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                cb2s_memcpy(tmp_out, input_buffer.read_index, frame_len);
+                            }
+                        } else if (fhs[i].type & 0x0008) {
+                            if (frame_type == TYPE_LOW) {
+                                // don't change frame_len
+                                tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                cb2s_memcpy(tmp_out, input_buffer.read_index, frame_len);
+                            } else if (frame_type == TYPE_HIGH) {
+/*                                if (stream_type.sps_type_high == 0x0802) {
+                                    frame_len = sizeof(VPS5_1920X1080_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, VPS5_1920X1080_TI, frame_len);
+                                } else if (stream_type.sps_type_high == 0x1002) {
+                                    frame_len = sizeof(VPS5_2_1920X1080_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, VPS5_2_1920_1080_TI, frame_len);
+                                } else if (stream_type.sps_type_high == 0x2002) {
+                                    frame_len = sizeof(VPS5_3_2304X1296_TI);
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, VPS5_3_2304X1296_TI, frame_len);
+                                } else { */
+                                    // don't change frame_len
+                                    tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                    cb2s_memcpy(tmp_out, input_buffer.read_index, frame_len);
+/*                                } */
+                            } else {
+                                // don't change frame_len
+                                tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                                cb2s_memcpy(tmp_out, input_buffer.read_index, frame_len);
                             }
                         } else {
-                            cb2cb_memcpy(cb_current, &input_buffer, frame_len);
+                            // don't change frame_len
+                            tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                            cb2s_memcpy(tmp_out, input_buffer.read_index, frame_len);
                         }
 
-                        cb_current->output_frame[cb_current->frame_write_index].size = frame_len;
-                        if (debug & 3) {
-                            fprintf(stderr, "%lld: h264/aac in - frame_len: %d - frame_counter: %d - resolution: %d\n", current_timestamp(), frame_len, frame_counter, frame_type);
-                            fprintf(stderr, "%lld: h264/aac in - frame_write_index: %d/%d\n", current_timestamp(), cb_current->frame_write_index, cb_current->output_frame_size);
-                        }
-                        cb_current->frame_write_index = (cb_current->frame_write_index + 1) % cb_current->output_frame_size;
-                        pthread_mutex_unlock(&(cb_current->mutex));
+                    } else {
+                        tmp_out = (unsigned char *) malloc(frame_len * sizeof(unsigned char));
+                        cb2s_memcpy(tmp_out, input_buffer.read_index, frame_len);
                     }
+
+                    output_frame of;
+                    of.frame = {tmp_out, tmp_out + frame_len};
+                    of.counter = frame_counter;
+                    of.time = frame_time;
+                    p_output_queue->frame_queue.push(of);
+                    free(tmp_out);
+                    while (p_output_queue->frame_queue.size() > 10) p_output_queue->frame_queue.pop();
+
+                    if (debug & 3) {
+                        fprintf(stderr, "%lld: h264/aac in - frame_len: %d - frame_counter: %d - resolution: %d\n", current_timestamp(), frame_len, frame_counter, frame_type);
+                    }
+                    pthread_mutex_unlock(&(p_output_queue->mutex));
                 }
             }
         }
@@ -890,13 +883,15 @@ void *capture(void *ptr)
     return NULL;
 }
 
-StreamReplicator* startReplicatorStream(const char* inputAudioFileName, int convertTo) {
+StreamReplicator* startReplicatorStream(const char* inputAudioFileName, unsigned samplingFrequency,
+        unsigned char numChannels, unsigned char bitsPerSample, int convertTo) {
+
     FramedSource* resultSource = NULL;
 
     // Create a single WAVAudioFifo source that will be replicated for mutliple streams
-    WAVAudioFifoSource* wavSource = WAVAudioFifoSource::createNew(*env, inputAudioFileName);
+    WAVAudioFifoSource* wavSource = WAVAudioFifoSource::createNew(*env, inputAudioFileName, samplingFrequency, numChannels, bitsPerSample);
     if (wavSource == NULL) {
-        *env << "Failed to create Fifo Source \n";
+        fprintf(stderr, "Failed to create Fifo Source \n");
     }
 
     // Optionally convert to uLaw or aLaw pcm
@@ -917,11 +912,11 @@ StreamReplicator* startReplicatorStream(const char* inputAudioFileName, int conv
     return replicator;
 }
 
-StreamReplicator* startReplicatorStream(cb_output_buffer *cbBuffer, unsigned samplingFrequency, unsigned numChannels) {
+StreamReplicator* startReplicatorStream(output_queue *qBuffer, unsigned samplingFrequency, unsigned char numChannels, Boolean useTimeForPres) {
     // Create a single ADTSFromWAVAudioFifo source that will be replicated for mutliple streams
-    AudioFramedMemorySource* adtsSource = AudioFramedMemorySource::createNew(*env, cbBuffer, samplingFrequency, numChannels);
+    AudioFramedMemorySource* adtsSource = AudioFramedMemorySource::createNew(*env, qBuffer, samplingFrequency, numChannels, useTimeForPres);
     if (adtsSource == NULL) {
-        *env << "Failed to create Fifo Source \n";
+        fprintf(stderr, "Failed to create Fifo Source \n");
     }
 
     // Create and start the replicator that will be given to each subsession
@@ -936,13 +931,12 @@ StreamReplicator* startReplicatorStream(cb_output_buffer *cbBuffer, unsigned sam
 static void announceStream(RTSPServer* rtspServer, ServerMediaSession* sms, char const* streamName, int audio)
 {
     char* url = rtspServer->rtspURL(sms);
-    UsageEnvironment& env = rtspServer->envir();
-    env << "\n\"" << streamName << "\" stream, from memory\n";
+    fprintf(stderr, "\n\"%s\" stream, from memory\n", streamName);
     if (audio == 1)
-        env << "PCM audio enabled\n";
+        fprintf(stderr, "PCM audio enabled\n");
     else if (audio == 2)
-        env << "AAC audio enabled\n";
-    env << "Play this stream using the URL \"" << url << "\"\n";
+        fprintf(stderr, "AAC audio enabled\n");
+    fprintf(stderr, "Play this stream using the URL \"%s\"\n", url);
     delete[] url;
 }
 
@@ -950,7 +944,8 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [options]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, y211ga, y211ba, y213ga, y291ga, h30ga, r30gb, r35gb, r37gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, y623, q321br_lsx, qg311r or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y20ga, y25ga, y30qa or y501gc (Allwinner\n");
+    fprintf(stderr, "\t\tset model: y21ga, y211ga, y211ba, y213ga, y291ga, h30ga, r30gb, r35gb, r37gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, y623, q321br_lsx, qg311r or b091qp (Allwinner-v2 - default y21ga)\n");
     fprintf(stderr, "\t-r RES,   --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: low, high, both or none (default high)\n");
     fprintf(stderr, "\t-a AUDIO, --audio AUDIO\n");
@@ -979,9 +974,10 @@ int main(int argc, char** argv)
     char user[65];
     char pwd[65];
     int pth_ret;
-    int c, i;
+    int c;
     char *endptr;
-
+    unsigned char v;
+    Boolean enable_speaker;
     pthread_t capture_thread;
 
     int convertTo = WA_PCMU;
@@ -989,6 +985,7 @@ int main(int argc, char** argv)
     char const* outputAudioFileName = "/tmp/audio_in_fifo";
     struct stat stat_buffer;
     FILE *fFS;
+    Boolean useTimeForPres;
 
     // Setting default
     model = Y21GA;
@@ -998,6 +995,8 @@ int main(int argc, char** argv)
     port = 554;
     sps_timing_info = 1;
     debug = 0;
+    v = 2;
+    enable_speaker = False;
 
     // Autodetect sps/vps type
     stream_type.codec_low = CODEC_NONE;
@@ -1037,44 +1036,75 @@ int main(int argc, char** argv)
 
         switch (c) {
         case 'm':
-            if (strcasecmp("y21ga", optarg) == 0) {
+            if (strcasecmp("y20ga", optarg) == 0) {
+                model = Y20GA;
+                v = 1;
+            } else if (strcasecmp("y25ga", optarg) == 0) {
+                model = Y25GA;
+                v = 1;
+            } else if (strcasecmp("y30qa", optarg) == 0) {
+                model = Y30QA;
+                v = 1;
+            } else if (strcasecmp("y501gc", optarg) == 0) {
+                model = Y501GC;
+                v = 1;
+            } else if (strcasecmp("y21ga", optarg) == 0) {
                 model = Y21GA;
+                v = 2;
             } else if (strcasecmp("y211ga", optarg) == 0) {
                 model = Y211GA;
+                v = 2;
             } else if (strcasecmp("y211ba", optarg) == 0) {
                 model = Y211BA;
+                v = 2;
             } else if (strcasecmp("y213ga", optarg) == 0) {
                 model = Y213GA;
+                v = 2;
             } else if (strcasecmp("y291ga", optarg) == 0) {
                 model = Y291GA;
+                v = 2;
             } else if (strcasecmp("h30ga", optarg) == 0) {
                 model = H30GA;
+                v = 2;
             } else if (strcasecmp("r30gb", optarg) == 0) {
                 model = R30GB;
+                v = 2;
             } else if (strcasecmp("r35gb", optarg) == 0) {
                 model = R35GB;
+                v = 2;
             } else if (strcasecmp("r37gb", optarg) == 0) {
                 model = R37GB;
+                v = 2;
             } else if (strcasecmp("r40ga", optarg) == 0) {
                 model = R40GA;
+                v = 2;
             } else if (strcasecmp("h51ga", optarg) == 0) {
                 model = H51GA;
+                v = 2;
             } else if (strcasecmp("h52ga", optarg) == 0) {
                 model = H52GA;
+                v = 2;
             } else if (strcasecmp("h60ga", optarg) == 0) {
                 model = H60GA;
+                v = 2;
             } else if (strcasecmp("y28ga", optarg) == 0) {
                 model = Y28GA;
+                v = 2;
             } else if (strcasecmp("y29ga", optarg) == 0) {
                 model = Y29GA;
+                v = 2;
             } else if (strcasecmp("y623", optarg) == 0) {
                 model = Y623;
+                v = 2;
             } else if (strcasecmp("q321br_lsx", optarg) == 0) {
                 model = Q321BR_LSX;
+                v = 2;
             } else if (strcasecmp("qg311r", optarg) == 0) {
                 model = QG311R;
+                v = 2;
             } else if (strcasecmp("b091qp", optarg) == 0) {
                 model = B091QP;
+                v = 2;
             }
             break;
 
@@ -1190,44 +1220,75 @@ int main(int argc, char** argv)
     // Get parameters from environment
     str = getenv("RRTSP_MODEL");
     if (str != NULL) {
-        if (strcasecmp("y21ga", str) == 0) {
+        if (strcasecmp("y20ga", str) == 0) {
+            model = Y20GA;
+            v = 1;
+        } else if (strcasecmp("y25ga", str) == 0) {
+            model = Y25GA;
+            v = 1;
+        } else if (strcasecmp("y30qa", str) == 0) {
+            model = Y30QA;
+            v = 1;
+        } else if (strcasecmp("y501gc", str) == 0) {
+            model = Y501GC;
+            v = 1;
+        } else if (strcasecmp("y21ga", str) == 0) {
             model = Y21GA;
+            v = 2;
         } else if (strcasecmp("y211ga", str) == 0) {
             model = Y211GA;
+            v = 2;
         } else if (strcasecmp("y211ba", str) == 0) {
             model = Y211BA;
+            v = 2;
         } else if (strcasecmp("y213ga", str) == 0) {
             model = Y213GA;
+            v = 2;
         } else if (strcasecmp("y291ga", str) == 0) {
             model = Y291GA;
+            v = 2;
         } else if (strcasecmp("h30ga", str) == 0) {
             model = H30GA;
+            v = 2;
         } else if (strcasecmp("r30gb", str) == 0) {
             model = R30GB;
+            v = 2;
         } else if (strcasecmp("r35gb", str) == 0) {
             model = R35GB;
+            v = 2;
         } else if (strcasecmp("r37gb", str) == 0) {
             model = R37GB;
+            v = 2;
         } else if (strcasecmp("r40ga", str) == 0) {
             model = R40GA;
+            v = 2;
         } else if (strcasecmp("h51ga", str) == 0) {
             model = H51GA;
+            v = 2;
         } else if (strcasecmp("h52ga", str) == 0) {
             model = H52GA;
+            v = 2;
         } else if (strcasecmp("h60ga", str) == 0) {
             model = H60GA;
+            v = 2;
         } else if (strcasecmp("y28ga", str) == 0) {
             model = Y28GA;
+            v = 2;
         } else if (strcasecmp("y29ga", str) == 0) {
             model = Y29GA;
+            v = 2;
         } else if (strcasecmp("y623", str) == 0) {
             model = Y623;
+            v = 2;
         } else if (strcasecmp("q321br_lsx", str) == 0) {
             model = Q321BR_LSX;
+            v = 2;
         } else if (strcasecmp("qg311r", str) == 0) {
             model = QG311R;
+            v = 2;
         } else if (strcasecmp("b091qp", str) == 0) {
             model = B091QP;
+            v = 2;
         }
     }
 
@@ -1314,7 +1375,23 @@ int main(int argc, char** argv)
     if (debug) fprintf(stderr, "%lld: the size of the buffer is %d\n",
             current_timestamp(), buf_size);
 
-    if (model == Y21GA) {
+    if  (v == 2) {
+        enable_speaker = True;
+    }
+
+    if (model == Y20GA) {
+        buf_offset = BUF_OFFSET_Y20GA;
+        frame_header_size = FRAME_HEADER_SIZE_Y20GA;
+    } else if (model == Y25GA) {
+        buf_offset = BUF_OFFSET_Y25GA;
+        frame_header_size = FRAME_HEADER_SIZE_Y25GA;
+    } else if (model == Y30QA) {
+        buf_offset = BUF_OFFSET_Y30QA;
+        frame_header_size = FRAME_HEADER_SIZE_Y30QA;
+    } else if (model == Y501GC) {
+        buf_offset = BUF_OFFSET_Y501GC;
+        frame_header_size = FRAME_HEADER_SIZE_Y501GC;
+    } else if (model == Y21GA) {
         buf_offset = BUF_OFFSET_Y21GA;
         frame_header_size = FRAME_HEADER_SIZE_Y21GA;
     } else if (model == Y211GA) {
@@ -1388,99 +1465,51 @@ int main(int argc, char** argv)
 
     // Low res
     if ((resolution == RESOLUTION_LOW) || (resolution == RESOLUTION_BOTH)) {
-        output_buffer_low.type = TYPE_LOW;
-        output_buffer_low.size = OUTPUT_BUFFER_SIZE_LOW;
-        output_buffer_low.buffer = (unsigned char *) malloc(OUTPUT_BUFFER_SIZE_LOW * sizeof(unsigned char));
-        output_buffer_low.write_index = output_buffer_low.buffer;
-        output_buffer_low.frame_read_index = 0;
-        output_buffer_low.frame_write_index = 0;
-        output_buffer_low.output_frame_size = sizeof(output_buffer_low.output_frame) / sizeof(output_buffer_low.output_frame[0]);
-        if (output_buffer_low.buffer == NULL) {
-            fprintf(stderr, "could not alloc memory\n");
-            exit(EXIT_FAILURE);
-        }
-        for (i = 0; i < output_buffer_low.output_frame_size; i++) {
-            output_buffer_low.output_frame[i].ptr = NULL;
-            output_buffer_low.output_frame[i].counter = 0;
-            output_buffer_low.output_frame[i].size = 0;
-        }
+        output_queue_low.type = TYPE_LOW;
     }
 
     // High res
     if ((resolution == RESOLUTION_HIGH) || (resolution == RESOLUTION_BOTH)) {
-        output_buffer_high.type = TYPE_HIGH;
-        output_buffer_high.size = OUTPUT_BUFFER_SIZE_HIGH;
-        output_buffer_high.buffer = (unsigned char *) malloc(OUTPUT_BUFFER_SIZE_HIGH * sizeof(unsigned char));
-        output_buffer_high.write_index = output_buffer_high.buffer;
-        output_buffer_high.frame_read_index = 0;
-        output_buffer_high.frame_write_index = 0;
-        output_buffer_high.output_frame_size = sizeof(output_buffer_high.output_frame) / sizeof(output_buffer_high.output_frame[0]);
-        if (output_buffer_high.buffer == NULL) {
-            fprintf(stderr, "could not alloc memory\n");
-            if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
-            exit(EXIT_FAILURE);
-        }
-        for (i = 0; i < output_buffer_high.output_frame_size; i++) {
-            output_buffer_high.output_frame[i].ptr = NULL;
-            output_buffer_high.output_frame[i].counter = 0;
-            output_buffer_high.output_frame[i].size = 0;
-        }
+        output_queue_high.type = TYPE_HIGH;
     }
 
     // Audio
-    if (audio != 0) {
-        output_buffer_audio.type = TYPE_AAC;
-        output_buffer_audio.size = OUTPUT_BUFFER_SIZE_AUDIO;
-        output_buffer_audio.buffer = (unsigned char *) malloc(OUTPUT_BUFFER_SIZE_AUDIO * sizeof(unsigned char));
-        output_buffer_audio.write_index = output_buffer_audio.buffer;
-        output_buffer_audio.frame_read_index = 0;
-        output_buffer_audio.frame_write_index = 0;
-        output_buffer_audio.output_frame_size = sizeof(output_buffer_audio.output_frame) / sizeof(output_buffer_audio.output_frame[0]);
-        if (output_buffer_audio.buffer == NULL) {
-            fprintf(stderr, "could not alloc memory\n");
-            if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
-            if(output_buffer_high.buffer != NULL) free(output_buffer_high.buffer);
-            exit(EXIT_FAILURE);
-        }
-        for (i = 0; i < output_buffer_audio.output_frame_size; i++) {
-            output_buffer_audio.output_frame[i].ptr = NULL;
-            output_buffer_audio.output_frame[i].counter = 0;
-            output_buffer_audio.output_frame[i].size = 0;
-        }
+    if (audio == 0) {
+        // Just video, use timestamps from video samples
+        useTimeForPres = False;
+        output_queue_audio.type = TYPE_NONE;
+    } else if (audio == 1) {
+        // We don't have timestamps for PCM audio samples when the source is the fifo queue: use current time
+        useTimeForPres = True;
+        output_queue_audio.type = TYPE_NONE;
+    } else if (audio == 2) {
+        // AAC audio and H26x video, use timestamps from audio/video samples
+        useTimeForPres = False;
+        output_queue_audio.type = TYPE_AAC;
     }
 
     // Begin by setting up our usage environment:
     TaskScheduler* scheduler = BasicTaskScheduler::createNew();
     env = BasicUsageEnvironment::createNew(*scheduler);
 
+    // Init mutexes
+    if (pthread_mutex_init(&(output_queue_low.mutex), NULL) != 0) {
+        fprintf(stderr, "Failed to create mutex\n");
+        exit(EXIT_FAILURE);
+    }
+    if (pthread_mutex_init(&(output_queue_high.mutex), NULL) != 0) {
+        fprintf(stderr, "Failed to create mutex\n");
+        exit(EXIT_FAILURE);
+    }
+    if (pthread_mutex_init(&(output_queue_audio.mutex), NULL) != 0) {
+        fprintf(stderr, "Failed to create mutex\n");
+        exit(EXIT_FAILURE);
+    }
+
     // Start capture thread
-    if (pthread_mutex_init(&(output_buffer_low.mutex), NULL) != 0) {
-        *env << "Failed to create mutex\n";
-        if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
-        if(output_buffer_high.buffer != NULL) free(output_buffer_high.buffer);
-        if(output_buffer_audio.buffer != NULL) free(output_buffer_audio.buffer);
-        exit(EXIT_FAILURE);
-    }
-    if (pthread_mutex_init(&(output_buffer_high.mutex), NULL) != 0) {
-        *env << "Failed to create mutex\n";
-        if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
-        if(output_buffer_high.buffer != NULL) free(output_buffer_high.buffer);
-        if(output_buffer_audio.buffer != NULL) free(output_buffer_audio.buffer);
-        exit(EXIT_FAILURE);
-    }
-    if (pthread_mutex_init(&(output_buffer_audio.mutex), NULL) != 0) {
-        *env << "Failed to create mutex\n";
-        if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
-        if(output_buffer_high.buffer != NULL) free(output_buffer_high.buffer);
-        if(output_buffer_audio.buffer != NULL) free(output_buffer_audio.buffer);
-        exit(EXIT_FAILURE);
-    }
     pth_ret = pthread_create(&capture_thread, NULL, capture, (void*) NULL);
     if (pth_ret != 0) {
-        *env << "Failed to create capture thread\n";
-        if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
-        if(output_buffer_high.buffer != NULL) free(output_buffer_high.buffer);
-        if(output_buffer_audio.buffer != NULL) free(output_buffer_audio.buffer);
+        fprintf(stderr, "Failed to create capture thread\n");
         exit(EXIT_FAILURE);
     }
     pthread_detach(capture_thread);
@@ -1515,10 +1544,7 @@ int main(int argc, char** argv)
     // Create the RTSP server:
     RTSPServer* rtspServer = RTSPServer::createNew(*env, port, authDB);
     if (rtspServer == NULL) {
-        *env << "Failed to create RTSP server: " << env->getResultMsg() << "\n";
-        if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
-        if(output_buffer_high.buffer != NULL) free(output_buffer_high.buffer);
-        if(output_buffer_audio.buffer != NULL) free(output_buffer_audio.buffer);
+        fprintf(stderr, "Failed to create RTSP server: %s\n", env->getResultMsg());
         exit(1);
     }
 
@@ -1526,11 +1552,11 @@ int main(int argc, char** argv)
     if (audio == 1) {
         if (debug) fprintf(stderr, "Starting pcm replicator\n");
         // Create and start the replicator that will be given to each subsession
-        replicator = startReplicatorStream(inputAudioFileName, convertTo);
+        replicator = startReplicatorStream(inputAudioFileName, 8000, 1, 16, convertTo);
     } else if (audio == 2) {
         if (debug) fprintf(stderr, "Starting aac replicator\n");
         // Create and start the replicator that will be given to each subsession
-        replicator = startReplicatorStream(&output_buffer_audio, 16000, 1);
+        replicator = startReplicatorStream(&output_queue_audio, 16000, 1, useTimeForPres);
     }
 
     char const* descriptionString = "Session streamed by \"rRTSPServer\"";
@@ -1553,29 +1579,29 @@ int main(int argc, char** argv)
                                               descriptionString);
         if (stream_type.codec_high == CODEC_H264) {
             sms_high->addSubsession(H264VideoFramedMemoryServerMediaSubsession
-                                   ::createNew(*env, &output_buffer_high, reuseFirstSource));
+                                   ::createNew(*env, &output_queue_high, useTimeForPres, reuseFirstSource));
         } else if (stream_type.codec_high == CODEC_H265) {
             sms_high->addSubsession(H265VideoFramedMemoryServerMediaSubsession
-                                   ::createNew(*env, &output_buffer_high, reuseFirstSource));
+                                   ::createNew(*env, &output_queue_high, useTimeForPres, reuseFirstSource));
         }
         if (audio == 1) {
             sms_high->addSubsession(WAVAudioFifoServerMediaSubsession
-                                       ::createNew(*env, replicator, reuseFirstSource, convertTo));
+                                       ::createNew(*env, replicator, reuseFirstSource, 8000, 1, 16, convertTo));
         } else if (audio == 2) {
             sms_high->addSubsession(ADTSAudioFramedMemoryServerMediaSubsession
-                                       ::createNew(*env, replicator, reuseFirstSource));
+                                       ::createNew(*env, replicator, reuseFirstSource, 16000, 1));
         }
         if (back_channel == 1) {
             PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
-                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ALAW);
+                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ALAW, enable_speaker);
             sms_high->addSubsession(smss_bc);
         } else if (back_channel == 2) {
             PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
-                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ULAW);
+                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ULAW, enable_speaker);
             sms_high->addSubsession(smss_bc);
         } else if (back_channel == 4) {
             ADTSAudioFileServerMediaSubsession_BC* smss_bc = ADTSAudioFileServerMediaSubsession_BC
-                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1);
+                    ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, enable_speaker);
             sms_high->addSubsession(smss_bc);
         }
         rtspServer->addServerMediaSession(sms_high);
@@ -1593,30 +1619,30 @@ int main(int argc, char** argv)
                                               descriptionString);
         if (stream_type.codec_low == CODEC_H264) {
             sms_low->addSubsession(H264VideoFramedMemoryServerMediaSubsession
-                                       ::createNew(*env, &output_buffer_low, reuseFirstSource));
+                                       ::createNew(*env, &output_queue_low, useTimeForPres, reuseFirstSource));
         } else if (stream_type.codec_low == CODEC_H265) {
             sms_low->addSubsession(H265VideoFramedMemoryServerMediaSubsession
-                                       ::createNew(*env, &output_buffer_low, reuseFirstSource));
+                                       ::createNew(*env, &output_queue_low, useTimeForPres, reuseFirstSource));
         }
         if (audio == 1) {
             sms_low->addSubsession(WAVAudioFifoServerMediaSubsession
-                                       ::createNew(*env, replicator, reuseFirstSource, convertTo));
+                                       ::createNew(*env, replicator, reuseFirstSource, 8000, 1, 16, convertTo));
         } else if (audio == 2) {
             sms_low->addSubsession(ADTSAudioFramedMemoryServerMediaSubsession
-                                       ::createNew(*env, replicator, reuseFirstSource));
+                                       ::createNew(*env, replicator, reuseFirstSource, 16000, 1));
         }
         if (resolution == RESOLUTION_LOW) {
             if (back_channel == 1) {
                 PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
-                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ALAW);
+                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ALAW, enable_speaker);
                 sms_low->addSubsession(smss_bc);
             } else if (back_channel == 2) {
                 PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
-                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ULAW);
+                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ULAW, enable_speaker);
                 sms_low->addSubsession(smss_bc);
             } else if (back_channel == 4) {
                 ADTSAudioFileServerMediaSubsession_BC* smss_bc = ADTSAudioFileServerMediaSubsession_BC
-                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1);
+                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, enable_speaker);
                 sms_low->addSubsession(smss_bc);
             }
         }
@@ -1635,23 +1661,23 @@ int main(int argc, char** argv)
                                               descriptionString);
         if (audio == 1) {
             sms_audio->addSubsession(WAVAudioFifoServerMediaSubsession
-                                       ::createNew(*env, replicator, reuseFirstSource, convertTo));
+                                       ::createNew(*env, replicator, reuseFirstSource, 8000, 1, 16, convertTo));
         } else if (audio == 2) {
             sms_audio->addSubsession(ADTSAudioFramedMemoryServerMediaSubsession
-                                       ::createNew(*env, replicator, reuseFirstSource));
+                                       ::createNew(*env, replicator, reuseFirstSource, 16000, 1));
         }
         if (resolution == RESOLUTION_NONE) {
             if (back_channel == 1) {
                 PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
-                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ALAW);
+                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ALAW, enable_speaker);
                 sms_audio->addSubsession(smss_bc);
             } else if (back_channel == 2) {
                 PCMAudioFileServerMediaSubsession_BC* smss_bc = PCMAudioFileServerMediaSubsession_BC
-                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ULAW);
+                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, ULAW, enable_speaker);
                 sms_audio->addSubsession(smss_bc);
             } else if (back_channel == 4) {
                 ADTSAudioFileServerMediaSubsession_BC* smss_bc = ADTSAudioFileServerMediaSubsession_BC
-                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1);
+                        ::createNew(*env, outputAudioFileName, reuseFirstSource, 16000, 1, enable_speaker);
                 sms_audio->addSubsession(smss_bc);
             }
         }
@@ -1662,14 +1688,9 @@ int main(int argc, char** argv)
 
     env->taskScheduler().doEventLoop(); // does not return
 
-    pthread_mutex_destroy(&(output_buffer_low.mutex));
-    pthread_mutex_destroy(&(output_buffer_high.mutex));
-    pthread_mutex_destroy(&(output_buffer_audio.mutex));
-
-    // Free buffers
-    if(output_buffer_low.buffer != NULL) free(output_buffer_low.buffer);
-    if(output_buffer_high.buffer != NULL) free(output_buffer_high.buffer);
-    if(output_buffer_audio.buffer != NULL) free(output_buffer_audio.buffer);
+    pthread_mutex_destroy(&(output_queue_low.mutex));
+    pthread_mutex_destroy(&(output_queue_high.mutex));
+    pthread_mutex_destroy(&(output_queue_audio.mutex));
 
     return 0; // only to prevent compiler warning
 }

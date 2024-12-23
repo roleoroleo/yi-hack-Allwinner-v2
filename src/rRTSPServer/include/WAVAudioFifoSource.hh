@@ -33,50 +33,54 @@
 
 class WAVAudioFifoSource: public AudioInputDevice {
 public:
+    static WAVAudioFifoSource* createNew(UsageEnvironment& env,
+                                         char const* fileName,
+                                         unsigned samplingFrequency,
+                                         unsigned char numChannels,
+                                         unsigned char bitsPerSample);
 
-  static WAVAudioFifoSource* createNew(UsageEnvironment& env,
-					char const* fileName);
-
-  unsigned numPCMBytes() const;
-  void setScaleFactor(int scale);
-  void seekToPCMByte(unsigned byteNumber);
-  void limitNumBytesToStream(unsigned numBytesToStream);
+    unsigned numPCMBytes() const;
+    void setScaleFactor(int scale);
+    void seekToPCMByte(unsigned byteNumber);
+    void limitNumBytesToStream(unsigned numBytesToStream);
       // if "numBytesToStream" is >0, then we limit the stream to that number of bytes, before treating it as EOF
 
-  unsigned char getAudioFormat();
+    unsigned char getAudioFormat();
 
 protected:
-  WAVAudioFifoSource(UsageEnvironment& env, FILE* fid);
-	// called only by createNew()
+    WAVAudioFifoSource(UsageEnvironment& env, FILE* fid,
+                     unsigned samplingFrequency, unsigned char numChannels,
+                     unsigned char bitsPerSample);
+    // called only by createNew()
 
-  virtual ~WAVAudioFifoSource();
+    virtual ~WAVAudioFifoSource();
 
-  static void fileReadableHandler(WAVAudioFifoSource* source, int mask);
-  void doReadFromFile();
+    static void fileReadableHandler(WAVAudioFifoSource* source, int mask);
+    void doReadFromFile();
 
 private:
-  // redefined virtual functions:
-  virtual void doGetNextFrame();
-  virtual void doStopGettingFrames();
-  virtual Boolean setInputPort(int portIndex);
-  virtual double getAverageLevel() const;
-  void cleanFifo();
+    // redefined virtual functions:
+    virtual void doGetNextFrame();
+    virtual void doStopGettingFrames();
+    virtual Boolean setInputPort(int portIndex);
+    virtual double getAverageLevel() const;
+    void cleanFifo();
 
 protected:
-  unsigned fPreferredFrameSize;
+    unsigned fPreferredFrameSize;
 
 private:
-  FILE* fFid;
-  double fPlayTimePerSample; // useconds
-  Boolean fFidIsSeekable;
-  unsigned fLastPlayTime; // useconds
-  Boolean fHaveStartedReading;
-  unsigned fWAVHeaderSize;
-  unsigned fFileSize;
-  int fScaleFactor;
-  Boolean fLimitNumBytesToStream;
-  unsigned fNumBytesToStream; // used iff "fLimitNumBytesToStream" is True
-  unsigned char fAudioFormat;
+    FILE* fFid;
+    double fPlayTimePerSample; // useconds
+    Boolean fFidIsSeekable;
+    unsigned fLastPlayTime; // useconds
+    Boolean fHaveStartedReading;
+    unsigned fWAVHeaderSize;
+    unsigned fFileSize;
+    int fScaleFactor;
+    Boolean fLimitNumBytesToStream;
+    unsigned fNumBytesToStream; // used iff "fLimitNumBytesToStream" is True
+    unsigned char fAudioFormat;
 };
 
 #endif

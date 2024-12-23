@@ -26,19 +26,22 @@
 extern int debug;
 ADTSAudioFileServerMediaSubsession_BC*
 ADTSAudioFileServerMediaSubsession_BC::createNew(UsageEnvironment& env,
-						 char const* fileName,
-						 Boolean reuseFirstSource,
-						 int sampleRate, int numChannels) {
+                                                 char const* fileName,
+                                                 Boolean reuseFirstSource,
+                                                 int sampleRate, int numChannels,
+                                                 Boolean enableSpeaker) {
     return new ADTSAudioFileServerMediaSubsession_BC(env, fileName, reuseFirstSource,
-                                                     sampleRate, numChannels);
+                                                     sampleRate, numChannels, enableSpeaker);
 }
 
 ADTSAudioFileServerMediaSubsession_BC
 ::ADTSAudioFileServerMediaSubsession_BC(UsageEnvironment& env,
-				       char const* fileName, Boolean reuseFirstSource,
-				       int sampleRate, int numChannels)
+                                       char const* fileName, Boolean reuseFirstSource,
+                                       int sampleRate, int numChannels,
+                                       Boolean enableSpeaker)
   : FileServerMediaSubsession_BC(env, fileName, reuseFirstSource),
     fSampleRate(sampleRate), fNumChannels(numChannels),
+    fEnableSpeaker(enableSpeaker),
     fAuxSDPLine(NULL), fRTPTimestampFrequency(sampleRate) {
 }
 
@@ -50,7 +53,7 @@ MediaSink* ADTSAudioFileServerMediaSubsession_BC
 ::createNewStreamDestination(unsigned clientSessionId, unsigned& estBitrate) {
     estBitrate = 8; // kbps, estimate
 
-    return ADTS2PCMFileSink::createNew(envir(), fFileName, fSampleRate, fNumChannels);
+    return ADTS2PCMFileSink::createNew(envir(), fFileName, fSampleRate, fNumChannels, fEnableSpeaker);
 }
 
 RTPSource* ADTSAudioFileServerMediaSubsession_BC

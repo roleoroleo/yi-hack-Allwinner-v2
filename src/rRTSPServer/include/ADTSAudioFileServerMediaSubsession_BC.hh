@@ -28,38 +28,39 @@
 
 class ADTSAudioFileServerMediaSubsession_BC: public FileServerMediaSubsession_BC {
 public:
-  static ADTSAudioFileServerMediaSubsession_BC*
-  createNew(UsageEnvironment& env, char const* fileName, Boolean reuseFirstSource,
-	    int sampleRate, int numChannels);
+    static ADTSAudioFileServerMediaSubsession_BC*
+    createNew(UsageEnvironment& env, char const* fileName, Boolean reuseFirstSource,
+              int sampleRate, int numChannels, Boolean enableSpeaker);
 
 protected:
-  ADTSAudioFileServerMediaSubsession_BC(UsageEnvironment& env,
-				       char const* fileName, Boolean reuseFirstSource,
-				       int sampleRate, int numChannels);
-      // called only by createNew();
-  virtual ~ADTSAudioFileServerMediaSubsession_BC();
+    ADTSAudioFileServerMediaSubsession_BC(UsageEnvironment& env,
+                                          char const* fileName, Boolean reuseFirstSource,
+                                          int sampleRate, int numChannels, Boolean enableSpeaker);
+    // called only by createNew();
+    virtual ~ADTSAudioFileServerMediaSubsession_BC();
 
 protected: // redefined virtual functions
-  virtual FramedSource* createNewStreamSource(unsigned clientSessionId,
-					      unsigned& estBitrate);
-  virtual RTPSink* createNewRTPSink(Groupsock* rtpGroupsock,
-                                    unsigned char rtpPayloadTypeIfDynamic,
-				    FramedSource* inputSource);
+    virtual FramedSource* createNewStreamSource(unsigned clientSessionId,
+                                                unsigned& estBitrate);
+    virtual RTPSink* createNewRTPSink(Groupsock* rtpGroupsock,
+                                      unsigned char rtpPayloadTypeIfDynamic,
+                                      FramedSource* inputSource);
 
-  virtual MediaSink* createNewStreamDestination(unsigned clientSessionId,
-					       unsigned& estBitrate);
-  // "estBitrate" is the stream's estimated bitrate, in kbps
-  virtual RTPSource* createNewRTPSource(Groupsock* rtpGroupsock,
-					unsigned char rtpPayloadTypeIfDynamic,
-					MediaSink* outputSink);
-  virtual char const* getAuxSDPLineForBackChannel(MediaSink* mediaSink, RTPSource* rtpSource);
+    virtual MediaSink* createNewStreamDestination(unsigned clientSessionId,
+                                                  unsigned& estBitrate);
+    // "estBitrate" is the stream's estimated bitrate, in kbps
+    virtual RTPSource* createNewRTPSource(Groupsock* rtpGroupsock,
+                                          unsigned char rtpPayloadTypeIfDynamic,
+                                          MediaSink* outputSink);
+    virtual char const* getAuxSDPLineForBackChannel(MediaSink* mediaSink, RTPSource* rtpSource);
 
 private:
-  int fSampleRate;
-  int fNumChannels;
-  char* fAuxSDPLine;
-  unsigned char fRTPPayloadFormat;
-  unsigned fRTPTimestampFrequency;
+    int fSampleRate;
+    int fNumChannels;
+    Boolean fEnableSpeaker;
+    char* fAuxSDPLine;
+    unsigned char fRTPPayloadFormat;
+    unsigned fRTPTimestampFrequency;
 };
 
 #endif

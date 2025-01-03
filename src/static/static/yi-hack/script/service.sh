@@ -311,32 +311,38 @@ start_onvif()
     echo "events=3" >> $ONVIF_SRVD_CONF
     echo "#Event 0" >> $ONVIF_SRVD_CONF
     echo "topic=tns1:VideoSource/MotionAlarm" >> $ONVIF_SRVD_CONF
-    echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
+    echo "source_name=Source" >> $ONVIF_SRVD_CONF
+    echo "source_type=tt:ReferenceToken" >> $ONVIF_SRVD_CONF
     echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
     echo "input_file=/tmp/onvif_notify_server/motion_alarm" >> $ONVIF_SRVD_CONF
     echo "#Event 1" >> $ONVIF_SRVD_CONF
     echo "topic=tns1:RuleEngine/MyRuleDetector/PeopleDetect" >> $ONVIF_SRVD_CONF
     echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
+    echo "source_type=xsd:string" >> $ONVIF_SRVD_CONF
     echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
     echo "input_file=/tmp/onvif_notify_server/human_detection" >> $ONVIF_SRVD_CONF
     echo "#Event 2" >> $ONVIF_SRVD_CONF
     echo "topic=tns1:RuleEngine/MyRuleDetector/VehicleDetect" >> $ONVIF_SRVD_CONF
     echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
+    echo "source_type=xsd:string" >> $ONVIF_SRVD_CONF
     echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
     echo "input_file=/tmp/onvif_notify_server/vehicle_detection" >> $ONVIF_SRVD_CONF
     echo "#Event 3" >> $ONVIF_SRVD_CONF
     echo "topic=tns1:RuleEngine/MyRuleDetector/DogCatDetect" >> $ONVIF_SRVD_CONF
     echo "source_name=VideoSourceConfigurationToken" >> $ONVIF_SRVD_CONF
+    echo "source_type=xsd:string" >> $ONVIF_SRVD_CONF
     echo "source_value=VideoSourceToken" >> $ONVIF_SRVD_CONF
     echo "input_file=/tmp/onvif_notify_server/animal_detection" >> $ONVIF_SRVD_CONF
     echo "#Event 4" >> $ONVIF_SRVD_CONF
     echo "topic=tns1:RuleEngine/MyRuleDetector/BabyCryingDetect" >> $ONVIF_SRVD_CONF
     echo "source_name=AudioSourceConfigurationToken" >> $ONVIF_SRVD_CONF
+    echo "source_type=xsd:string" >> $ONVIF_SRVD_CONF
     echo "source_value=AudioSourceToken" >> $ONVIF_SRVD_CONF
     echo "input_file=/tmp/onvif_notify_server/baby_crying" >> $ONVIF_SRVD_CONF
     echo "#Event 5" >> $ONVIF_SRVD_CONF
     echo "topic=tns1:AudioAnalytics/Audio/DetectedSound" >> $ONVIF_SRVD_CONF
     echo "source_name=AudioSourceConfigurationToken" >> $ONVIF_SRVD_CONF
+    echo "source_type=tt:ReferenceToken" >> $ONVIF_SRVD_CONF
     echo "source_value=AudioSourceToken" >> $ONVIF_SRVD_CONF
     echo "input_file=/tmp/onvif_notify_server/sound_detection" >> $ONVIF_SRVD_CONF
 

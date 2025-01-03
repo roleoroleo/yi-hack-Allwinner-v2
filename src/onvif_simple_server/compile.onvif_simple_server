@@ -67,12 +67,15 @@ echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/m
 chmod 0755 ../_install/www/onvif/media2_service
 echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/ptz_service || exit 1
 chmod 0755 ../_install/www/onvif/ptz_service
+echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/deviceio_service || exit 1
+chmod 0755 ../_install/www/onvif/deviceio_service
 cp -R ./device_service_files ../_install/www/onvif
 cp -R ./events_service_files ../_install/www/onvif
 cp -R ./generic_files ../_install/www/onvif
 cp -R ./media_service_files ../_install/www/onvif
 cp -R ./media2_service_files ../_install/www/onvif
 cp -R ./ptz_service_files ../_install/www/onvif
+cp -R ./deviceio_service_files ../_install/www/onvif
 
 cp ./onvif_notify_server ../_install/bin || exit 1
 cp -R ./notify_files/* ../_install/etc/onvif_notify_server

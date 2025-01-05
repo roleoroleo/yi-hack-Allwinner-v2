@@ -46,6 +46,18 @@
 
 #define FRAME_HEADER_SIZE_AUTODETECT 0
 
+#define BUF_OFFSET_Y20GA 300
+#define FRAME_HEADER_SIZE_Y20GA 22
+
+#define BUF_OFFSET_Y25GA 300
+#define FRAME_HEADER_SIZE_Y25GA 22
+
+#define BUF_OFFSET_Y30QA 300
+#define FRAME_HEADER_SIZE_Y30QA 22
+
+#define BUF_OFFSET_Y501GC 368
+#define FRAME_HEADER_SIZE_Y501GC 24
+
 #define BUF_OFFSET_Y21GA 368
 #define FRAME_HEADER_SIZE_Y21GA 28
 
@@ -158,6 +170,17 @@ struct __attribute__((__packed__)) frame_header_22 {
     uint16_t u4;
 };
 
+struct __attribute__((__packed__)) frame_header_24 {
+    uint32_t len;
+    uint32_t counter;
+    uint32_t u1;
+    uint32_t time;
+    uint16_t type;
+    uint16_t stream_counter;
+    uint16_t u4;
+    uint16_t u5;
+};
+
 struct __attribute__((__packed__)) frame_header_26 {
     uint32_t len;
     uint32_t counter;
@@ -223,12 +246,15 @@ void cb2s_headercpy(unsigned char *dest, unsigned char *src, size_t n)
 {
     struct frame_header *fh = (struct frame_header *) dest;
     struct frame_header_22 fh22;
+    struct frame_header_24 fh24;
     struct frame_header_26 fh26;
     struct frame_header_28 fh28;
     unsigned char *fp = NULL;
 
     if (n == sizeof(fh22)) {
         fp = (unsigned char *) &fh22;
+    } else if (n == sizeof(fh24)) {
+        fp = (unsigned char *) &fh24;
     } else if (n == sizeof(fh26)) {
         fp = (unsigned char *) &fh26;
     } else if (n == sizeof(fh28)) {
@@ -248,6 +274,12 @@ void cb2s_headercpy(unsigned char *dest, unsigned char *src, size_t n)
         fh->time = fh22.time;
         fh->type = fh22.type;
         fh->stream_counter = fh22.stream_counter;
+    } else if (n == sizeof(fh24)) {
+        fh->len = fh24.len;
+        fh->counter = fh24.counter;
+        fh->time = fh24.time;
+        fh->type = fh24.type;
+        fh->stream_counter = fh24.stream_counter;
     } else if (n == sizeof(fh26)) {
         fh->len = fh26.len;
         fh->counter = fh26.counter;
@@ -491,7 +523,8 @@ pid_t proc_find(const char* process_name, pid_t process_pid)
 void usage(char *prog_name)
 {
     fprintf(stderr, "Usage: %s [options]\n", prog_name);
-    fprintf(stderr, "\t-m, --model MODEL       Set model: y21ga, y211ga, y211ba, y213, y291ga, h30ga, r30gb, r35gb, r37gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, y623, q321br_lsx, qg311r or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t-m, --model MODEL       Set model: y20ga, y25ga, y30qa or y501gc (Allwinner)\n");
+    fprintf(stderr, "\t                        Set model: y21ga, y211ga, y211ba, y213, y291ga, h30ga, r30gb, r35gb, r37gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, y623, q321br_lsx, qg311r or b091qp (Allwinner-v2: default y21ga)\n");
     fprintf(stderr, "\t-f, --file FILE         Ignore model and read frame from file FILE\n");
     fprintf(stderr, "\t-r, --res RES           Set resolution: \"low\" or \"high\" (default \"high\")\n");
     fprintf(stderr, "\t-w, --watermark         Add watermark to image\n");
@@ -559,7 +592,23 @@ int main(int argc, char **argv)
 
         switch (c) {
             case 'm':
-                if (strcasecmp("y21ga", optarg) == 0) {
+                if (strcasecmp("y20ga", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_Y20GA;
+                    frame_header_size = FRAME_HEADER_SIZE_Y20GA;
+                    model_high_res = RESOLUTION_FHD;
+                } else if (strcasecmp("y25ga", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_Y25GA;
+                    frame_header_size = FRAME_HEADER_SIZE_Y25GA;
+                    model_high_res = RESOLUTION_FHD;
+                } else if (strcasecmp("y30qa", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_Y30QA;
+                    frame_header_size = FRAME_HEADER_SIZE_Y30QA;
+                    model_high_res = RESOLUTION_FHD;
+                } else if (strcasecmp("y501gc", optarg) == 0) {
+                    buf_offset = BUF_OFFSET_Y501GC;
+                    frame_header_size = FRAME_HEADER_SIZE_Y501GC;
+                    model_high_res = RESOLUTION_FHD;
+                } else if (strcasecmp("y21ga", optarg) == 0) {
                     buf_offset = BUF_OFFSET_Y21GA;
                     frame_header_size = FRAME_HEADER_SIZE_Y21GA;
                     model_high_res = RESOLUTION_FHD;
@@ -1061,7 +1110,7 @@ int main(int argc, char **argv)
         if (iret < 0) {
             fprintf(stderr, "Error adding watermark\n");
             if (bufferyuv != NULL) free(bufferyuv);
-            if (file[0] == '\0') { 
+            if (file[0] == '\0') {
                 // Unmap file from memory
                 if (munmap(addr, buf_size) == -1) {
                     fprintf(stderr, "Error munmapping file\n");

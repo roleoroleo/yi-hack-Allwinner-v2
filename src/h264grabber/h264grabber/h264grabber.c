@@ -42,6 +42,18 @@
 
 #define FRAME_HEADER_SIZE_AUTODETECT 0
 
+#define BUF_OFFSET_Y20GA 300
+#define FRAME_HEADER_SIZE_Y20GA 22
+
+#define BUF_OFFSET_Y25GA 300
+#define FRAME_HEADER_SIZE_Y25GA 22
+
+#define BUF_OFFSET_Y30QA 300
+#define FRAME_HEADER_SIZE_Y30QA 22
+
+#define BUF_OFFSET_Y501GC 368
+#define FRAME_HEADER_SIZE_Y501GC 24
+
 #define BUF_OFFSET_Y21GA 368
 #define FRAME_HEADER_SIZE_Y21GA 28
 
@@ -564,7 +576,8 @@ void print_usage(char *progname)
 {
     fprintf(stderr, "\nUsage: %s [-m MODEL] [-r RES] [-s] [-f] [-d]\n\n", progname);
     fprintf(stderr, "\t-m MODEL, --model MODEL\n");
-    fprintf(stderr, "\t\tset model: y21ga, y211ga, y211ba, y213ga, y291ga, h30ga, r30gb, r35gb, r37gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, y623, q321br_lsx, qg311r or b091qp (default y21ga)\n");
+    fprintf(stderr, "\t\tset model: y20ga, y25ga, y30qa or y501gc (Allwinner)\n");
+    fprintf(stderr, "\t\tset model: y21ga, y211ga, y211ba, y213ga, y291ga, h30ga, r30gb, r35gb, r37gb, r40ga, h51ga, h52ga, h60ga, y28ga, y29ga, y623, q321br_lsx, qg311r or b091qp (Allwinner-v2: default y21ga)\n");
     fprintf(stderr, "\t-r RES, --resolution RES\n");
     fprintf(stderr, "\t\tset resolution: LOW, HIGH, BOTH or NONE (default HIGH)\n");
     fprintf(stderr, "\t-a, --audio\n");
@@ -581,6 +594,7 @@ int main(int argc, char **argv) {
     unsigned char *buf_idx, *buf_idx_cur, *buf_idx_end, *buf_idx_end_prev;
     unsigned char *buf_idx_start = NULL;
     unsigned char *header_a1, *header_a2;
+    char *stdoutbuf;
     FILE *fFS, *fOut, *fOutLow = NULL, *fOutHigh = NULL, *fOutAac = NULL;
     int fshm;
     mode_t mode = 0755;
@@ -633,7 +647,19 @@ int main(int argc, char **argv) {
 
         switch (c) {
         case 'm':
-            if (strcasecmp("y21ga", optarg) == 0) {
+            if (strcasecmp("y20ga", optarg) == 0) {
+                buf_offset = BUF_OFFSET_Y20GA;
+                frame_header_size = FRAME_HEADER_SIZE_Y20GA;
+            } else if (strcasecmp("y25ga", optarg) == 0) {
+                buf_offset = BUF_OFFSET_Y25GA;
+                frame_header_size = FRAME_HEADER_SIZE_Y25GA;
+            } else if (strcasecmp("y30qa", optarg) == 0) {
+                buf_offset = BUF_OFFSET_Y30QA;
+                frame_header_size = FRAME_HEADER_SIZE_Y30QA;
+            } else if (strcasecmp("y501gc", optarg) == 0) {
+                buf_offset = BUF_OFFSET_Y501GC;
+                frame_header_size = FRAME_HEADER_SIZE_Y501GC;
+            } else if (strcasecmp("y21ga", optarg) == 0) {
                 buf_offset = BUF_OFFSET_Y21GA;
                 frame_header_size = FRAME_HEADER_SIZE_Y21GA;
             } else if (strcasecmp("y211ga", optarg) == 0) {
@@ -789,16 +815,23 @@ int main(int argc, char **argv) {
 
     // Opening/setting output file
     if (fifo == 0) {
-        char stdoutbuf[262144];
-
-        if (setvbuf(stdout, stdoutbuf, _IOFBF, sizeof(stdoutbuf)) != 0) {
-            fprintf(stderr, "Error setting stdout buffer\n");
-        }
         if (resolution == RESOLUTION_LOW) {
+            stdoutbuf = (char *) malloc(sizeof(char) * 131072);
+            if (setvbuf(stdout, stdoutbuf, _IOFBF, sizeof(stdoutbuf)) != 0) {
+                fprintf(stderr, "Error setting stdout buffer\n");
+            }
             fOutLow = stdout;
         } else if (resolution == RESOLUTION_HIGH) {
+            stdoutbuf = (char *) malloc(sizeof(char) * 524288);
+            if (setvbuf(stdout, stdoutbuf, _IOFBF, sizeof(stdoutbuf)) != 0) {
+                fprintf(stderr, "Error setting stdout buffer\n");
+            }
             fOutHigh = stdout;
         } else if (audio == 1) {
+            stdoutbuf = (char *) malloc(sizeof(char) * 32768);
+            if (setvbuf(stdout, stdoutbuf, _IOFBF, sizeof(stdoutbuf)) != 0) {
+                fprintf(stderr, "Error setting stdout buffer\n");
+            }
             fOutAac = stdout;
         }
     } else {
@@ -1244,7 +1277,9 @@ int main(int argc, char **argv) {
     sem_fshare_close();
 #endif
 
-    if (fifo == 1) {
+    if (fifo == 0) {
+        free(stdoutbuf);
+    } else {
         if ((resolution == RESOLUTION_LOW) || (resolution == RESOLUTION_BOTH)) {
             fclose(fOutLow);
             unlink(FIFO_NAME_LOW);

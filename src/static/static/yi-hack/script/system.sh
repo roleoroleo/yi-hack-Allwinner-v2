@@ -62,8 +62,12 @@ export LD_LIBRARY_PATH=/lib:/usr/lib:/home/lib:/home/qigan/lib:/home/app/localli
 
 ulimit -s 1024
 
-echo 1500 > /sys/class/net/eth0/mtu
-echo 1500 > /sys/class/net/wlan0/mtu
+if [ -d /sys/class/net/eth0/ ]; then
+    echo 1500 > /sys/class/net/eth0/mtu
+fi
+if [ -d /sys/class/net/wlan0/ ]; then
+    echo 1500 > /sys/class/net/wlan0/mtu
+fi
 
 if [[ $(get_config KERNEL_TUNING) == "yes" ]] ; then
     sysctl -w vm.oom_dump_tasks=0
@@ -120,7 +124,7 @@ $YI_HACK_PREFIX/script/check_conf.sh
 
 # Make /etc writable
 log "Make /etc writable"
-mkdir /tmp/etc
+mkdir -p /tmp/etc
 cp -R /etc/* /tmp/etc
 mount --bind /tmp/etc /etc
 

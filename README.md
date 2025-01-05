@@ -9,6 +9,7 @@
 </p>
 
 yi-hack-Allwinner-v2 is a modification of the firmware for the Allwinner-based Yi Camera platform.
+What's the difference between v1 and v2? Allwinner-v2 is not an upgrade for Allwinner, it's a version dedicated to a different "family". Same cpu but different flash layout.
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)

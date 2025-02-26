@@ -77,3 +77,13 @@ validateQueryString()
             return 0;;
     esac
 }
+
+validateKey()
+{
+    case $1 in
+        *[\|\\\/\'!\"@\#\$%\&^*\(\).,:\;{}=?]* )
+            return 1;;
+        *)
+            return 0;;
+    esac
+}

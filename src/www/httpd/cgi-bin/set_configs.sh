@@ -66,7 +66,6 @@ else
 fi
 
 read -r POST_DATA
-POST_DATA="${POST_DATA//\\n/\\t}"
 # Validate json
 VALID=$(echo "$POST_DATA" | jq -e . >/dev/null 2>&1; echo $?)
 if [ "$VALID" != "0" ]; then

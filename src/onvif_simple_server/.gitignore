@@ -8,4 +8,6 @@ mbedtls
 mbedtls*/
 wolfssl
 wolfssl*/
+zlib
+zlib*/
 onvif_simple_server/onvif_simple_server

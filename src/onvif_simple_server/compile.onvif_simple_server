@@ -21,6 +21,7 @@ cd $SCRIPT_DIR
 
 #export HAVE_WOLFSSL=1
 #export HAVE_MBEDTLS=1
+export USE_ZLIB=1
 
 if [ "$HAVE_WOLFSSL" == "1" ]; then
     cd wolfssl
@@ -46,8 +47,20 @@ else
     fi
 fi
 
+if [ "$USE_ZLIB" == "1" ]; then
+    cd zlib
+    export CHOST=--host=arm-openwrt-linux
+    ./configure
+    make
+    export CHOST=
+    cd ..
+fi
+
 cd onvif_simple_server || exit 1
 
+if [ -f Makefile.static ]; then
+    mv Makefile.static Makefile
+fi
 make clean
 make || exit 1
 
@@ -76,6 +89,15 @@ cp -R ./media_service_files ../_install/www/onvif
 cp -R ./media2_service_files ../_install/www/onvif
 cp -R ./ptz_service_files ../_install/www/onvif
 cp -R ./deviceio_service_files ../_install/www/onvif
+if [ "$USE_ZLIB" == "1" ]; then
+    PROJ_PWD=$(pwd)
+    for DIR in device_service deviceio_service events_service generic media_service media2_service ptz_service; do
+        cd ../_install/www/onvif/${DIR}_files
+        rm -f *.gz
+        for FILE in *.xml; do gzip $FILE; done;
+        cd $PROJ_PWD
+    done
+fi
 
 cp ./onvif_notify_server ../_install/bin || exit 1
 cp -R ./notify_files/* ../_install/etc/onvif_notify_server

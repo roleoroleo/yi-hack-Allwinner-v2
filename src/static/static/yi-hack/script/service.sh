@@ -204,16 +204,16 @@ start_rtsp()
             $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
         fi
 
-        WD_COUNT=$(ps | grep wd_rtsp.sh | grep -v grep | grep -c ^)
+        WD_COUNT=$(ps | grep wd.sh | grep -v grep | grep -c ^)
         if [ $WD_COUNT -eq 0 ]; then
-            (sleep 30; $YI_HACK_PREFIX/script/wd_rtsp.sh >/dev/null) &
+            (sleep 30; $YI_HACK_PREFIX/script/wd.sh >/dev/null) &
         fi
     fi
 }
 
 stop_rtsp()
 {
-    killall wd_rtsp.sh
+    killall wd.sh
     killall $RTSP_DAEMON
 }
 

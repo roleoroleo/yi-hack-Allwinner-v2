@@ -8,8 +8,9 @@ MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
 
 START_STOP_SCRIPT=$YI_HACK_PREFIX/script/service.sh
 
-#LOG_FILE="/tmp/sd/wd_rtsp.log"
+#LOG_FILE="/tmp/sd/wd.log"
 LOG_FILE="/dev/null"
+LOGWIFI_FILE="/tmp/sd/hack_wififailsafe.log"
 
 COUNTER=0
 COUNTER_LIMIT=10
@@ -69,7 +70,7 @@ check_rtsp()
             fi
         fi
     else
-        echo "Camera is swtich off no rtsp restart needed" >> $LOG_FILE
+        echo "Camera is swiched off no rtsp restart needed" >> $LOG_FILE
     fi
 }
 
@@ -97,7 +98,35 @@ check_rtsp_alt()
             COUNTER=0
         fi
     else
-        echo "Camera is swtich off, rtsp restart not needed" >> $LOG_FILE
+        echo "Camera is switched off, rtsp restart not needed" >> $LOG_FILE
+    fi
+}
+
+check_rtsp_go2rtc()
+{
+    if [[ $(get_camera_config SWITCH_ON) == "yes" ]] ; then
+        #  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking RTSP process..." >> $LOG_FILE
+        LISTEN=`$YI_HACK_PREFIX/bin/netstat -an 2>&1 | grep ":$RTSP_PORT_NUMBER " | grep LISTEN | grep -c ^`
+        CPU1=`top -b -n 2 -d 1 | grep h264grabber | grep -v grep | tail -n 1 | awk '{print $8}'`
+        CPU2=`top -b -n 2 -d 1 | grep go2rtc | grep -v grep | tail -n 1 | awk '{print $8}'`
+
+        if [ $LISTEN -eq 0 ]; then
+            echo "$(date +'%Y-%m-%d %H:%M:%S') - Restarting rtsp process" >> $LOG_FILE
+            killall -q go2rtc
+            killall -q h264grabber
+            sleep 1
+            restart_rtsp
+        fi
+        if [ "$CPU1" == "" ] || [ "$CPU2" == "" ]; then
+            echo "$(date +'%Y-%m-%d %H:%M:%S') - No running processes, restarting..." >> $LOG_FILE
+            killall -q go2rtc
+            killall -q h264grabber
+            sleep 1
+            restart_rtsp
+            COUNTER=0
+        fi
+    else
+        echo "Camera is switched off, rtsp restart not needed" >> $LOG_FILE
     fi
 }
 
@@ -123,6 +152,29 @@ check_mqtt()
     fi
 }
 
+check_wifi()
+{
+    if ! wpa_cli -i wlan0 status 2>&1 | grep -q "wpa_state=COMPLETED"; then
+        if [ -e "$LOGFILE" ]; then
+            $YI_HACK_PREFIX/usr/bin/tail -n 145 "$LOGFILE" > "$LOGFILE.tmp" && mv "$LOGFILE.tmp" "$LOGFILE"
+        fi
+        echo -e "$(date): Wifi connection lost:\n$(wpa_cli -i wlan0 status 2>&1)" >> "$LOGFILE"
+        failsafecounter=$((failsafecounter + 1))
+        if [ "$failsafecounter" -ge 6 ]; then
+            echo -e "$(date): Wifi connection still could't be restored. Restarting." >> "$LOGFILE"
+            reboot
+        else
+            echo -e "$(date): Attempting reconnect." >> "$LOGFILE"
+            sleep 2
+            ifconfig wlan0 down
+            sleep 1
+            ifconfig wlan0 up
+            sleep 1
+            wpa_cli -i wlan0 reconfigure
+        fi
+    fi
+}
+
 if [[ $(get_config RTSP) == "no" ]] ; then
     exit
 fi
@@ -144,11 +196,14 @@ while true
 do
     if [[ "$RTSP_ALT" == "standard" ]] ; then
         check_rtsp
-    else
+    elif [[ "$RTSP_ALT" == "alternative" ]] ; then
         check_rtsp_alt
+    else
+        check_rtsp_go2rtc
     fi
     check_rmm
     check_mqtt
+    check_wifi
 
     echo 1500 > /sys/class/net/eth0/mtu
     echo 1500 > /sys/class/net/wlan0/mtu

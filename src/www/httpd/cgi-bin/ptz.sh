@@ -36,7 +36,7 @@ do
     elif [ "$CONF" == "y" ] ; then
         Y="$VAL"
     elif [ "$CONF" == "dir" ] ; then
-        DIR="-m $VAL"
+        DIR="$VAL"
     elif [ "$CONF" == "time" ] ; then
         TIME="$VAL"
     fi
@@ -73,9 +73,27 @@ fi
 
 if [ "$ACTION" == "step" ]; then
     if [ "$DIR" != "none" ]; then
-        ipc_cmd $DIR
-        sleep $TIME
-        ipc_cmd -m stop
+        case "$DIR" in
+            *_*)
+                DIR1=$(echo $DIR | cut -d_ -f1)
+                DIR2=$(echo $DIR | cut -d_ -f2)
+                if [ ! -z $DIR1 ]; then
+                    ipc_cmd -m $DIR1
+                    sleep $TIME
+                    ipc_cmd -m stop
+                fi
+                if [ ! -z $DIR2 ]; then
+                    ipc_cmd -m $DIR2
+                    sleep $TIME
+                    ipc_cmd -m stop
+                fi
+                ;;
+            *)
+                ipc_cmd -m $DIR
+                sleep $TIME
+                ipc_cmd -m stop
+                ;;
+        esac
     fi
 elif [ "$ACTION" == "abs" ]; then
     ipc_cmd -j $X,$Y
@@ -83,7 +101,7 @@ elif [ "$ACTION" == "rel" ]; then
     ipc_cmd -J $X,$Y
 elif [ "$ACTION" == "cont" ]; then
     if [ "$DIR" != "none" ]; then
-        ipc_cmd $DIR
+        ipc_cmd -m $DIR
     fi
 else
     printf "Content-type: application/json\r\n\r\n"

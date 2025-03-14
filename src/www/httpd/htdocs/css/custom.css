@@ -409,3 +409,14 @@ button.icon {
 .ptz {
 	display: none;
 }
+
+/* ptz icons */
+#img-al, #img-ul {
+    rotate: -90deg;
+}
+#img-ar, #img-dr {
+    rotate: 90deg;
+}
+#img-ad, #img-dl {
+    rotate: 180deg;
+}

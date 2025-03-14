@@ -21,8 +21,23 @@ APP.ptz = (function($) {
         $(document).on("click", '#img-ad', function(e) {
             move('#img-ad', 'down');
         });
+        $(document).on("click", '#img-ul', function(e) {
+            move('#img-au', 'up_left');
+        });
+        $(document).on("click", '#img-ur', function(e) {
+            move('#img-al', 'up_right');
+        });
+        $(document).on("click", '#img-dl', function(e) {
+            move('#img-ar', 'down_left');
+        });
+        $(document).on("click", '#img-dr', function(e) {
+            move('#img-ad', 'down_right');
+        });
+        $(document).on("click", '#img-home', function(e) {
+            gotoCenter('#button-goto');
+        });
         $(document).on("click", '#button-goto', function(e) {
-            gotoPreset('#button-goto', '#select-goto');
+            gotoPreset('#img-ad', '#select-goto');
         });
         $(document).on("click", '#button-add', function(e) {
             addPreset('#button-add');
@@ -40,6 +55,22 @@ APP.ptz = (function($) {
         $.ajax({
             type: "GET",
             url: 'cgi-bin/ptz.sh?dir=' + dir,
+            dataType: "json",
+            error: function(response) {
+                console.log('error', response);
+                $(button).attr("disabled", false);
+            },
+            success: function(data) {
+                $(button).attr("disabled", false);
+            }
+        });
+    }
+
+    function gotoCenter(button, select) {
+        $(button).attr("disabled", true);
+        $.ajax({
+            type: "GET",
+            url: 'cgi-bin/preset.sh?action=go_preset&num=0',
             dataType: "json",
             error: function(response) {
                 console.log('error', response);

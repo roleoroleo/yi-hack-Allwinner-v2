@@ -52,6 +52,9 @@ init_config()
             RTSP_DAEMON="rtsp_server_yi"
         elif [[ $(get_config RTSP_ALT) == "go2rtc" ]] ; then
             RTSP_DAEMON="go2rtc"
+            if [ ! -f /tmp/sd/yi-hack/bin/go2rtc ]; then
+                RTSP_DAEMON="rRTSPServer"
+            fi
         else
             RTSP_DAEMON="rRTSPServer"
         fi
@@ -347,7 +350,6 @@ start_onvif()
     echo "input_file=/tmp/onvif_notify_server/sound_detection" >> $ONVIF_SRVD_CONF
 
     chmod 0600 $ONVIF_SRVD_CONF
-    onvif_simple_server --conf_file $ONVIF_SRVD_CONF
     ipc2file
     mkdir -p /tmp/onvif_notify_server
     onvif_notify_server --conf_file $ONVIF_SRVD_CONF

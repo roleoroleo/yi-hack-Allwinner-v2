@@ -23,7 +23,7 @@ cd $SCRIPT_DIR
 
 cd proccgi
 
-make
+make -j $(nproc) || exit 1
 
 mkdir -p ../_install/bin
 

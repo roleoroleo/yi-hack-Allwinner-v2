@@ -8,7 +8,7 @@ cd $SCRIPT_DIR
 cd mqttv4
 
 make clean
-make
+make -j $(nproc) || exit 1
 
 mkdir -p ../_install/bin
 mkdir -p ../_install/etc

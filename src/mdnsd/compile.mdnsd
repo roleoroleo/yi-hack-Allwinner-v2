@@ -7,7 +7,7 @@ source config.mdnsd
 
 cd "${BUILD_FOLDER}"
 
-make || exit 1
+make -j $(nproc) || exit 1
 make install || exit 1
 
 arm-openwrt-linux-strip ../_install/sbin/* || exit 1

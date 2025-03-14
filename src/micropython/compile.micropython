@@ -27,7 +27,7 @@ export VARIANT="standard"
 export BUILD="build"
 
 make clean || exit 1
-make || exit 1
+make -j $(nproc) || exit 1
 
 # Copy micropython binary to install dir
 mkdir -p "${SCRIPT_DIR}/_install/bin" || exit 1

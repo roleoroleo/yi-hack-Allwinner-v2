@@ -22,7 +22,7 @@ cd $SCRIPT_DIR
 cd mqtt-config
 
 make clean
-make
+make -j $(nproc) || exit 1
 
 mkdir -p ../_install/bin
 

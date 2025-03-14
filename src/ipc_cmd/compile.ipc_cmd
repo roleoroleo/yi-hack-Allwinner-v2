@@ -22,7 +22,7 @@ cd $SCRIPT_DIR
 cd ipc_cmd || exit 1
 
 make clean
-make || exit 1
+make -j $(nproc) || exit 1
 
 mkdir -p ../_install/bin || exit 1
 mkdir -p ../_install/lib || exit 1

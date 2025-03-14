@@ -22,7 +22,7 @@ cd $SCRIPT_DIR
 cd snapshot || exit 1
 
 make clean
-make || exit 1
+make -j $(nproc) || exit 1
 
 mkdir -p ../_install/bin || exit 1
 mkdir -p ../_install/etc/wm_res || exit 1

@@ -22,7 +22,7 @@ cd $SCRIPT_DIR
 cd set_tz_offset || exit 1
 
 make clean
-make || exit 1
+make -j $(nproc) || exit 1
 
 mkdir -p ../_install/bin || exit 1
 

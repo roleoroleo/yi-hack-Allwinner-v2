@@ -31,18 +31,18 @@ if [ "$HAVE_WOLFSSL" == "1" ]; then
         --disable-sha512 --disable-chacha --disable-pwdbased \
         --disable-hkdf --disable-poly1305 --disable-rsa --disable-rsapss --disable-dh \
         --disable-tls13 --disable-pkcs8 --disable-crypttests --disable-crypttests-libs
-    CFLAGS="-ffunction-sections -fdata-sections" LDFLAGS="-Wl,--gc-sections" make
+    CFLAGS="-ffunction-sections -fdata-sections" LDFLAGS="-Wl,--gc-sections" make -j $(nproc)
     cd ..
 else
     if [ "$HAVE_MBEDTLS" == "1" ]; then
         cd mbedtls
         make clean
-        CFLAGS="-ffunction-sections -fdata-sections" LDFLAGS="-Wl,--gc-sections" make no_test
+        CFLAGS="-ffunction-sections -fdata-sections" LDFLAGS="-Wl,--gc-sections" make -j $(nproc) no_test
         cd ..
     else
         cd libtomcrypt
         make clean
-        CFLAGS="-DLTC_NOTHING -DLTC_SHA1 -DLTC_BASE64 -ffunction-sections -fdata-sections" LDFLAGS="-Wl,--gc-sections" make
+        CFLAGS="-DLTC_NOTHING -DLTC_SHA1 -DLTC_BASE64 -ffunction-sections -fdata-sections" LDFLAGS="-Wl,--gc-sections" make -j $(nproc)
         cd ..
     fi
 fi
@@ -51,7 +51,7 @@ if [ "$USE_ZLIB" == "1" ]; then
     cd zlib
     export CHOST=--host=arm-openwrt-linux
     ./configure
-    make
+    make -j $(nproc)
     export CHOST=
     cd ..
 fi
@@ -62,7 +62,7 @@ if [ -f Makefile.static ]; then
     mv Makefile.static Makefile
 fi
 make clean
-make || exit 1
+make -j $(nproc) || exit 1
 
 mkdir -p ../_install/www/onvif || exit 1
 mkdir -p ../_install/bin || exit 1

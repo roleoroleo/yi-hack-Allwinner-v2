@@ -9,4 +9,3 @@ rm -rf ./_install
 rm -rf ./_include
 rm -rf "${PACKAGE}"
 rm -f "${ARCHIVE}"
-

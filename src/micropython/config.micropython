@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="1.20.0"
+VERSION="1.24.1"
 PACKAGE="micropython-${VERSION}"
 ARCHIVE="${PACKAGE}.tar.xz"
 PORT="ports/unix"

@@ -7,10 +7,7 @@ HV=${HOMEVER:0:2}
 
 . $YI_HACK_PREFIX/www/cgi-bin/validate.sh
 
-MOTION_DETECTION="no"
-AI_HUMAN_DETECTION="no"
-AI_VEHICLE_DETECTION="no"
-AI_ANIMAL_DETECTION="no"
+source $YI_HACK_PREFIX/etc/camera.conf
 
 if ! $(validateQueryString $QUERY_STRING); then
     printf "Content-type: application/json\r\n\r\n"

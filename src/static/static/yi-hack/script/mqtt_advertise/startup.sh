@@ -37,7 +37,7 @@ if [ "$MQTT_ADV_LINK_ENABLE" == "yes" ]; then
         $YI_HACK_PREFIX/script/mqtt_advertise/mqtt_adv_links.sh &
     fi
     if [ "$MQTT_ADV_LINK_CRON" == "yes" ]; then
-        echo "$MQTT_ADV_LINK_CRONTAB  $YI_HACK_PREFIX/script/mqtt_advertise/mqtt_adv_link.sh" >>/var/spool/cron/crontabs/root
+        echo "$MQTT_ADV_LINK_CRONTAB  $YI_HACK_PREFIX/script/mqtt_advertise/mqtt_adv_links.sh" >>/var/spool/cron/crontabs/root
     fi
 fi
 if [ "$MQTT_ADV_INFO_GLOBAL_ENABLE" == "yes" ]; then

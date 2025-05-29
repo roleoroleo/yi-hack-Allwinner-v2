@@ -376,6 +376,12 @@ if [[ $(get_config SSHD) == "yes" ]] ; then
     echo -e "type _ssh._tcp\nport 22\n" > /tmp/mdns.d/ssh.service
 fi
 if [[ $(get_config MDNSD) == "yes" ]] ; then
+    MAC_ADDR=$(ifconfig eth0 | awk '/HWaddr/{print substr($5,1)}')
+    if [ -z $MAC_ADDR ]; then
+        MAC_ADDR=$(ifconfig wlan0 | awk '/HWaddr/{print substr($5,1)}')
+    fi
+    mkdir -p /tmp/mdns.d
+    echo -e "type _yi-hack._tcp\nport $HTTPD_PORT\ntxt mac=$MAC_ADDR\n" > /tmp/mdns.d/yi-hack.service
     /tmp/sd/yi-hack/sbin/mdnsd /tmp/mdns.d
 fi
 

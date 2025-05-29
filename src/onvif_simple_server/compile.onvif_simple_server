@@ -56,6 +56,16 @@ if [ "$USE_ZLIB" == "1" ]; then
     cd ..
 fi
 
+cd cjson/build
+cmake .. \
+    -DCMAKE_TOOLCHAIN_FILE="$SCRIPT_DIR/arm-openwrt-linux-toolchain.cmake" \
+    -DBUILD_SHARED_AND_STATIC_LIBS=On \
+    -DENABLE_CJSON_TEST=Off \
+    -DCMAKE_INSTALL_PREFIX=$SCRIPT_DIR/_install \
+    -DENABLE_TARGET_EXPORT=Off
+make -j$(nproc)
+cd ../..
+
 cd onvif_simple_server || exit 1
 
 if [ -f Makefile.static ]; then

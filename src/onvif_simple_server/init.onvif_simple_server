@@ -50,6 +50,18 @@ if [ ! -L zlib ]; then
     cd ../..
 fi
 
+if [ ! -f v1.7.18.tar.gz ]; then
+    wget https://github.com/DaveGamble/cJSON/archive/refs/tags/v1.7.18.tar.gz
+fi
+tar zxvf ./v1.7.18.tar.gz
+if [ ! -L cjson ]; then
+    ln -s cJSON-1.7.18 cjson
+    mkdir -p cjson/build
+    cd onvif_simple_server/extras
+    ln -s ../../cJSON-1.7.18 cjson
+    cd ../..
+fi
+
 cd onvif_simple_server
 
 git reset --hard

@@ -1,13 +1,15 @@
 diff -Naur onvif_simple_server.ori/onvif_notify_server.c onvif_simple_server/onvif_notify_server.c
---- onvif_simple_server.ori/onvif_notify_server.c	2023-12-09 22:58:35.403631631 +0100
-+++ onvif_simple_server/onvif_notify_server.c	2023-12-09 22:59:34.011730308 +0100
-@@ -39,10 +39,10 @@
+--- onvif_simple_server.ori/onvif_notify_server.c	2025-05-20 16:04:41.566106647 +0200
++++ onvif_simple_server/onvif_notify_server.c	2025-05-19 21:58:06.946512597 +0200
+@@ -39,11 +39,11 @@
  #include "log.h"
  #include "onvif_simple_server.h"
  
 -#define DEFAULT_CONF_FILE "/etc/onvif_simple_server.conf"
+-#define DEFAULT_JSON_CONF_FILE "/etc/onvif_simple_server.json"
 -#define DEFAULT_LOG_FILE "/var/log/onvif_notify_server.log"
 +#define DEFAULT_CONF_FILE "/tmp/onvif_simple_server.conf"
++#define DEFAULT_JSON_CONF_FILE "/tmp/onvif_simple_server.json"
 +#define DEFAULT_LOG_FILE "/tmp/onvif_notify_server.log"
  #define DEFAULT_PID_FILE "/var/run/onvif_notify_server.pid"
 -#define TEMPLATE_DIR "/etc/onvif_notify_server"
@@ -16,22 +18,24 @@ diff -Naur onvif_simple_server.ori/onvif_notify_server.c onvif_simple_server/onv
  
  #define ALARM_OFF 0
 diff -Naur onvif_simple_server.ori/onvif_simple_server.c onvif_simple_server/onvif_simple_server.c
---- onvif_simple_server.ori/onvif_simple_server.c	2023-12-09 22:57:18.935503114 +0100
-+++ onvif_simple_server/onvif_simple_server.c	2023-12-09 23:00:26.871819429 +0100
-@@ -38,8 +38,8 @@
+--- onvif_simple_server.ori/onvif_simple_server.c	2025-05-20 16:05:41.953491940 +0200
++++ onvif_simple_server/onvif_simple_server.c	2025-05-19 22:11:39.609081482 +0200
+@@ -38,9 +38,9 @@
  #include "utils.h"
  #include "log.h"
  
 -#define DEFAULT_CONF_FILE "/etc/onvif_simple_server.conf"
+-#define DEFAULT_JSON_CONF_FILE "/etc/onvif_simple_server.json"
 -#define DEFAULT_LOG_FILE "/var/log/onvif_simple_server.log"
 +#define DEFAULT_CONF_FILE "/tmp/onvif_simple_server.conf"
++#define DEFAULT_JSON_CONF_FILE "/tmp/onvif_simple_server.json"
 +#define DEFAULT_LOG_FILE "/tmp/onvif_simple_server.log"
  #define DEBUG_FILE "/tmp/onvif_simple_server.debug"
  
  #define ROTATION_LOG_LENGTH 3
 diff -Naur onvif_simple_server.ori/wsd_simple_server.c onvif_simple_server/wsd_simple_server.c
---- onvif_simple_server.ori/wsd_simple_server.c	2023-12-09 22:57:18.935503114 +0100
-+++ onvif_simple_server/wsd_simple_server.c	2023-12-09 23:01:06.899886974 +0100
+--- onvif_simple_server.ori/wsd_simple_server.c	2025-05-20 16:06:31.857058818 +0200
++++ onvif_simple_server/wsd_simple_server.c	2025-05-19 20:17:54.965288550 +0200
 @@ -38,8 +38,8 @@
  #define PORT 3702
  #define TYPE "NetworkVideoTransmitter"

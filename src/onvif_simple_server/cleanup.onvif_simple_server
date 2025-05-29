@@ -13,13 +13,15 @@ rm -rf libtomcrypt*
 rm -f crypt*.tar.xz
 rm -rf mbedtls-3.4.0
 rm -rf mbedtls
-rm -rf wolfssl-5.7.4*
-rm -rf wolfssl
-rm -rf zlib-1.3.1*
-rm -rf zlib
 rm -f v3.4.0.tar.gz
-v5.7.4-stable.tar.gz
+rm -rf wolfssl*
+rm -f v5.7.4-stable.tar.gz
+rm -rf zlib*
+rm -rf cJSON*
+rm -rf cjson*
+rm -f v1.7.18.tar.gz
 rm -f onvif_simple_server/extras/libtomcrypt
 rm -f onvif_simple_server/extras/mbedtls
 rm -f onvif_simple_server/extras/wolfssl
 rm -f onvif_simple_server/extras/zlib
+rm -f onvif_simple_server/extras/cjson

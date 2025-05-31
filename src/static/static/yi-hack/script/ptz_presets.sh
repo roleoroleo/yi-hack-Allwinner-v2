@@ -3,7 +3,7 @@
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 PTZ_CONF_FILE=$YI_HACK_PREFIX/etc/ptz_presets.conf
 
-add_del_preset() {
+edit_preset() {
     FIRST_AVAIL=8
     PRESET_0=""
     PRESET_1=""
@@ -55,7 +55,15 @@ add_del_preset() {
         done
     fi
 
-    if [ "$1" == "add" ] || [ "$1" == "del" ]; then
+    if [ "$1" == "edit" ]; then
+        for I in 0 1 2 3 4 5 6 7; do
+            if [ "$2" == "$I" ]; then
+                eval PRESET_$I=$3,$4,$5
+            fi
+        done
+    fi
+
+    if [ "$1" == "add" ] || [ "$1" == "del" ] || [ "$1" == "edit" ]; then
         echo 0=$PRESET_0 > $PTZ_CONF_FILE
         echo 1=$PRESET_1 >> $PTZ_CONF_FILE
         echo 2=$PRESET_2 >> $PTZ_CONF_FILE
@@ -120,7 +128,12 @@ elif [ $ACTION == "add_preset" ]; then
         exit
     fi
 
-    add_del_preset add $NAME $POSX $POSY
+    if [ $NUM == "-1" ]; then
+        edit_preset add $NAME $POSX $POSY
+    else
+        edit_preset edit $NUM $NAME $POSX $POSY
+    fi
+
     RES=$?
     if [ $RES -eq 1 ]; then
         echo "Preset already exists"
@@ -133,12 +146,12 @@ elif [ $ACTION == "add_preset" ]; then
     ipc_cmd -P $NAME
 elif [ $ACTION == "del_preset" ]; then
     # del preset
-    add_del_preset del $NUM
+    edit_preset del $NUM
     ipc_cmd -R $NUM
 elif [ $ACTION == "set_home_position" ]; then
     # set home position
-    add_del_preset del 0
-    add_del_preset add "Home"
+    edit_preset del 0
+    edit_preset add "Home"
     ipc_cmd -H
 else
     echo "Invalid action received"

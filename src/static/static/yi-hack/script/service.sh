@@ -301,7 +301,7 @@ start_onvif()
         echo "move_stop=/tmp/sd/yi-hack/bin/ipc_cmd -m stop" >> $ONVIF_SRVD_CONF
         echo "move_preset=/tmp/sd/yi-hack/bin/ipc_cmd -p %d" >> $ONVIF_SRVD_CONF
         echo "goto_home_position=/tmp/sd/yi-hack/bin/ipc_cmd -p 0" >> $ONVIF_SRVD_CONF
-        echo "set_preset=/tmp/sd/yi-hack/script/ptz_presets.sh -a add_preset -m %s" >> $ONVIF_SRVD_CONF
+        echo "set_preset=/tmp/sd/yi-hack/script/ptz_presets.sh -a add_preset -n %d -m %s" >> $ONVIF_SRVD_CONF
         echo "set_home_position=/tmp/sd/yi-hack/script/ptz_presets.sh -a set_home_position" >> $ONVIF_SRVD_CONF
         echo "remove_preset=/tmp/sd/yi-hack/script/ptz_presets.sh -a del_preset -n %d" >> $ONVIF_SRVD_CONF
         echo "jump_to_abs=/tmp/sd/yi-hack/bin/ipc_cmd -j %f,%f" >> $ONVIF_SRVD_CONF

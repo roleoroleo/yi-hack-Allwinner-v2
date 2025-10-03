@@ -10,6 +10,6 @@ wolfssl
 wolfssl*/
 zlib
 zlib*/
-cjson
-cJSON*/
+json-c
+json-c*/
 onvif_simple_server/onvif_simple_server

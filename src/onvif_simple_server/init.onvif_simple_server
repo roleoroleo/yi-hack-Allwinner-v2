@@ -50,15 +50,15 @@ if [ ! -L zlib ]; then
     cd ../..
 fi
 
-if [ ! -f v1.7.18.tar.gz ]; then
-    wget https://github.com/DaveGamble/cJSON/archive/refs/tags/v1.7.18.tar.gz
+if [ ! -f json-c-0.18.tar.gz ]; then
+    wget https://s3.amazonaws.com/json-c_releases/releases/json-c-0.18.tar.gz
 fi
-tar zxvf ./v1.7.18.tar.gz
-if [ ! -L cjson ]; then
-    ln -s cJSON-1.7.18 cjson
-    mkdir -p cjson/build
+tar zxvf ./json-c-0.18.tar.gz
+if [ ! -L json-c ]; then
+    ln -s json-c-0.18 json-c
+    mkdir -p json-c/build
     cd onvif_simple_server/extras
-    ln -s ../../cJSON-1.7.18 cjson
+    ln -s ../../json-c-0.18 json-c
     cd ../..
 fi
 

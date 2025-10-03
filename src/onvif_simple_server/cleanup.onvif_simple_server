@@ -17,11 +17,10 @@ rm -f v3.4.0.tar.gz
 rm -rf wolfssl*
 rm -f v5.7.4-stable.tar.gz
 rm -rf zlib*
-rm -rf cJSON*
-rm -rf cjson*
+rm -rf json-c*
 rm -f v1.7.18.tar.gz
 rm -f onvif_simple_server/extras/libtomcrypt
 rm -f onvif_simple_server/extras/mbedtls
 rm -f onvif_simple_server/extras/wolfssl
 rm -f onvif_simple_server/extras/zlib
-rm -f onvif_simple_server/extras/cjson
+rm -f onvif_simple_server/extras/json-c

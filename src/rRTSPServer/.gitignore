@@ -4,3 +4,5 @@ live/
 live.*.tar.gz
 fdk-aac/
 v*.tar.gz
+libhelix-aac/
+2.0.0.tar.gz

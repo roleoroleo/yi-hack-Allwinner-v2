@@ -1,0 +1,24 @@
+OBJECTS = aacdec.o aactabs.o bitstream.o buffers.o dct4.o decelmnt.o dequant.o fft.o filefmt.o huffman.o hufftabs.o imdct.o noiseless.o pns.o sbr.o sbrfft.o sbrfreq.o sbrhfadj.o sbrhfgen.o sbrhuff.o sbrimdct.o sbrmath.o sbrqmf.o sbrside.o sbrtabs.o stproc.o tns.o trigtabs.o
+OBJECTS_S = sbrcov.o
+
+all: libhelix-aac.so libhelix-aac.a
+
+sbrcov.o: sbrcov.S
+	$(AS) -c $< -o $@
+
+%.o: %.c $(HEADERS)
+	$(CC) -c $< -fPIC -DUSE_DEFAULT_STDLIB -DXXXX__arm__ -Os -o $@
+
+libhelix-aac.so: $(OBJECTS) $(OBJECTS_S)
+	$(CC) $(OBJECTS) $(OBJECTS_S) $(LIBS) -fPIC -shared -Os -o $@
+	$(STRIP) $@
+
+libhelix-aac.a: $(OBJECTS) $(OBJECTS_S)
+	$(AR) rcs $@ $(OBJECTS) $(OBJECTS_S)
+
+.PHONY: clean
+
+clean:
+	rm -f libhelix-aac.so
+	rm -f $(OBJECTS)
+	rm -f $(OBJECTS_S)

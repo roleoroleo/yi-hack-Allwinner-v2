@@ -19,13 +19,15 @@ export AR=${CROSSPREFIX}ar
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
-cd fdk-aac || exit 1
-#make clean
+cd libhelix-aac || exit 1
+make clean
 make -j $(nproc) || exit 1
-make install
 mkdir ../live/lib/
-cp -f ./_install/lib/libfdk-aac.a ../live/lib/
-cp -rf ./_install/include/* ../live/include/
+cp -f ./libhelix-aac.a ../live/lib/
+mkdir ../live/include/libhelix-aac
+cp -f ./aaccommon.h ../live/include/libhelix-aac
+cp -f ./aacdec.h ../live/include/libhelix-aac
+cp -f ./statname.h ../live/include/libhelix-aac
 cd ..
 
 cd live || exit 1

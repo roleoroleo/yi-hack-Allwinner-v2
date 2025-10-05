@@ -1,0 +1,20 @@
+diff -Naur libhelix-aac.ori/aaccommon.h libhelix-aac/aaccommon.h
+--- libhelix-aac.ori/aaccommon.h
++++ libhelix-aac/aaccommon.h
+@@ -46,8 +46,14 @@
+ #ifndef _AACCOMMON_H
+ #define _AACCOMMON_H
+ 
+-#include <Arduino.h>
+-#include <pgmspace.h>
++#ifdef ARDUINO
++  #include <Arduino.h>
++  #include <pgmspace.h>
++#else
++    #define PROGMEM
++    #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
++    #define pgm_read_word(addr) (*(const unsigned short *)(addr))
++#endif
+ 
+ // Can't fit in ESP8266 RAM
+ #ifndef ESP8266

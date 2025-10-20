@@ -40,6 +40,9 @@
 #include <semaphore.h>
 #endif
 
+#define FRAME_OFFSET_AUTODETECT 0
+#define FRAME_OFFSET_TRY_1 300
+#define FRAME_OFFSET_TRY_2 368
 #define FRAME_HEADER_SIZE_AUTODETECT 0
 
 #define BUF_OFFSET_Y20GA 300
@@ -72,15 +75,20 @@
 #define BUF_OFFSET_H30GA 368
 #define FRAME_HEADER_SIZE_H30GA 28
 
-#define BUF_OFFSET_R30GB 300
+//#define BUF_OFFSET_R30GB 300
+#define BUF_OFFSET_R30GB 0
 //#define FRAME_HEADER_SIZE_R30GB 22
 #define FRAME_HEADER_SIZE_R30GB 0
 
-#define BUF_OFFSET_R35GB 300
-#define FRAME_HEADER_SIZE_R35GB 26
+//#define BUF_OFFSET_R35GB 300
+#define BUF_OFFSET_R35GB 0
+//#define FRAME_HEADER_SIZE_R35GB 26
+#define FRAME_HEADER_SIZE_R35GB 0
 
-#define BUF_OFFSET_R37GB 368
-#define FRAME_HEADER_SIZE_R37GB 28
+//#define BUF_OFFSET_R37GB 368
+#define BUF_OFFSET_R37GB 0
+//#define FRAME_HEADER_SIZE_R37GB 28
+#define FRAME_HEADER_SIZE_R37GB 0
 
 #define BUF_OFFSET_R40GA 300
 #define FRAME_HEADER_SIZE_R40GA 26
@@ -898,6 +906,16 @@ int main(int argc, char **argv) {
 #ifdef USE_SEMAPHORE
     sem_write_lock();
 #endif
+
+    // Autodetect offset if not defined
+    if (buf_offset == FRAME_OFFSET_AUTODETECT) {
+        memcpy(&i, addr + FRAME_OFFSET_TRY_1, sizeof(i));
+        if (i != 0)
+            buf_offset = FRAME_OFFSET_TRY_1;
+        else
+            buf_offset = FRAME_OFFSET_TRY_2;
+    }
+
     memcpy(&i, addr + 16, sizeof(i));
     buf_idx = addr + buf_offset + i;
     buf_idx_cur = buf_idx;

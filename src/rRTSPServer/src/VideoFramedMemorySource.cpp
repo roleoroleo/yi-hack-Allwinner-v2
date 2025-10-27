@@ -134,12 +134,14 @@ void VideoFramedMemorySource::doGetNextFrame() {
 
     // Frame found, send it
     unsigned char *ptr;
+    unsigned char nal;
     int size = fQBuffer->frame_queue.front().frame.size();
     uint32_t frame_time = fQBuffer->frame_queue.front().time;
     ptr = fQBuffer->frame_queue.front().frame.data();
     // Remove nalu header before sending the frame to FramedSource
     ptr += 4 * sizeof(unsigned char);
     size -= 4 * sizeof(unsigned char);
+    nal = ptr[0];
 
     if ((unsigned) size <= fFrameSize) {
         // The size of the frame is smaller than the available buffer
@@ -173,10 +175,10 @@ void VideoFramedMemorySource::doGetNextFrame() {
     // If it's a VPS/SPS/PPS set duration = 0
     u_int8_t nal_unit_type;
     if (fHNumber == 264) {
-        nal_unit_type = ptr[0]&0x1F;
+        nal_unit_type = nal&0x1F;
         if ((nal_unit_type == 7) || (nal_unit_type == 8)) fDurationInMicroseconds = 0;
     } else if (fHNumber == 265) {
-        nal_unit_type = (ptr[0]&0x7E)>>1;
+        nal_unit_type = (nal&0x7E)>>1;
         if ((nal_unit_type == 32) || (nal_unit_type == 33) || (nal_unit_type == 34)) fDurationInMicroseconds = 0;
     }
 

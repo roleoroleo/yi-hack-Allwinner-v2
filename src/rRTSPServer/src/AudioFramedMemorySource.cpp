@@ -77,6 +77,7 @@ AudioFramedMemorySource::AudioFramedMemorySource(UsageEnvironment& env,
     if (channelConfiguration == 8) channelConfiguration--;
 
     fuSecsPerFrame = (1024/*samples-per-frame*/*1000000) / samplingFrequency/*samples-per-second*/;
+    if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - fuSecsPerFrame %u\n", current_timestamp(), fuSecsPerFrame);
 
     // Construct the 'AudioSpecificConfig', and from it, the corresponding ASCII string:
     unsigned char audioSpecificConfig[2];
@@ -114,11 +115,18 @@ void AudioFramedMemorySource::doGetNextFrameEx() {
 }
 
 void AudioFramedMemorySource::doGetNextFrame() {
+    Boolean frameFound = false;
     Boolean isFirstReading = !fHaveStartedReading;
     if (!fHaveStartedReading) {
         if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() 1st start\n", current_timestamp());
         pthread_mutex_lock(&(fQBuffer->mutex));
-        while (fQBuffer->frame_queue.size() > 1) fQBuffer->frame_queue.pop();
+        // Yes, I know that I should not block the event loop
+        while (fQBuffer->frame_queue.size() < 5) {
+            pthread_mutex_unlock(&(fQBuffer->mutex));
+            usleep(1000);
+            pthread_mutex_lock(&(fQBuffer->mutex));
+        }
+        while (fQBuffer->frame_queue.size() > 5) fQBuffer->frame_queue.pop();
         pthread_mutex_unlock(&(fQBuffer->mutex));
         fHaveStartedReading = True;
     }
@@ -127,52 +135,23 @@ void AudioFramedMemorySource::doGetNextFrame() {
 
     if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() start - fMaxSize %d\n", current_timestamp(), fMaxSize);
 
-    pthread_mutex_lock(&(fQBuffer->mutex));
-    if (fQBuffer->frame_queue.size() == 0) {
-        pthread_mutex_unlock(&(fQBuffer->mutex));
-        if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() read_index = write_index\n", current_timestamp());
-        fFrameSize = 0;
-        fNumTruncatedBytes = 0;
-        // Trick to avoid segfault with StreamReplicator
-        if (isFirstReading) {
-            nextTask() = envir().taskScheduler().scheduleDelayedTask(0,
-                    (TaskFunc*)FramedSource::afterGetting, this);
+    while (!frameFound) {
+        pthread_mutex_lock(&(fQBuffer->mutex));
+        if (fQBuffer->frame_queue.size() == 0) {
+            pthread_mutex_unlock(&(fQBuffer->mutex));
+            if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() read_index = write_index\n", current_timestamp());
+        } else if (fQBuffer->frame_queue.front().frame.size() == 0) {
+            pthread_mutex_unlock(&(fQBuffer->mutex));
+            fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() error - NULL ptr\n", current_timestamp());
+        } else if (check_sync_word(fQBuffer->frame_queue.front().frame.data()) != 1) {
+            if (fQBuffer->frame_queue.size() > 0) {
+                fQBuffer->frame_queue.pop();
+            }
+            pthread_mutex_unlock(&(fQBuffer->mutex));
+            fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() error - wrong frame header\n", current_timestamp());
         } else {
-            nextTask() = envir().taskScheduler().scheduleDelayedTask(fuSecsPerFrame/4,
-                    (TaskFunc*) AudioFramedMemorySource::doGetNextFrameTask, this);
+            frameFound = true;
         }
-        return;
-    } else if (fQBuffer->frame_queue.front().frame.size() == 0) {
-        pthread_mutex_unlock(&(fQBuffer->mutex));
-        fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() error - NULL ptr\n", current_timestamp());
-        fFrameSize = 0;
-        fNumTruncatedBytes = 0;
-        // Trick to avoid segfault with StreamReplicator
-        if (isFirstReading) {
-            nextTask() = envir().taskScheduler().scheduleDelayedTask(0,
-                    (TaskFunc*)FramedSource::afterGetting, this);
-        } else {
-            nextTask() = envir().taskScheduler().scheduleDelayedTask(fuSecsPerFrame/4,
-                    (TaskFunc*) AudioFramedMemorySource::doGetNextFrameTask, this);
-        }
-        return;
-    } else if (check_sync_word(fQBuffer->frame_queue.front().frame.data()) != 1) {
-        pthread_mutex_unlock(&(fQBuffer->mutex));
-        while (fQBuffer->frame_queue.size() > 0) {
-            fQBuffer->frame_queue.pop();
-        }
-        fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() error - wrong frame header\n", current_timestamp());
-        fFrameSize = 0;
-        fNumTruncatedBytes = 0;
-        // Trick to avoid segfault with StreamReplicator
-        if (isFirstReading) {
-            nextTask() = envir().taskScheduler().scheduleDelayedTask(0,
-                    (TaskFunc*)FramedSource::afterGetting, this);
-        } else {
-            nextTask() = envir().taskScheduler().scheduleDelayedTask(fuSecsPerFrame/4,
-                    (TaskFunc*) AudioFramedMemorySource::doGetNextFrameTask, this);
-        }
-        return;
     }
 
     if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() size of queue is %d\n", current_timestamp(), fQBuffer->frame_queue.size());

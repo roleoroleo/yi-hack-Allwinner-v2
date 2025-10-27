@@ -53,6 +53,8 @@ VideoFramedMemorySource::VideoFramedMemorySource(UsageEnvironment& env,
     : FramedSource(env), fHNumber(hNumber), fQBuffer(qBuffer),
       fCurIndex(0), fUseTimeForPres(useTimeForPres), fPlayTimePerFrame(playTimePerFrame), fLastPlayTime(0),
       fLimitNumBytesToStream(False), fNumBytesToStream(0), fHaveStartedReading(False) {
+
+    if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - fPlayTimePerFrame %u\n", current_timestamp(), fPlayTimePerFrame);
 }
 
 VideoFramedMemorySource::~VideoFramedMemorySource() {}
@@ -77,10 +79,18 @@ void VideoFramedMemorySource::doGetNextFrameEx() {
 }
 
 void VideoFramedMemorySource::doGetNextFrame() {
+    Boolean frameFound = false;
+
     if (!fHaveStartedReading) {
         if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() 1st start\n", current_timestamp());
         pthread_mutex_lock(&(fQBuffer->mutex));
-        while (fQBuffer->frame_queue.size() > 1) fQBuffer->frame_queue.pop();
+        // Yes, I know that I should not block the event loop
+        while (fQBuffer->frame_queue.size() < 5) {
+            pthread_mutex_unlock(&(fQBuffer->mutex));
+            usleep(1000);
+            pthread_mutex_lock(&(fQBuffer->mutex));
+        }
+        while (fQBuffer->frame_queue.size() > 5) fQBuffer->frame_queue.pop();
         pthread_mutex_unlock(&(fQBuffer->mutex));
         fHaveStartedReading = True;
     }
@@ -98,37 +108,26 @@ void VideoFramedMemorySource::doGetNextFrame() {
 
     if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() start - fMaxSize %d - fLimitNumBytesToStream %d\n", current_timestamp(), fMaxSize, fLimitNumBytesToStream);
 
-    pthread_mutex_lock(&(fQBuffer->mutex));
-    if (fQBuffer->frame_queue.size() == 0) {
-        pthread_mutex_unlock(&(fQBuffer->mutex));
-        if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() queue is empty\n", current_timestamp());
-        fFrameSize = 0;
-        fNumTruncatedBytes = 0;
-        nextTask() = envir().taskScheduler().scheduleDelayedTask(fPlayTimePerFrame/4,
-                (TaskFunc*) VideoFramedMemorySource::doGetNextFrameTask, this);
-        return;
-    } else if (fQBuffer->frame_queue.front().frame.size() == 0) {
-        pthread_mutex_unlock(&(fQBuffer->mutex));
-        fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() error - NULL ptr\n", current_timestamp());
-        fFrameSize = 0;
-        fNumTruncatedBytes = 0;
-        nextTask() = envir().taskScheduler().scheduleDelayedTask(fPlayTimePerFrame/4,
-                (TaskFunc*) VideoFramedMemorySource::doGetNextFrameTask, this);
-        return;
-    } else if (memcmp(NALU_HEADER, fQBuffer->frame_queue.front().frame.data(), sizeof(NALU_HEADER)) != 0) {
-        // Maybe the buffer is too small, align read index with write index
-        pthread_mutex_unlock(&(fQBuffer->mutex));
-
-        while (fQBuffer->frame_queue.size() > 0) {
-            fQBuffer->frame_queue.pop();
+    while (!frameFound) {
+        pthread_mutex_lock(&(fQBuffer->mutex));
+        if (fQBuffer->frame_queue.size() == 0) {
+            pthread_mutex_unlock(&(fQBuffer->mutex));
+            if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() queue is empty\n", current_timestamp());
+            usleep(1000);
+        } else if (fQBuffer->frame_queue.front().frame.size() == 0) {
+            pthread_mutex_unlock(&(fQBuffer->mutex));
+            fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() error - NULL ptr\n", current_timestamp());
+            usleep(1000);
+        } else if (memcmp(NALU_HEADER, fQBuffer->frame_queue.front().frame.data(), sizeof(NALU_HEADER)) != 0) {
+            // Maybe the buffer is too small, align read index with write index
+            if (fQBuffer->frame_queue.size() > 0) {
+                fQBuffer->frame_queue.pop();
+            }
+            pthread_mutex_unlock(&(fQBuffer->mutex));
+            fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() error - wrong frame header\n", current_timestamp());
+        } else {
+            frameFound = true;
         }
-
-        fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() error - wrong frame header\n", current_timestamp());
-        fFrameSize = 0;
-        fNumTruncatedBytes = 0;
-        nextTask() = envir().taskScheduler().scheduleDelayedTask(fPlayTimePerFrame/4,
-                (TaskFunc*) VideoFramedMemorySource::doGetNextFrameTask, this);
-        return;
     }
 
     if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() size of queue is %d\n", current_timestamp(), fQBuffer->frame_queue.size());

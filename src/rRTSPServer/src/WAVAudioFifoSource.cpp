@@ -179,12 +179,6 @@ void WAVAudioFifoSource::fileReadableHandler(WAVAudioFifoSource* source, int /*m
 void WAVAudioFifoSource::doReadFromFile() {
     struct timeval fCurrentTime;
     gettimeofday(&fCurrentTime, NULL);
-    if (fCurrentTime.tv_sec - fPresentationTime.tv_sec >= 5) {
-        if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoSource - Previous frame is too old\n", current_timestamp());;
-        cleanFifo();
-        gettimeofday(&fPresentationTime, NULL);
-        return;
-    }
 
     // Try to read as many bytes as will fit in the buffer provided (or "fPreferredFrameSize" if less)
     if (fLimitNumBytesToStream && fNumBytesToStream < fMaxSize) {

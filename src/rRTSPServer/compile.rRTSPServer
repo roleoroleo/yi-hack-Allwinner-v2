@@ -31,7 +31,7 @@ cp -f ./statname.h ../live/include/libhelix-aac
 cd ..
 
 cd live || exit 1
-#make clean
+make clean
 make || exit 1
 
 mkdir -p ../_install/bin || exit 1

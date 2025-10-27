@@ -210,8 +210,8 @@ void AudioFramedMemorySource::doGetNextFrame() {
     } else {
         // Use system clock to set presentation time
         gettimeofday(&fPresentationTime, NULL);
-        fDurationInMicroseconds = fuSecsPerFrame;
     }
+    fDurationInMicroseconds = fuSecsPerFrame;
 
     // Inform the reader that he has data:
     FramedSource::afterGetting(this);

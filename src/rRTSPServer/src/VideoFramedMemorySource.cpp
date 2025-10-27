@@ -168,8 +168,8 @@ void VideoFramedMemorySource::doGetNextFrame() {
         // Set the 'presentation time':
         // Use system clock to set presentation time
         gettimeofday(&fPresentationTime, NULL);
-        fDurationInMicroseconds = fPlayTimePerFrame;
     }
+    fDurationInMicroseconds = fPlayTimePerFrame;
 
     // If it's a VPS/SPS/PPS set duration = 0
     u_int8_t nal_unit_type;

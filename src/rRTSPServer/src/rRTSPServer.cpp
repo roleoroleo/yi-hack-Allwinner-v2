@@ -865,7 +865,7 @@ void *capture(void *ptr)
                     of.time = frame_time;
                     p_output_queue->frame_queue.push(of);
                     free(tmp_out);
-                    while (p_output_queue->frame_queue.size() > 10) p_output_queue->frame_queue.pop();
+                    while (p_output_queue->frame_queue.size() > MAX_QUEUE_SIZE) p_output_queue->frame_queue.pop();
 
                     if (debug & 3) {
                         fprintf(stderr, "%lld: h264/aac in - frame_len: %d - frame_counter: %d - resolution: %d\n", current_timestamp(), frame_len, frame_counter, frame_type);

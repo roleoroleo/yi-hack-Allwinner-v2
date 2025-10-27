@@ -35,6 +35,8 @@
 #define READ_LOCK_FILE "fshare_read_lock"
 #define WRITE_LOCK_FILE "fshare_write_lock"
 
+#define MAX_QUEUE_SIZE 20
+
 #define Y20GA 0
 #define Y25GA 1
 #define Y30QA 2

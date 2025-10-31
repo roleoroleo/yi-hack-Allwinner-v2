@@ -35,6 +35,7 @@
 #endif
 
 #include "libavcodec/avcodec.h"
+#include "libavcodec/version.h"
 
 #include "convert2jpg.h"
 #include "add_water.h"
@@ -360,13 +361,13 @@ void sem_write_unlock()
 
 int frame_decode(unsigned char *outbuffer, unsigned char *p, int length, int h26x)
 {
-    AVCodec *codec;
+    const AVCodec *codec;
     AVCodecContext *c= NULL;
     AVFrame *picture;
     int got_picture, len;
     FILE *fOut;
     uint8_t *inbuf;
-    AVPacket avpkt;
+    AVPacket *avpkt= NULL;
     int i, j, size;
 
 //////////////////////////////////////////////////////////
@@ -375,7 +376,7 @@ int frame_decode(unsigned char *outbuffer, unsigned char *p, int length, int h26
 
     if (debug) fprintf(stderr, "Starting decode\n");
 
-    av_init_packet(&avpkt);
+    avpkt = av_packet_alloc();
 
     if (h26x == 4) {
         codec = avcodec_find_decoder(AV_CODEC_ID_H264);
@@ -394,12 +395,15 @@ int frame_decode(unsigned char *outbuffer, unsigned char *p, int length, int h26
     c = avcodec_alloc_context3(codec);
     picture = av_frame_alloc();
 
+#if LIBAVCODEC_VERSION_MAJOR < 60
     if((codec->capabilities) & AV_CODEC_CAP_TRUNCATED)
         (c->flags) |= AV_CODEC_FLAG_TRUNCATED;
+#endif
 
     if (avcodec_open2(c, codec, NULL) < 0) {
         if (debug) fprintf(stderr, "Could not open codec h264\n");
-        av_free(c);
+        av_frame_free(&picture);
+        avcodec_free_context(&c);
         return -2;
     }
 
@@ -409,21 +413,23 @@ int frame_decode(unsigned char *outbuffer, unsigned char *p, int length, int h26
 
     // Get only 1 frame
     memcpy(inbuf, p, length);
-    avpkt.size = length;
-    avpkt.data = inbuf;
+    avpkt->size = length;
+    avpkt->data = inbuf;
 
     // Decode frame
     if (debug) fprintf(stderr, "Decode frame\n");
     if (c->codec_type == AVMEDIA_TYPE_VIDEO ||
          c->codec_type == AVMEDIA_TYPE_AUDIO) {
 
-        len = avcodec_send_packet(c, &avpkt);
+        len = avcodec_send_packet(c, avpkt);
         if (len < 0 && len != AVERROR(EAGAIN) && len != AVERROR_EOF) {
             if (debug) fprintf(stderr, "Error decoding frame\n");
+            av_frame_free(&picture);
+            avcodec_free_context(&c);
             return -2;
         } else {
             if (len >= 0)
-                avpkt.size = 0;
+                avpkt->size = 0;
             len = avcodec_receive_frame(c, picture);
             if (len >= 0)
                 got_picture = 1;
@@ -432,8 +438,7 @@ int frame_decode(unsigned char *outbuffer, unsigned char *p, int length, int h26
     if(!got_picture) {
         if (debug) fprintf(stderr, "No input frame\n");
         av_frame_free(&picture);
-        avcodec_close(c);
-        av_free(c);
+        avcodec_free_context(&c);
         return -2;
     }
 
@@ -450,9 +455,7 @@ int frame_decode(unsigned char *outbuffer, unsigned char *p, int length, int h26
     // Clean memory
     if (debug) fprintf(stderr, "Cleaning ffmpeg memory\n");
     av_frame_free(&picture);
-    avcodec_close(c);
-    av_free(c);
-
+    avcodec_free_context(&c);
     return 0;
 }
 

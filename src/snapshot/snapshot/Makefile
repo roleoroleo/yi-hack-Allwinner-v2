@@ -1,6 +1,5 @@
 OBJECTS = imggrabber.o convert2jpg.o add_water.o water_mark.o
 FFMPEG = ffmpeg-8.0
-JPEGSRC = jpegsrc.v9e
 FFMPEG_DIR = ./$(FFMPEG)
 INC_FF = -I$(FFMPEG_DIR)
 LIB_FF = $(FFMPEG_DIR)/libavcodec/libavcodec.a $(FFMPEG_DIR)/libavutil/libavutil.a -lpthread -lm
@@ -69,29 +68,6 @@ define build_ffmpeg
          cd ..;\
     fi
 endef
-
-define build_jpeglib
-    # get archive
-    if [ ! -f SDK/jpeg.tar.gz ]; then \
-        mkdir -p SDK; \
-        wget -O ./SDK/jpeg.tar.gz.tmp "https://www.ijg.org/files/${JPEGSRC}.tar.gz"; \
-        mv ./SDK/jpeg.tar.gz.tmp ./SDK/jpeg.tar.gz; \
-    fi
-
-    # untar
-    if [ ! -f $(JPEGLIB)/README ]; then \
-         tar zxvf ./SDK/jpeg.tar.gz; \
-    fi
-
-    # build
-    if [ ! -f $(JPEGLIB)/.libs/libjpeg.a ]; then \
-        cd $(JPEGLIB); \
-        ./configure --host=$(CROSS) --enable-shared=yes && \
-        $(MAKE) CFLAGS+="-Os -ffunction-sections -fdata-sections"; \
-        cd ..;\
-    fi
-endef
-
 
 define build_jpeglib_turbo
     # get archive

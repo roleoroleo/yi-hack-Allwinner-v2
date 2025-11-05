@@ -133,10 +133,42 @@ check_rtsp_go2rtc()
 check_rmm()
 {
 #  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking rmm process..." >> $LOG_FILE
-    PS=`ps ww | grep rmm | grep -v grep | grep -c ^`
-
-    if [ $PS -eq 0 ]; then
-        echo "check_rmm failed, reboot!" >> $LOG_FILE
+    
+    # Method 1: Basic ps check (most reliable, avoids ps ww parsing issues)
+    PS_BASIC=`ps | grep -v grep | grep "./rmm" | grep -c ^`
+    if [ $PS_BASIC -gt 0 ]; then
+        # Reset failure counter on successful detection
+        rm -f /tmp/rmm_fail_count 2>/dev/null
+        return 0
+    fi
+    
+    # Method 2: Extended ps as fallback (original method)
+    PS_WW=`ps ww | grep rmm | grep -v grep | grep -c ^`
+    if [ $PS_WW -gt 0 ]; then
+        # Reset failure counter on successful detection  
+        rm -f /tmp/rmm_fail_count 2>/dev/null
+        return 0
+    fi
+    
+    # Failure handling with counter to prevent immediate reboots
+    echo "$(date +'%Y-%m-%d %H:%M:%S') - rmm detection failed" >> $LOG_FILE
+    
+    # Read current failure count
+    if [ -f /tmp/rmm_fail_count ]; then
+        FAIL_COUNT=$(cat /tmp/rmm_fail_count)
+    else
+        FAIL_COUNT=0
+    fi
+    
+    # Increment failure count
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+    echo $FAIL_COUNT > /tmp/rmm_fail_count
+    
+    echo "$(date +'%Y-%m-%d %H:%M:%S') - rmm failure count: $FAIL_COUNT/5" >> $LOG_FILE
+    
+    # Only reboot after 5 consecutive failures (~50 seconds with 10s interval)
+    if [ $FAIL_COUNT -ge 5 ]; then
+        echo "$(date +'%Y-%m-%d %H:%M:%S') - rmm failed 5 times consecutively, rebooting..." >> $LOG_FILE
         reboot
     fi
 }

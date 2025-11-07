@@ -1,4 +1,4 @@
-ARG VARIANT="debian-10"
+ARG VARIANT="debian-11"
 FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT}
 
 RUN export DEBIAN_FRONTEND=noninteractive               && \

@@ -2,7 +2,7 @@
 	"name": "yi-hack devcontainer",
 	"build": {
 		"dockerfile": "Dockerfile",
-		"args": { "VARIANT": "debian-10" }
+		"args": { "VARIANT": "debian-11" }
 	},
 
 	"remoteUser": "vscode"

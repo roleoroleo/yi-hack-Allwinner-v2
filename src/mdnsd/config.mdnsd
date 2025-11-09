@@ -1,7 +1,8 @@
 #!/bin/bash
 
-VERSION="0.12"
-MAIN_URL="https://github.com/troglobit/mdnsd/releases/download/v${VERSION}/mdnsd-${VERSION}.tar.gz"
+VERSION="master"
+#MAIN_URL="https://github.com/troglobit/mdnsd/releases/download/v${VERSION}/mdnsd-${VERSION}.tar.gz"
+MAIN_URL="https://github.com/troglobit/mdnsd/archive/refs/heads/${VERSION}.zip"
 PACKAGE="mdnsd-${VERSION}"
-ARCHIVE="${PACKAGE}.tar.gz"
+ARCHIVE="${PACKAGE}.zip"
 BUILD_FOLDER="mdnsd-${VERSION}"

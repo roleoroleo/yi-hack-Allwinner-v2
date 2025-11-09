@@ -8,11 +8,12 @@ source config.mdnsd
 rm -rf ./_install
 
 if [ ! -f ${ARCHIVE} ]; then
-    wget "${MAIN_URL}" || exit 1
+    wget "${MAIN_URL}" -O "${ARCHIVE}" || exit 1
 fi
-tar zxvf "${ARCHIVE}" || exit 1
+unzip -o "${ARCHIVE}" || exit 1
 cd "${BUILD_FOLDER}" || exit 1
 
+./autogen.sh
 ./configure CC=arm-openwrt-linux-gcc \
     --prefix=$SCRIPT_DIR/_install \
     CFLAGS="-Os -mcpu=cortex-a7 -mfpu=neon-vfpv4 -I/opt/yi/toolchain-sunxi-musl/toolchain/include -L/opt/yi/toolchain-sunxi-musl/toolchain/lib" \

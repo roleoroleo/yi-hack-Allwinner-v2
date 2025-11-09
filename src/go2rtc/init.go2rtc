@@ -1,4 +1,5 @@
 #!/bin/bash
+VERSION=v1.9.11
 
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
@@ -8,6 +9,6 @@ rm -rf ./_install
 mkdir -p go2rtc
 cd go2rtc
 rm -f go2rtc
-wget https://github.com/AlexxIT/go2rtc/releases/download/v1.9.4/go2rtc_linux_arm || exit 1
+wget https://github.com/AlexxIT/go2rtc/releases/download/${VERSION}/go2rtc_linux_arm || exit 1
 mv go2rtc_linux_arm go2rtc || exit 1
 chmod 0755 go2rtc || exit 1

@@ -1,5 +1,5 @@
 ##### Change the following for your environment:
-COMPILE_OPTS =		$(INCLUDES) -I. -I./include -I./include/libhelix-aac -O0 -ffunction-sections -fdata-sections -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DNO_OPENSSL=1 -DRTP_PAYLOAD_MAX_SIZE=1352
+COMPILE_OPTS =		$(INCLUDES) -I. -I./include -I./include/libhelix-aac -O0 -ffunction-sections -fdata-sections -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DNO_OPENSSL=1 -DNO_STD_LIB -DRTP_PAYLOAD_MAX_SIZE=1352
 C =			c
 C_COMPILER =		$(CC)
 C_FLAGS =		$(COMPILE_OPTS) $(CPPFLAGS) $(CFLAGS)
@@ -54,6 +54,8 @@ MEDIA_SERVER_DIR = mediaServer
 
 PROXY_SERVER_DIR = proxyServer
 
+HLS_PROXY_DIR = hlsProxy
+
 all: livemedia rRTSPServer
 
 livemedia:
@@ -64,6 +66,7 @@ livemedia:
 	cd $(TESTPROGS_DIR) ; $(MAKE)
 	cd $(MEDIA_SERVER_DIR) ; $(MAKE)
 	cd $(PROXY_SERVER_DIR) ; $(MAKE)
+	cd $(HLS_PROXY_DIR) ; $(MAKE)
 	@echo
 	@echo "For more information about this source code (including your obligations under the LGPL), please see our FAQ at http://live555.com/liveMedia/faq.html"
 
@@ -98,6 +101,7 @@ install:
 	cd $(TESTPROGS_DIR) ; $(MAKE) install
 	cd $(MEDIA_SERVER_DIR) ; $(MAKE) install
 	cd $(PROXY_SERVER_DIR) ; $(MAKE) install
+	cd $(HLS_PROXY_DIR) ; $(MAKE) install
 
 clean:
 	cd $(LIVEMEDIA_DIR) ; $(MAKE) clean
@@ -107,10 +111,12 @@ clean:
 	cd $(TESTPROGS_DIR) ; $(MAKE) clean
 	cd $(MEDIA_SERVER_DIR) ; $(MAKE) clean
 	cd $(PROXY_SERVER_DIR) ; $(MAKE) clean
-	-rm -rf *.$(OBJ) rRTSPServer core *.core *~ include/*~
+	cd $(HLS_PROXY_DIR) ; $(MAKE) clean
 
 distclean: clean
 	-rm -f $(LIVEMEDIA_DIR)/Makefile $(GROUPSOCK_DIR)/Makefile \
 	  $(USAGE_ENVIRONMENT_DIR)/Makefile $(BASIC_USAGE_ENVIRONMENT_DIR)/Makefile \
 	  $(TESTPROGS_DIR)/Makefile $(MEDIA_SERVER_DIR)/Makefile \
-	  $(PROXY_SERVER_DIR)/Makefile Makefile
+	  $(PROXY_SERVER_DIR)/Makefile \
+	  $(HLS_PROXY_DIR)/Makefile \
+	  Makefile

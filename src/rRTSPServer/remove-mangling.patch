@@ -1,10 +1,10 @@
 diff -Naur libhelix-aac.ori/statname.h libhelix-aac/statname.h
 --- libhelix-aac.ori/statname.h.ori	2025-04-30 10:18:44.570755045 +0200
 +++ libhelix-aac/statname.h	2025-04-30 10:18:51.083119940 +0200
-@@ -50,7 +50,6 @@
-  * all the C functions and global variables will be mangled by the preprocessor
-  *   e.g. void DCT4(...) becomes void raac_DCT4(...)
-  */
+@@ -53,7 +53,6 @@
+     all the C functions and global variables will be mangled by the preprocessor
+     e.g. void DCT4(...) becomes void raac_DCT4(...)
+ */
 -#define STAT_PREFIX		raac
  
  #define STATCC1(x,y,z)	STATCC2(x,y,z)

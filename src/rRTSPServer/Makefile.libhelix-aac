@@ -1,4 +1,4 @@
-OBJECTS = aacdec.o aactabs.o bitstream.o buffers.o dct4.o decelmnt.o dequant.o fft.o filefmt.o huffman.o hufftabs.o imdct.o noiseless.o pns.o sbr.o sbrfft.o sbrfreq.o sbrhfadj.o sbrhfgen.o sbrhuff.o sbrimdct.o sbrmath.o sbrqmf.o sbrside.o sbrtabs.o stproc.o tns.o trigtabs.o
+OBJECTS = aacdec.o aactabs.o bitstream.o buffers.o dct4.o decelmnt.o dequant.o fft.o filefmt.o huffmanaac.o hufftabs.o imdct.o noiseless.o pns.o sbr.o sbrfft.o sbrfreq.o sbrhfadj.o sbrhfgen.o sbrhuff.o sbrimdct.o sbrmath.o sbrqmf.o sbrside.o sbrtabs.o stproc.o tns.o trigtabs.o
 OBJECTS_S = sbrcov.o
 
 all: libhelix-aac.so libhelix-aac.a

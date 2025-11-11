@@ -20,7 +20,7 @@ make -j$(nproc) \
     WITH_TLS=no \
     WITH_TLS_PSK=no \
     WITH_CJSON=no \
-    WITh_BRIDGE=no \
+    WITH_BRIDGE=no \
     WITH_MEMORY_TRACKING=no \
     WITH_DOCS=no \
     || exit 1

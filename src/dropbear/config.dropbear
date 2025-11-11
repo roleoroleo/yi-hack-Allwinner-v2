@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="2024.86"
+VERSION="2025.88"
 MAIN_URL=https://github.com/mkj/dropbear/archive/refs/tags/DROPBEAR_${VERSION}.tar.gz
 PACKAGE="DROPBEAR_${VERSION}"
 ARCHIVE="${PACKAGE}.tar.gz"

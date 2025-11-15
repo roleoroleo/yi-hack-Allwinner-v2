@@ -1,4 +1,4 @@
-ARG VARIANT="debian-10"
+ARG VARIANT="debian-11"
 FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT}
 
 RUN export DEBIAN_FRONTEND=noninteractive               && \
@@ -6,10 +6,10 @@ RUN export DEBIAN_FRONTEND=noninteractive               && \
     apt-get -y install --no-install-recommends             \
       git wget unzip build-essential libtool bison         \
       bisonc++ libbison-dev autoconf autotools-dev         \
-      automake libssl-dev zlibc zlib1g-dev libzzip-dev     \
+      automake libssl-dev zlib1g-dev libzzip-dev           \
       flex libfl-dev yui-compressor closure-compiler       \
       optipng jpegoptim libtidy5deb1 node-less sassc       \
-      sass-spec libhtml-tidy-perl libxml2-utils rsync
+      sass-spec libhtml-tidy-perl libxml2-utils rsync cmake
 
 # Download toolchain
 RUN git clone https://github.com/lindenis-org/lindenis-v536-prebuilt                                              && \

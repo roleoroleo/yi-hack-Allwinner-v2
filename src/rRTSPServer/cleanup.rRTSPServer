@@ -3,7 +3,9 @@
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
+rm -rf ./_install
+
 rm -rf live
 rm -f live.*.tar.gz
-rm -rf fdk-aac
-rm -f v*.tar.gz
+rm -rf libhelix-aac
+rm -f 2.4.1.tar.gz

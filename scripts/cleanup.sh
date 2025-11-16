@@ -47,19 +47,9 @@ rm -rf $BUILD_DIR
 echo "Cleaning out dir ..."
 rm -rf $OUT_DIR
 
-echo "Cleaning src/*/_install folders ..."
+echo "Cleaning src/* folders ..."
 
 SRC_DIR=$(get_script_dir)/../src
-
-for SUB_DIR in $SRC_DIR/* ; do
-    if [ -d ${SUB_DIR} ]; then # Will not run if no directories are available
-        echo -n "Cleaning _install in $(basename \"$SUB_DIR\") ..."
-        rm -rf $SUB_DIR/_install
-        echo "done!"
-    fi
-done
-
-echo ""
 
 for SUB_DIR in $SRC_DIR/* ; do
     if [ -d ${SUB_DIR} ]; then # Will not run if no directories are available

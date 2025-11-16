@@ -5,4 +5,6 @@ cd $SCRIPT_DIR
 
 source config.dropbear
 
+rm -rf ./_install
+
 rm -rf "${BUILD_FOLDER}"

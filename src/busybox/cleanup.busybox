@@ -5,6 +5,8 @@ cd $SCRIPT_DIR
 
 source config.busybox
 
-rm -rf "${BUILD_FOLDER}"
+rm -rf ./_install
 
-make clean
+rm -rf "${BUILD_FOLDER}"
+rm -f "${ARCHIVE}"
+rm -f "${ARCHIVE_ALT}"

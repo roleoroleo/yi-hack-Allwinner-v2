@@ -5,6 +5,6 @@ cd $SCRIPT_DIR
 
 source config.mdnsd
 
-rm -rf "${BUILD_FOLDER}"
+rm -rf ./_install
 
-make clean
+rm -rf "${BUILD_FOLDER}"

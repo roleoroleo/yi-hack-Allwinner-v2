@@ -19,7 +19,12 @@ if [ ! -f "${ARCHIVE}" ]; then
     fi
 fi
 
-
+if [ ! -f "${BUILD_FOLDER}" ]; then
+    tar xvf "${ARCHIVE}"
+    if [ $? !=0 ]; then
+        tar xvf "${ARCHIVE_ALT}"
+    fi
+fi
 
 cd "${BUILD_FOLDER}"
 

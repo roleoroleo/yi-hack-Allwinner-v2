@@ -16,8 +16,9 @@ if [ ! -L libtomcrypt ]; then
     cd ../..
 fi
 
-if [ ! -f v3.4.0.tar.gz ]; then
-    wget https://github.com/Mbed-TLS/mbedtls/archive/refs/tags/v3.4.0.tar.gz
+MBEDTLS_VERSION=v3.6.5
+if [ ! -f "${MBEDTLS_VERSION}.tar.gz" ]; then
+    wget https://github.com/Mbed-TLS/mbedtls/archive/refs/tags/${MBEDTLS_VERSION}.tar.gz
 fi
 tar zxvf ./v3.4.0.tar.gz
 if [ ! -L mbedtls ]; then
@@ -28,14 +29,15 @@ if [ ! -L mbedtls ]; then
 fi
 cp -f mbedtls_config.h mbedtls/include/mbedtls/
 
-if [ ! -f v5.7.4-stable.tar.gz ]; then
-    wget https://github.com/wolfSSL/wolfssl/archive/refs/tags/v5.7.4-stable.tar.gz
+WOLFSSL_VERSION=v5.8.2-stable
+if [ ! -f "${WOLFSSL_VERSION}.tar.gz" ]; then
+    wget https://github.com/wolfSSL/wolfssl/archive/refs/tags/${WOLFSSL_VERSION}.tar.gz
 fi
-tar zxvf ./v5.7.4-stable.tar.gz
+tar zxvf ./${WOLFSSL_VERSION}.tar.gz
 if [ ! -L wolfssl ]; then
-    ln -s wolfssl-5.7.4-stable wolfssl
+    ln -s ${WOLFSSL_VERSION} wolfssl
     cd onvif_simple_server/extras
-    ln -s ../../wolfssl-5.7.4-stable wolfssl
+    ln -s ../../${WOLFSSL_VERSION} wolfssl
     cd ../..
 fi
 

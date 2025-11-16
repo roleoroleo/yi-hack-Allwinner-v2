@@ -1,4 +1,4 @@
 # Ignore the install dir
 _install/
-dropbear-DROPBEAR_2024.86/
+dropbear-DROPBEAR_20*/
 *.tar.gz

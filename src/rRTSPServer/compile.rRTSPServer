@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 export CROSSPATH=/opt/yi/toolchain-sunxi-musl/toolchain/bin
 export PATH=${PATH}:${CROSSPATH}
 
@@ -31,8 +33,11 @@ cp -f ./statname.h ../live/include/libhelix-aac
 cd ..
 
 cd live || exit 1
+
+sed 's/-DNO_OPENSSL=1 -DRTP_PAYLOAD_MAX_SIZE=1352/-DNO_OPENSSL=1 -DNO_STD_LIB -DRTP_PAYLOAD_MAX_SIZE=1352/' -i ./BasicUsageEnvironment/Makefile || exit 1
+sed 's/-DNO_OPENSSL=1 -DRTP_PAYLOAD_MAX_SIZE=1352/-DNO_OPENSSL=1 -DNO_STD_LIB -DRTP_PAYLOAD_MAX_SIZE=1352/' -i ./testProgs/Makefile || exit 1
 make clean
-make || exit 1
+make all || exit 1
 
 mkdir -p ../_install/bin || exit 1
 

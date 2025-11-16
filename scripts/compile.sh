@@ -31,16 +31,19 @@ compile_module()
     local MOD_INIT="init.$MOD_NAME"
     local MOD_COMPILE="compile.$MOD_NAME"
     local MOD_INSTALL="install.$MOD_NAME"
+    local MOD_QEMUTEST="qemutest.$MOD_NAME"
 
     printf "MOD_DIR:        %s\n" "$MOD_DIR"
     printf "MOD_NAME:       %s\n" "$MOD_NAME"
     printf "MOD_INIT:       %s\n" "$MOD_INIT"
     printf "MOD_COMPILE:    %s\n" "$MOD_COMPILE"
     printf "MOD_INSTALL:    %s\n" "$MOD_INSTALL"
+    printf "MOD_QEMUTEST:    %s\n" "$MOD_QEMUTEST"
 
     echo "Compile $MOD_NAME"
     cd "$MOD_DIR"
 
+    set -e
     if [ ! -f $MOD_INIT ]; then
         echo "$MOD_INIT not found.. exiting."
         exit 1
@@ -61,6 +64,11 @@ compile_module()
 
     printf "Compiling $MOD_NAME...\n\n"
     ./$MOD_COMPILE || exit 1
+
+    if [ -f $MOD_QEMUTEST ]; then
+        printf "Testing $MOD_NAME...\n\n"
+        ./$MOD_QEMUTEST || exit 1
+    fi
 
     printf "Installing '$MOD_INSTALL' in the firmware...\n\n"
     ./$MOD_INSTALL || exit 1

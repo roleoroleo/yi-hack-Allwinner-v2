@@ -245,7 +245,7 @@ MediaSink* OnDemandServerMediaSubsession_BC::getStreamSink(void* streamToken) {
 
 void OnDemandServerMediaSubsession_BC
 ::getRTPSinkandRTCP(void* streamToken,
-		    RTPSink const*& rtpSink, RTCPInstance const*& rtcp) {
+		    RTPSink *& rtpSink, RTCPInstance *& rtcp) {
     rtpSink = NULL;
     rtcp = NULL;
 }

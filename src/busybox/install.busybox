@@ -59,3 +59,5 @@ echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/sbin/httpd
 chmod 0755 ../../build/yi-hack/usr/sbin/httpd
 echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/sbin/ntpd
 chmod 0755 ../../build/yi-hack/usr/sbin/ntpd
+echo "#!/tmp/sd/yi-hack/bin/busybox" > ../../build/yi-hack/usr/bin/time
+chmod 0755 ../../build/yi-hack/usr/bin/time

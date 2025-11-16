@@ -1,5 +1,6 @@
 #!/bin/bash
 
-VERSION="3.4.4"
+VERSION="3.5.2"
 PACKAGE="libffi-${VERSION}"
 ARCHIVE="${PACKAGE}.tar.gz"
+https://github.com/libffi/libffi

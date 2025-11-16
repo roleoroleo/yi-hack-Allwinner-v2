@@ -24,7 +24,7 @@ jobs:
             bison bisonc++ libbison-dev autoconf autotools-dev \
             automake libssl-dev zlib1g-dev libzzip-dev flex libfl-dev \
             yui-compressor closure-compiler optipng jpegoptim libtidy5deb1 node-less \
-            sassc sass-spec libhtml-tidy-perl libxml2-utils rsync
+            sassc sass-spec libhtml-tidy-perl libxml2-utils rsync qemu-user-static
       - name: Download toolchain
         run: |
           git clone https://github.com/lindenis-org/lindenis-v536-prebuilt

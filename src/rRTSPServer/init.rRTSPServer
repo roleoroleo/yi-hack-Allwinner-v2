@@ -1,7 +1,9 @@
 #!/bin/bash
 
-ARCHIVE=live.2023.01.19.tar.gz
-LIBHELIXAAC_VER=2.0.0
+set -e
+
+ARCHIVE=live.2025.11.06.tar.gz
+LIBHELIXAAC_VER=2.4.1
 ARCHIVE_LIBHELIXAAC=${LIBHELIXAAC_VER}.tar.gz
 
 export CROSSPATH=/opt/yi/toolchain-sunxi-musl/toolchain/bin
@@ -33,7 +35,7 @@ if [ ! -f ${ARCHIVE_LIBHELIXAAC} ]; then
     wget https://github.com/earlephilhower/ESP8266Audio/archive/refs/tags/${ARCHIVE_LIBHELIXAAC}
 fi
 tar zxvf ${ARCHIVE_LIBHELIXAAC}
-mv ESP8266Audio-2.0.0/src/libhelix-aac libhelix-aac
+mv ESP8266Audio-${LIBHELIXAAC_VER}/src/libhelix-aac libhelix-aac
 patch -p0 < not-arduino.patch
 patch -p0 < remove-mangling.patch
 cd libhelix-aac
@@ -41,7 +43,7 @@ wget https://raw.githubusercontent.com/FrankBoesing/Arduino-Teensy-Codec-lib/ref
 sed -i -e 's/raac_CVKernel1/CVKernel1/g' sbrcov.S
 sed -i -e 's/raac_CVKernel2/CVKernel2/g' sbrcov.S
 cd ..
-rm -rf ESP8266Audio-2.0.0
+rm -rf ESP8266Audio-${LIBHELIXAAC_VER}
 cp Makefile.libhelix-aac libhelix-aac/Makefile
 
 # live555

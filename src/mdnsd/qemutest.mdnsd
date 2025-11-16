@@ -1,0 +1,6 @@
+
+set -e
+
+LIBMAIN_PATH=/opt/yi/toolchain-sunxi-musl/toolchain
+
+qemu-arm-static -L $LIBMAIN_PATH -E LD_LIBRARY_PATH=./_install/lib/ ./_install/sbin/mdnsd -h || exit 1

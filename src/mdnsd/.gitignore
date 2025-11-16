@@ -1,3 +1,4 @@
 # Ignore the install dir
 _install/
-mdnsd-0.12/
+mdnsd-*/
+mdnsd-*.zip

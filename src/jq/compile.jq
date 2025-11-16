@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+
+. ./config.jq
 export CROSSPATH=/opt/yi/toolchain-sunxi-musl/toolchain/bin
 export PATH=${PATH}:${CROSSPATH}
 
@@ -19,13 +22,16 @@ export AR=${CROSSPREFIX}ar
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
-cd jq-1.5 || exit 1
+cd jq-${VERSION} || exit 1
 
 make clean
 make -j $(nproc) || exit 1
 
 mkdir -p ../_install/bin || exit 1
+mkdir -p ../_install/lib || exit 1
 
-cp ./jq ../_install/bin || exit 1
+cp ./vendor/oniguruma/src/.libs/libonig.so* ../_install/lib
+cp ./.libs/libjq.so* ../_install/lib || exit 1
+cp ./.libs/jq ../_install/bin || exit 1
 
 $STRIP ../_install/bin/* || exit 1

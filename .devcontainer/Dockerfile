@@ -1,18 +1,16 @@
 ARG VARIANT="debian-11"
 FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT}
 
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends \
-    build-essential \
-    git \
-    wget \
-    curl \
-    rsync \
-    unzip \
-    bzip2 \
-    file \
-    qemu-user-static \
-    pkg-config
+RUN export DEBIAN_FRONTEND=noninteractive               && \
+    apt-get update                                      && \
+    apt-get -y install --no-install-recommends             \
+      git wget unzip build-essential libtool bison         \
+      bisonc++ libbison-dev autoconf autotools-dev         \
+      automake libssl-dev zlib1g-dev libzzip-dev           \
+      flex libfl-dev yui-compressor closure-compiler       \
+      optipng jpegoptim libtidy5deb1 node-less sassc       \
+      sass-spec libhtml-tidy-perl libxml2-utils rsync cmake \
+      qemu-user-static pkg-config curl bzip2 file
 
 # Download toolchain
 RUN git clone https://github.com/lindenis-org/lindenis-v536-prebuilt                                              && \

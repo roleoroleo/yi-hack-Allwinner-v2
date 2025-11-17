@@ -5,5 +5,7 @@
 		"args": { "VARIANT": "debian-11" }
 	},
 
+	"postCreateCommand": "git submodule update --init --recursive",
+
 	"remoteUser": "vscode"
 }

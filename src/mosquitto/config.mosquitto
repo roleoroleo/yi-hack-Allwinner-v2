@@ -1,0 +1,4 @@
+#!/bin/bash
+
+#USE_MOSQUITTO=1
+BUILD_FOLDER="mosquitto"

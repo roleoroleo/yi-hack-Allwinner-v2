@@ -1,19 +1,25 @@
 diff -Naur mqttv4.ori/include/mqttv4.h mqttv4/include/mqttv4.h
---- mqttv4.ori/include/mqttv4.h	2023-01-04 09:31:19.000000000 +0100
-+++ mqttv4/include/mqttv4.h	2023-01-04 09:32:26.605497678 +0100
-@@ -15,11 +15,11 @@
+--- mqttv4.ori/include/mqttv4.h        2025-11-24 13:54:42.048485703 +0100
++++ mqttv4/include/mqttv4.h    2025-11-24 13:54:14.292566260 +0100
+@@ -16,14 +16,14 @@
  #include "files.h"
- 
+
  #define MQTTV4_VERSION      "0.1.0"
 -#define SYSTEM_CONF_FILE    "/home/yi-hack/etc/system.conf"
 -#define MQTTV4_CONF_FILE    "/home/yi-hack/etc/mqttv4.conf"
 -#define CAMERA_CONF_FILE    "/home/yi-hack/etc/camera.conf"
+-#define CA_CERT             "/home/yi-hack/etc/mqtt/ca.crt"
+-#define CLIENT_CERT         "/home/yi-hack/etc/mqtt/client.crt"
+-#define CLIENT_KEY          "/home/yi-hack/etc/mqtt/client.key"
 +#define SYSTEM_CONF_FILE    "/tmp/sd/yi-hack/etc/system.conf"
 +#define MQTTV4_CONF_FILE    "/tmp/sd/yi-hack/etc/mqttv4.conf"
 +#define CAMERA_CONF_FILE    "/tmp/sd/yi-hack/etc/camera.conf"
- 
++#define CA_CERT             "/tmp/sd/yi-hack/etc/mqtt/ca.crt"
++#define CLIENT_CERT         "/tmp/sd/yi-hack/etc/mqtt/client.crt"
++#define CLIENT_KEY          "/tmp/sd/yi-hack/etc/mqtt/client.key"
+
 -#define MQTTV4_SNAPSHOT     "export MOD=$(cat /home/yi-hack/model_suffix); /home/yi-hack/bin/imggrabber -m $MOD -r high -w"
 +#define MQTTV4_SNAPSHOT     "export MOD=$(cat /tmp/sd/yi-hack/model_suffix); /tmp/sd/yi-hack/bin/imggrabber -m $MOD -r high -w"
- 
+
  #define TH_AVAILABLE 0
  #define TH_WAITING   1

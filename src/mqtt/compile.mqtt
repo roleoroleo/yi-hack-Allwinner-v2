@@ -5,7 +5,16 @@ set -e
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
+CPWD=$(pwd)
+MOSQUITTO_DIR="../mosquitto/_install"
+WOLFSSL_DIR="../libwolf_01_ssl/_install"
+WOLFMQTT_DIR="../libwolf_02_mqtt/_install"
+
 cd mqttv4
+
+#export USE_MOSQUITTO=1
+export CFLAGS="-Os -mcpu=cortex-a7 -mfpu=neon-vfpv4 -I/opt/yi/toolchain-sunxi-musl/toolchain/include -I${CPWD}/${WOLFSSL_DIR}/include -I${CPWD}/${WOLFMQTT_DIR}/include -I${CPWD}/${MOSQUITTO_DIR}/../mosquitto/lib"
+export LIBS="-L/opt/yi/toolchain-sunxi-musl/toolchain/lib -L${CPWD}/${WOLFSSL_DIR}/lib -L${CPWD}/${WOLFMQTT_DIR}/lib -L${CPWD}/${MOSQUITTO_DIR}/lib"
 
 make clean
 make -j $(nproc) || exit 1

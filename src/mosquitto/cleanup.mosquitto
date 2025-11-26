@@ -1,10 +1,16 @@
 #!/bin/bash
 
+source config.mosquitto
+
+if [ "$USE_MOSQUITTO" != "1" ]; then
+    exit
+fi
+
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
 rm -rf ./_install
 
-cd mosquitto
+cd "${BUILD_FOLDER}"
 
 make clean

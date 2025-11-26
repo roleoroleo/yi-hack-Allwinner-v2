@@ -5,5 +5,6 @@ cd $SCRIPT_DIR
 
 mkdir -p ../../build/yi-hack/bin/ || exit 1
 mkdir -p ../../build/yi-hack/lib/ || exit 1
+mkdir -p ../../build/yi-hack/etc/mqtt/ || exit 1
 
 rsync -av ./_install/* ../../build/yi-hack/ || exit 1

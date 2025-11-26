@@ -14,6 +14,9 @@
 #define MQTT_CONF_FILE    "/tmp/sd/yi-hack/etc/mqttv4.conf"
 #define CONF_FILE_PATH    "/tmp/sd/yi-hack/etc"
 #define CONF2MQTT_SCRIPT  "/tmp/sd/yi-hack/script/conf2mqtt.sh"
+#define CA_CERT           "/tmp/sd/yi-hack/etc/mqtt/ca.crt"
+#define CLIENT_CERT       "/tmp/sd/yi-hack/etc/mqtt/client.crt"
+#define CLIENT_KEY        "/tmp/sd/yi-hack/etc/mqtt/client.key"
 
 typedef struct
 {
@@ -22,6 +25,9 @@ typedef struct
     char        host[128];
     char        bind_address[128];
     int         port;
+    int         tls;
+    int         keepalive;
+    int         qos;
     char       *client_id;
     char       *mqtt_prefix_cmnd;
 } mqtt_conf_t;

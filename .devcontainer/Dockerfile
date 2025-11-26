@@ -9,7 +9,8 @@ RUN export DEBIAN_FRONTEND=noninteractive               && \
       automake libssl-dev zlib1g-dev libzzip-dev           \
       flex libfl-dev yui-compressor closure-compiler       \
       optipng jpegoptim libtidy5deb1 node-less sassc       \
-      sass-spec libhtml-tidy-perl libxml2-utils rsync cmake
+      sass-spec libhtml-tidy-perl libxml2-utils rsync cmake \
+      qemu-user-static pkg-config curl bzip2 file
 
 # Download toolchain
 RUN git clone https://github.com/lindenis-org/lindenis-v536-prebuilt                                              && \

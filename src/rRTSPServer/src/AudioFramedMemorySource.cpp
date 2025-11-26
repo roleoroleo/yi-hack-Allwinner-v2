@@ -123,7 +123,7 @@ void AudioFramedMemorySource::doGetNextFrame() {
         // Yes, I know that I should not block the event loop
         while (fQBuffer->frame_queue.size() < 5) {
             pthread_mutex_unlock(&(fQBuffer->mutex));
-            usleep(1000);
+            usleep(2000);
             pthread_mutex_lock(&(fQBuffer->mutex));
         }
         while (fQBuffer->frame_queue.size() > 5) fQBuffer->frame_queue.pop();
@@ -140,9 +140,11 @@ void AudioFramedMemorySource::doGetNextFrame() {
         if (fQBuffer->frame_queue.size() == 0) {
             pthread_mutex_unlock(&(fQBuffer->mutex));
             if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() read_index = write_index\n", current_timestamp());
+            usleep(2000);
         } else if (fQBuffer->frame_queue.front().frame.size() == 0) {
             pthread_mutex_unlock(&(fQBuffer->mutex));
             fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() error - NULL ptr\n", current_timestamp());
+            usleep(2000);
         } else if (check_sync_word(fQBuffer->frame_queue.front().frame.data()) != 1) {
             if (fQBuffer->frame_queue.size() > 0) {
                 fQBuffer->frame_queue.pop();

@@ -1,0 +1,4 @@
+# Ignore the install dir
+_install/
+wolf*
+v*.tar.gz

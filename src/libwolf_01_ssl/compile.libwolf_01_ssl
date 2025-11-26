@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -e
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+source config.wolfssl
+
+cd "${BUILD_FOLDER}"
+
+make clean
+make -j$(nproc) \
+    || exit 1
+
+make install || exit 1
+
+arm-openwrt-linux-strip ../_install/lib/libwolfssl.so.${LIB_VERSION}

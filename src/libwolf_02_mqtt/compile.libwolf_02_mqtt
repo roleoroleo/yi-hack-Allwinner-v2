@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+source config.wolfmqtt
+
+cd "${BUILD_FOLDER}"
+
+make clean
+make -j$(nproc) \
+    || exit 1
+
+make install || exit 1
+cp ./examples/pub-sub/.libs/mqtt-pub ../_install/bin/
+cp ./examples/pub-sub/.libs/mqtt-sub ../_install/bin/
+
+arm-openwrt-linux-strip ../_install/lib/libwolfmqtt.so.${LIB_VERSION}
+arm-openwrt-linux-strip ../_install/bin/mqtt-pub
+arm-openwrt-linux-strip ../_install/bin/mqtt-sub

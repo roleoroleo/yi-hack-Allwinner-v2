@@ -1,0 +1,4 @@
+# Ignore the install dir
+_install/
+wolfssl*
+v*.tar.gz

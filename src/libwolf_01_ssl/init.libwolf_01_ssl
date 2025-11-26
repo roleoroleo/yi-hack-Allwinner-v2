@@ -1,0 +1,30 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+CPWD=$(pwd)
+
+rm -rf ./_install
+
+source config.wolfssl
+
+if [ ! -f "${ARCHIVE}" ]; then
+    wget "${MAIN_URL}"
+fi
+
+tar xvf "${ARCHIVE}"
+
+cd "${BUILD_FOLDER}"
+
+./autogen.sh
+
+./configure CC=arm-openwrt-linux-gcc \
+    CFLAGS="-Os -mcpu=cortex-a7 -mfpu=neon-vfpv4 -I/opt/yi/toolchain-sunxi-musl/toolchain/include -L/opt/yi/toolchain-sunxi-musl/toolchain/lib" \
+    AR=arm-openwrt-linux-ar \
+    RANLIB=arm-openwrt-linux-ranlib \
+    --host=arm-openwrt-linux \
+    --prefix=$CPWD/_install \
+    || exit 1
+
+cd $CPWD

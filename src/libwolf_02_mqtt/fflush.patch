@@ -1,0 +1,11 @@
+diff -Naur wolfMQTT-1.20.0.ori/examples/pub-sub/mqtt-sub.c wolfMQTT-1.20.0/examples/pub-sub/mqtt-sub.c
+--- wolfMQTT-1.20.0.ori/examples/pub-sub/mqtt-sub.c	2025-05-01 22:34:47.000000000 +0200
++++ wolfMQTT-1.20.0/examples/pub-sub/mqtt-sub.c	2025-11-25 10:54:53.064091696 +0100
+@@ -96,6 +96,7 @@
+     }
+     else {
+         PRINTF("%s", buf);
++        fflush(stdout);
+     }
+ 
+     #ifdef WOLFMQTT_V5

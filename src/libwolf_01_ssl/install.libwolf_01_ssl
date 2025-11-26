@@ -1,0 +1,12 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+source config.wolfssl
+
+mkdir -p ../../build/yi-hack/lib/ || exit 1
+
+LIB_VERSION_1=$(echo ${LIB_VERSION} | cut -d '.' -f 1)
+
+cp ./_install/lib/libwolfssl.so.${LIB_VERSION} ../../build/yi-hack/lib/libwolfssl.so.${LIB_VERSION_1} || exit 1

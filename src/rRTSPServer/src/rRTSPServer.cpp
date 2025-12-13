@@ -875,7 +875,7 @@ void *capture(void *ptr)
             }
         }
 
-        usleep(25000);
+        usleep(10000);
     }
 
     // Unreacheable path

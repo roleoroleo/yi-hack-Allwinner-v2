@@ -140,7 +140,12 @@ void AudioFramedMemorySource::doGetNextFrame() {
         if (fQBuffer->frame_queue.size() == 0) {
             pthread_mutex_unlock(&(fQBuffer->mutex));
             if (debug & 8) fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() read_index = write_index\n", current_timestamp());
-            usleep(2000);
+            fFrameSize = 0;
+            fNumTruncatedBytes = 0;
+            //usleep(2000);
+            nextTask() = envir().taskScheduler().scheduleDelayedTask(2000,
+                                 (TaskFunc*)FramedSource::afterGetting, this);
+            return;
         } else if (fQBuffer->frame_queue.front().frame.size() == 0) {
             pthread_mutex_unlock(&(fQBuffer->mutex));
             fprintf(stderr, "%lld: AudioFramedMemorySource - doGetNextFrame() error - NULL ptr\n", current_timestamp());
@@ -195,5 +200,8 @@ void AudioFramedMemorySource::doGetNextFrame() {
     fDurationInMicroseconds = fuSecsPerFrame;
 
     // Inform the reader that he has data:
-    FramedSource::afterGetting(this);
+//    FramedSource::afterGetting(this);
+    // Switch to another task, and inform the reader that he has data:
+    nextTask() = envir().taskScheduler().scheduleDelayedTask(0,
+                                         (TaskFunc*)FramedSource::afterGetting, this);
 }

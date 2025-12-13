@@ -113,7 +113,12 @@ void VideoFramedMemorySource::doGetNextFrame() {
         if (fQBuffer->frame_queue.size() == 0) {
             pthread_mutex_unlock(&(fQBuffer->mutex));
             if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() queue is empty\n", current_timestamp());
-            usleep(2000);
+            fFrameSize = 0;
+            fNumTruncatedBytes = 0;
+            //usleep(2000);
+            nextTask() = envir().taskScheduler().scheduleDelayedTask(2000,
+                                 (TaskFunc*)FramedSource::afterGetting, this);
+            return;
         } else if (fQBuffer->frame_queue.front().frame.size() == 0) {
             pthread_mutex_unlock(&(fQBuffer->mutex));
             fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() error - NULL ptr\n", current_timestamp());
@@ -183,5 +188,8 @@ void VideoFramedMemorySource::doGetNextFrame() {
     }
 
     // Inform the reader that he has data:
-    FramedSource::afterGetting(this);
+//    FramedSource::afterGetting(this);
+    // Switch to another task, and inform the reader that he has data:
+    nextTask() = envir().taskScheduler().scheduleDelayedTask(0,
+                                         (TaskFunc*)FramedSource::afterGetting, this);
 }

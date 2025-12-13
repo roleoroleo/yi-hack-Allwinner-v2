@@ -189,7 +189,7 @@ void mqtt_loop(void) {
 
     if (!run) return;
 
-    if (rc == MQTT_CODE_ERROR_TIMEOUT) {
+    if ((rc == MQTT_CODE_ERROR_TIMEOUT) || (rc == MQTT_CODE_CONTINUE)) {
         // no messages, normal
     } else if (rc != MQTT_CODE_SUCCESS) {
         conn_state = CONN_DISCONNECTED;

@@ -287,13 +287,6 @@ static int mqtt_message_cb(MqttClient *client, MqttMessage *msg,
     char value[MAX_VALUE_LENGTH];
 
     if (debug) printf("Received message for topic '%s'\n", msg->topic_name);
-    /*
-     * Check if the argument matches the subscription
-     */
-/*    mosquitto_topic_matches_sub(mqtt_conf->mqtt_prefix_cmnd, message->topic, &match);
-    if (!match) {
-        return;
-    }*/
 
     /*
      * Check if the topic is in the form topic_prefix/file/parameter
@@ -457,6 +450,7 @@ int mqtt_connect()
         if (rc != MQTT_CODE_SUCCESS) {
             fprintf(stderr, "Unable to subscribe to the broker: %s (%d)\n",
                 MqttClient_ReturnCodeToString(rc), rc);
+            usleep(500*1000);
             continue;
         }
 

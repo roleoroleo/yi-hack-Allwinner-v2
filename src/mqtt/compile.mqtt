@@ -17,7 +17,7 @@ export CFLAGS="-Os -mcpu=cortex-a7 -mfpu=neon-vfpv4 -I/opt/yi/toolchain-sunxi-mu
 export LIBS="-L/opt/yi/toolchain-sunxi-musl/toolchain/lib -L${CPWD}/${WOLFSSL_DIR}/lib -L${CPWD}/${WOLFMQTT_DIR}/lib -L${CPWD}/${MOSQUITTO_DIR}/lib"
 
 make clean
-make -j $(nproc) || exit 1
+make -j $(nproc)
 
 mkdir -p ../_install/bin
 mkdir -p ../_install/etc

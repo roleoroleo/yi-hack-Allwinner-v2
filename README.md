@@ -71,24 +71,25 @@ Check the wiki: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Manual-f
 Several [optional utilities](https://github.com/roleoroleo/yi-hack-utils) are avaiable, some supporting experimental features like text-to-speech.
 
 
-### Custom video watermark (y623 / Kami)
+### Custom video watermark (bind-mount)
 
-On the `y623` model, the firmware uses these watermark bitmap files:
+Some models store the video watermark in bitmap files under `/home/app/` (e.g. `main.bmp` / `sub.bmp` or `main_kami.bmp` / `sub_kami.bmp`).
 
-- `/home/app/main_kami.bmp`
-- `/home/app/sub_kami.bmp`
+You can replace them at boot using `mount --bind` **if** you provide custom BMP files on the SD card under `yi-hack/watermark/`.
 
-You can replace them at boot using `mount --bind` **if** you provide custom BMP files on the SD card:
+- For models using `main.bmp` / `sub.bmp`:
+  - `yi-hack/watermark/main.bmp`
+  - `yi-hack/watermark/sub.bmp`
+- For models using `main_kami.bmp` / `sub_kami.bmp`:
+  - `yi-hack/watermark/main_kami.bmp`
+  - `yi-hack/watermark/sub_kami.bmp`
 
-- `yi-hack/watermark/main_kami.bmp`
-- `yi-hack/watermark/sub_kami.bmp`
-
-If your custom files are present, they are bind-mounted over the original files during startup.
+If your custom files are present, they are bind-mounted over the original files during startup before `./dispatch` is started.
 
 Verify on the camera (SSH):
 
 ```sh
-mount | grep -E 'main_kami\\.bmp|sub_kami\\.bmp'
+mount | grep -E 'main(_kami)?\\.bmp|sub(_kami)?\\.bmp'
 ```
 
 If you don’t see the change immediately, reboot the camera (those resources are typically read during startup).

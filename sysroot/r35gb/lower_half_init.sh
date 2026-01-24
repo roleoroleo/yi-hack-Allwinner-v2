@@ -189,6 +189,18 @@ mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /backup/tools/wifidhcp.sh
 mount --bind /tmp/sd/yi-hack/script/ethdhcp.sh /home/app/script/ethdhcp.sh
 mount --bind /tmp/sd/yi-hack/script/ethdhcp.sh /backup/tools/ethdhcp.sh
 
+if [ -f /tmp/sd/yi-hack/watermark/main.bmp ] && [ -f /home/app/main.bmp ]; then
+    mount --bind /tmp/sd/yi-hack/watermark/main.bmp /home/app/main.bmp
+elif [ -f /tmp/sd/yi-hack/watermark/main_kami.bmp ] && [ -f /home/app/main_kami.bmp ]; then
+    mount --bind /tmp/sd/yi-hack/watermark/main_kami.bmp /home/app/main_kami.bmp
+fi
+
+if [ -f /tmp/sd/yi-hack/watermark/sub.bmp ] && [ -f /home/app/sub.bmp ]; then
+    mount --bind /tmp/sd/yi-hack/watermark/sub.bmp /home/app/sub.bmp
+elif [ -f /tmp/sd/yi-hack/watermark/sub_kami.bmp ] && [ -f /home/app/sub_kami.bmp ]; then
+    mount --bind /tmp/sd/yi-hack/watermark/sub_kami.bmp /home/app/sub_kami.bmp
+fi
+
 LD_PRELOAD=/tmp/sd/yi-hack/lib/ipc_multiplex.so ./dispatch &
 #sleep 2
 #./rmm &

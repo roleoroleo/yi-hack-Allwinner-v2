@@ -193,6 +193,14 @@ else
     mount --bind /tmp/sd/yi-hack/script/ethdhcp.sh /home/app/script/ethdhcp.sh
     mount --bind /tmp/sd/yi-hack/script/ethdhcp.sh /backup/tools/ethdhcp.sh
 
+    if [ -f /tmp/sd/yi-hack/watermark/main_kami.bmp ]; then
+        mount --bind /tmp/sd/yi-hack/watermark/main_kami.bmp /home/app/main_kami.bmp
+    fi
+
+    if [ -f /tmp/sd/yi-hack/watermark/sub_kami.bmp ]; then
+        mount --bind /tmp/sd/yi-hack/watermark/sub_kami.bmp /home/app/sub_kami.bmp
+    fi
+
     LD_PRELOAD=/tmp/sd/yi-hack/lib/ipc_multiplex.so ./dispatch &
 #    sleep 2
 #    ./rmm &

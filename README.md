@@ -71,6 +71,29 @@ Check the wiki: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Manual-f
 Several [optional utilities](https://github.com/roleoroleo/yi-hack-utils) are avaiable, some supporting experimental features like text-to-speech.
 
 
+### Custom video watermark (y623 / Kami)
+
+On the `y623` model, the firmware uses these watermark bitmap files:
+
+- `/home/app/main_kami.bmp`
+- `/home/app/sub_kami.bmp`
+
+You can replace them at boot using `mount --bind` **if** you provide custom BMP files on the SD card:
+
+- `yi-hack/watermark/main_kami.bmp`
+- `yi-hack/watermark/sub_kami.bmp`
+
+If your custom files are present, they are bind-mounted over the original files during startup.
+
+Verify on the camera (SSH):
+
+```sh
+mount | grep -E 'main_kami\\.bmp|sub_kami\\.bmp'
+```
+
+If you don’t see the change immediately, reboot the camera (those resources are typically read during startup).
+
+
 ## Contributing and Bug Reports
 See [CONTRIBUTING](CONTRIBUTING.md)
 

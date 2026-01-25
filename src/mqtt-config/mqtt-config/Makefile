@@ -1,8 +1,16 @@
 TARGET = mqtt-config
 
-LIBS = -L./lib -lmosquitto -lrt -lpthread
+CFLAGS += -Os -Wall -I.
 
-CFLAGS = -Os -Wall -I.
+LIBS += -L./lib
+ifdef USE_MOSQUITTO
+MQTT_LIB="-DUSE_MOSQUITTO"
+LIBS += -lmosquitto
+else
+LIBS += -lwolfmqtt \
+        -lwolfssl
+endif
+LIBS += -lrt -lpthread
 
 .PHONY: default all clean
 
@@ -13,7 +21,7 @@ OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c))
 HEADERS = $(wildcard *.h)
 
 %.o: %.c $(HEADERS)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(MQTT_LIB) $(CFLAGS) -c $< -o $@
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 

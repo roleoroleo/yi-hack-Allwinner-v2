@@ -30,7 +30,7 @@ rm -rf ./live
 rm -rf ./fdk-aac
 rm -rf ./libhelix-aac
 
-# fdk-aac
+# libhelix-aac
 if [ ! -f ${ARCHIVE_LIBHELIXAAC} ]; then
     wget https://github.com/earlephilhower/ESP8266Audio/archive/refs/tags/${ARCHIVE_LIBHELIXAAC}
 fi

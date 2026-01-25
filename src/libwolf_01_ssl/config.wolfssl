@@ -1,0 +1,8 @@
+#!/bin/bash
+
+VERSION="5.8.4"
+MAIN_URL=https://github.com/wolfSSL/wolfssl/archive/refs/tags/v${VERSION}-stable.tar.gz
+PACKAGE="v${VERSION}-stable"
+ARCHIVE="${PACKAGE}.tar.gz"
+BUILD_FOLDER="wolfssl-${VERSION}-stable"
+LIB_VERSION="44.0.1"

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+source config.wolfmqtt
+
+mkdir -p ../../build/yi-hack/bin/ || exit 1
+mkdir -p ../../build/yi-hack/lib/ || exit 1
+
+LIB_VERSION_1=$(echo ${LIB_VERSION} | cut -d '.' -f 1)
+
+cp ./_install/lib/libwolfmqtt.so.${LIB_VERSION} ../../build/yi-hack/lib/libwolfmqtt.so.${LIB_VERSION_1}
+cp ./_install/bin/mqtt-pub ../../build/yi-hack/bin/
+cp ./_install/bin/mqtt-sub ../../build/yi-hack/bin/

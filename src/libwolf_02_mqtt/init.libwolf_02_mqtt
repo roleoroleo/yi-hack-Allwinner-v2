@@ -1,0 +1,32 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+CPWD=$(pwd)
+
+rm -rf ./_install
+
+source config.wolfmqtt
+
+if [ ! -f "${ARCHIVE}" ]; then
+    wget "${MAIN_URL}"
+fi
+
+tar xvf "${ARCHIVE}"
+
+cd "${BUILD_FOLDER}"
+
+./autogen.sh
+
+./configure CC=arm-openwrt-linux-gcc \
+    CFLAGS="-Os -mcpu=cortex-a7 -mfpu=neon-vfpv4 -I/opt/yi/toolchain-sunxi-musl/toolchain/include -I${CPWD}/${WOLFSSL_DIR}/include -L/opt/yi/toolchain-sunxi-musl/toolchain/lib -L${CPWD}/${WOLFSSL_DIR}/lib" \
+    AR=arm-openwrt-linux-ar \
+    RANLIB=arm-openwrt-linux-ranlib \
+    --host=arm-openwrt-linux \
+    --prefix=$CPWD/_install \
+    --enable-tls \
+    || exit 1
+
+cd ..
+patch -p0 < ./fflush.patch

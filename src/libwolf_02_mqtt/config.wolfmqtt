@@ -1,0 +1,8 @@
+#!/bin/bash
+
+VERSION="1.20.0"
+MAIN_URL=https://github.com/wolfSSL/wolfMQTT/archive/refs/tags/v${VERSION}.tar.gz
+ARCHIVE="v${VERSION}.tar.gz"
+BUILD_FOLDER="wolfMQTT-${VERSION}"
+LIB_VERSION="18.0.0"
+WOLFSSL_DIR="../libwolf_01_ssl/_install"

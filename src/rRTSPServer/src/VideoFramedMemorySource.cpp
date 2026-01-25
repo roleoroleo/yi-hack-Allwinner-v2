@@ -87,7 +87,7 @@ void VideoFramedMemorySource::doGetNextFrame() {
         // Yes, I know that I should not block the event loop
         while (fQBuffer->frame_queue.size() < 5) {
             pthread_mutex_unlock(&(fQBuffer->mutex));
-            usleep(1000);
+            usleep(2000);
             pthread_mutex_lock(&(fQBuffer->mutex));
         }
         while (fQBuffer->frame_queue.size() > 5) fQBuffer->frame_queue.pop();
@@ -113,11 +113,16 @@ void VideoFramedMemorySource::doGetNextFrame() {
         if (fQBuffer->frame_queue.size() == 0) {
             pthread_mutex_unlock(&(fQBuffer->mutex));
             if (debug & 4) fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() queue is empty\n", current_timestamp());
-            usleep(1000);
+            fFrameSize = 0;
+            fNumTruncatedBytes = 0;
+            //usleep(2000);
+            nextTask() = envir().taskScheduler().scheduleDelayedTask(2000,
+                                 (TaskFunc*)FramedSource::afterGetting, this);
+            return;
         } else if (fQBuffer->frame_queue.front().frame.size() == 0) {
             pthread_mutex_unlock(&(fQBuffer->mutex));
             fprintf(stderr, "%lld: VideoFramedMemorySource - doGetNextFrame() error - NULL ptr\n", current_timestamp());
-            usleep(1000);
+            usleep(2000);
         } else if (memcmp(NALU_HEADER, fQBuffer->frame_queue.front().frame.data(), sizeof(NALU_HEADER)) != 0) {
             // Maybe the buffer is too small, align read index with write index
             if (fQBuffer->frame_queue.size() > 0) {
@@ -183,5 +188,8 @@ void VideoFramedMemorySource::doGetNextFrame() {
     }
 
     // Inform the reader that he has data:
-    FramedSource::afterGetting(this);
+//    FramedSource::afterGetting(this);
+    // Switch to another task, and inform the reader that he has data:
+    nextTask() = envir().taskScheduler().scheduleDelayedTask(0,
+                                         (TaskFunc*)FramedSource::afterGetting, this);
 }

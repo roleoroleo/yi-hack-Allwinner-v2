@@ -1,3 +1,10 @@
+#!/bin/bash
+
+source config.mosquitto
+
+if [ "$USE_MOSQUITTO" != "1" ]; then
+    exit
+fi
 
 set -e
 

@@ -19,7 +19,16 @@ export AR=${CROSSPREFIX}ar
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
+CPWD=$(pwd)
+MOSQUITTO_DIR="../mosquitto/_install"
+WOLFSSL_DIR="../libwolf_01_ssl/_install"
+WOLFMQTT_DIR="../libwolf_02_mqtt/_install"
+
 cd mqtt-config
+
+#export USE_MOSQUITTO=1
+export CFLAGS="-I${CPWD}/${WOLFSSL_DIR}/include -I${CPWD}/${WOLFMQTT_DIR}/include -I${CPWD}/${MOSQUITTO_DIR}/../mosquitto/lib"
+export LIBS="-L${CPWD}/${WOLFSSL_DIR}/lib -L${CPWD}/${WOLFMQTT_DIR}/lib -L${CPWD}/${MOSQUITTO_DIR}/lib"
 
 make clean
 make -j $(nproc) || exit 1

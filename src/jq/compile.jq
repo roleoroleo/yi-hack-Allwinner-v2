@@ -22,16 +22,17 @@ export AR=${CROSSPREFIX}ar
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
-cd jq-${VERSION} || exit 1
+cd jq-${VERSION}
 
 make clean
-make -j $(nproc) || exit 1
+make -j $(nproc)
 
-mkdir -p ../_install/bin || exit 1
-mkdir -p ../_install/lib || exit 1
+mkdir -p ../_install/bin
+mkdir -p ../_install/lib
 
 cp ./vendor/oniguruma/src/.libs/libonig.so* ../_install/lib
-cp ./.libs/libjq.so* ../_install/lib || exit 1
-cp ./.libs/jq ../_install/bin || exit 1
+cp ./.libs/libjq.so* ../_install/lib
+cp ./.libs/jq ../_install/bin
 
-$STRIP ../_install/bin/* || exit 1
+$STRIP ../_install/bin/*
+$STRIP ../_install/lib/*

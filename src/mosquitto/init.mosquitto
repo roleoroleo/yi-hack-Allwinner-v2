@@ -1,9 +1,15 @@
 #!/bin/bash
 
+source config.mosquitto
+
+if [ "$USE_MOSQUITTO" != "1" ]; then
+    exit
+fi
+
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
 
 rm -rf ./_install
 
-cd mosquitto || exit 1
+cd "${BUILD_FOLDER}" || exit 1
 git reset --hard

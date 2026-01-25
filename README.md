@@ -75,7 +75,20 @@ Several [optional utilities](https://github.com/roleoroleo/yi-hack-utils) are av
 
 Some models store the video watermark in bitmap files under `/home/app/` (e.g. `main.bmp` / `sub.bmp` or `main_kami.bmp` / `sub_kami.bmp`).
 
-You can replace them at boot using `mount --bind` **if** you provide custom BMP files on the SD card under `yi-hack/watermark/`.
+#### Built-in Watermark Disable (Easy Method)
+
+The easiest way to remove the camera watermark is through the web interface:
+
+1. Navigate to **Configurations** page
+2. Enable **"Disable Camera Watermark"**
+3. Click **"Save Configuration"**
+4. **Reboot** the camera
+
+When enabled, the firmware automatically replaces the watermark with blank (gray) images. To restore the original watermark, simply disable the option and reboot.
+
+#### Advanced: Custom Watermark Images
+
+You can also provide your own custom BMP files on the SD card under `yi-hack/watermark/`:
 
 - For models using `main.bmp` / `sub.bmp`:
   - `yi-hack/watermark/main.bmp`
@@ -84,17 +97,15 @@ You can replace them at boot using `mount --bind` **if** you provide custom BMP 
   - `yi-hack/watermark/main_kami.bmp`
   - `yi-hack/watermark/sub_kami.bmp`
 
-If your custom files are present, they are bind-mounted over the original files during startup before `./dispatch` is started.
+If your custom files are present (and **"Disable Camera Watermark"** is not enabled), they are bind-mounted over the original files during startup before `./dispatch` is started.
 
 Verify on the camera (SSH):
 
 ```sh
-mount | grep -E 'main(_kami)?\\.bmp|sub(_kami)?\\.bmp'
+mount | grep -E 'main(_kami)?\.bmp|sub(_kami)?\.bmp'
 ```
 
-If you don’t see the change immediately, reboot the camera (those resources are typically read during startup).
-
-
+If you don't see the change immediately, reboot the camera (those resources are typically read during startup).
 ## Contributing and Bug Reports
 See [CONTRIBUTING](CONTRIBUTING.md)
 

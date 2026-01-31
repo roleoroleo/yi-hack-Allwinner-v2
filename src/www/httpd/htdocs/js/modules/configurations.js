@@ -109,6 +109,20 @@ APP.configurations = (function($) {
                     if (key == "go2rtc" && state == "no") {
                         $("#RTSP_ALT option[value='go2rtc']").remove();
                     }
+                    if (key == "model_suffix") {
+                        watermark_models = ["y623", "r37gb", "y28ga"];
+                        if (watermark_models.includes(state)) {
+                            var lst = document.querySelectorAll(".watermark-option");
+                            for(var i = 0; i < lst.length; ++i) {
+                                lst[i].style.display = 'table-row';
+                            }
+                        } else {
+                            var lst = document.querySelectorAll(".watermark-option");
+                            for(var i = 0; i < lst.length; ++i) {
+                                lst[i].style.display = 'none';
+                            }
+                        }
+                    }
                 });
             },
             error: function(response) {

@@ -70,18 +70,6 @@ Check the wiki: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Manual-f
 ### Optional Utilities 
 Several [optional utilities](https://github.com/roleoroleo/yi-hack-utils) are avaiable, some supporting experimental features like text-to-speech.
 
-
-### Custom video watermark
-
-**Note**: This feature is currently available for select models that display a YI or Kami watermark (y623, r37gb, y28ga).
-
-You can disable the camera watermark through the web interface:
-
-1. Navigate to **Configurations** page
-2. Enable **"Disable Camera Watermark"**
-3. Click **"Save Configuration"** and **reboot**
-
-For advanced customization options and technical details, see the [Watermark Customization Wiki](https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Watermark-Customization).
 ## Contributing and Bug Reports
 See [CONTRIBUTING](CONTRIBUTING.md)
 

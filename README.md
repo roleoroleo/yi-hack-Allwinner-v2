@@ -71,41 +71,17 @@ Check the wiki: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Manual-f
 Several [optional utilities](https://github.com/roleoroleo/yi-hack-utils) are avaiable, some supporting experimental features like text-to-speech.
 
 
-### Custom video watermark (bind-mount)
+### Custom video watermark
 
-Some models store the video watermark in bitmap files under `/home/app/` (e.g. `main.bmp` / `sub.bmp` or `main_kami.bmp` / `sub_kami.bmp`).
+**Note**: This feature is currently available for select models that display a YI or Kami watermark (y623, r37gb, y28ga).
 
-#### Built-in Watermark Disable (Easy Method)
-
-The easiest way to remove the camera watermark is through the web interface:
+You can disable the camera watermark through the web interface:
 
 1. Navigate to **Configurations** page
 2. Enable **"Disable Camera Watermark"**
-3. Click **"Save Configuration"**
-4. **Reboot** the camera
+3. Click **"Save Configuration"** and **reboot**
 
-When enabled, the firmware automatically replaces the watermark with blank (gray) images. To restore the original watermark, simply disable the option and reboot.
-
-#### Advanced: Custom Watermark Images
-
-You can also provide your own custom BMP files on the SD card under `yi-hack/watermark/`:
-
-- For models using `main.bmp` / `sub.bmp`:
-  - `yi-hack/watermark/main.bmp`
-  - `yi-hack/watermark/sub.bmp`
-- For models using `main_kami.bmp` / `sub_kami.bmp`:
-  - `yi-hack/watermark/main_kami.bmp`
-  - `yi-hack/watermark/sub_kami.bmp`
-
-If your custom files are present (and **"Disable Camera Watermark"** is not enabled), they are bind-mounted over the original files during startup before `./dispatch` is started.
-
-Verify on the camera (SSH):
-
-```sh
-mount | grep -E 'main(_kami)?\.bmp|sub(_kami)?\.bmp'
-```
-
-If you don't see the change immediately, reboot the camera (those resources are typically read during startup).
+For advanced customization options and technical details, see the [Watermark Customization Wiki](https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/Watermark-Customization).
 ## Contributing and Bug Reports
 See [CONTRIBUTING](CONTRIBUTING.md)
 

@@ -118,7 +118,13 @@ mount --bind /tmp/sd/yi-hack/script/ethdhcp.sh /home/app/script/ethdhcp.sh
 mount --bind /tmp/sd/yi-hack/script/ethdhcp.sh /backup/tools/ethdhcp.sh
 
 # Custom watermark: override with blank BMPs if enabled
-    if [ "$(get_config CUSTOM_WATERMARK)" == "yes" ]; then
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+CONF_FILE="etc/system.conf"
+get_config() {
+    key=$1
+    grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2
+}
+if [ "$(get_config CUSTOM_WATERMARK)" == "yes" ]; then
         # Main watermark
         if [ -f /tmp/sd/yi-hack/etc/watermark/main_blank.bmp ] && [ -f /home/app/main.bmp ]; then
             mount --bind /tmp/sd/yi-hack/etc/watermark/main_blank.bmp /home/app/main.bmp
@@ -139,7 +145,7 @@ mount --bind /tmp/sd/yi-hack/script/ethdhcp.sh /backup/tools/ethdhcp.sh
         mount --bind /tmp/sd/yi-hack/watermark/main_kami.bmp /home/app/main_kami.bmp
     fi
 
-    if [ "$(get_config CUSTOM_WATERMARK)" != "yes" ]; then
+if [ "$(get_config CUSTOM_WATERMARK)" != "yes" ]; then
         if [ -f /tmp/sd/yi-hack/watermark/sub.bmp ] && [ -f /home/app/sub.bmp ]; then
             mount --bind /tmp/sd/yi-hack/watermark/sub.bmp /home/app/sub.bmp
         elif [ -f /tmp/sd/yi-hack/watermark/sub_kami.bmp ] && [ -f /home/app/sub_kami.bmp ]; then

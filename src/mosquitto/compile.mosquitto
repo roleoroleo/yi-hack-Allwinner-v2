@@ -38,6 +38,7 @@ cp ./client/mosquitto_pub ../_install/bin || exit 1
 cp ./client/mosquitto_sub ../_install/bin || exit 1
 
 cp ./lib/libmosquitto.so.1 ../_install/lib || exit 1
+ln -s libmosquitto.so.1 ../_install/lib/libmosquitto.so
 
 arm-openwrt-linux-strip ../_install/bin/* || exit 1
 arm-openwrt-linux-strip ../_install/lib/* || exit 1

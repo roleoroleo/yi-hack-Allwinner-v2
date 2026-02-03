@@ -136,6 +136,7 @@ Currently this project supports only the following cameras:
 | Yi 1080p Home | BFUS - IFUS - RFUS | 12.1.19* | y21ga | - |
 | Yi 1080p Home | IFUS - QFUS - RFUS | 9.0.36* | y211ga | - |
 | Yi 1080p Home | IFUS - QFUS - RFUS | 12.0.37* | y211ga | - |
+| Yi 1080p Home | IFUS - QFUS - RFUS | 12.1.37* | y211ga | - |
 | Yi 1080p Home | QFUS - RFUS | 9.0.35* | y291ga | - |
 | Yi 1080p Home | QFUS - RFUS | 12.0.35* | y291ga | - |
 | Yi Outdoor 1080p | IFUS - RFUS | 9.0.26* | h30ga | - |

@@ -91,6 +91,7 @@ This custom firmware contains features replicated from the [yi-hack-MStar](https
   - Timelapse feature
   - MQTT events - Motion detection and baby crying detection through mqtt protocol.
   - MQTT configuration
+  - TLS support for MQTT
   - Web server - web configuration interface.
   - SSH server - dropbear.
   - Telnet server - busybox.

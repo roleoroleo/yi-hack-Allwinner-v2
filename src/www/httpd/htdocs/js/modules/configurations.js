@@ -109,6 +109,12 @@ APP.configurations = (function($) {
                     if (key == "go2rtc" && state == "no") {
                         $("#RTSP_ALT option[value='go2rtc']").remove();
                     }
+                    if (key == "model_suffix") {
+                        var watermarkModels = ["y623", "r37gb", "y28ga"];
+                        if (watermarkModels.indexOf(state) !== -1) {
+                            $(".watermark-option").show();
+                        }
+                    }
                 });
             },
             error: function(response) {

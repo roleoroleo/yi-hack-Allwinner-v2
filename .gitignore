@@ -15,3 +15,9 @@ INIT_SUBMODULES.md
 src/h264grabber/h264grabber/h264grabber
 src/ipc_cmd/ipc_cmd/ipc_cmd
 src/snapshot/snapshot/imggrabber
+
+# Downloaded/extracted dependency sources (not submodules)
+src/libwolf_*/
+
+# Artifact created by pack_fw.sh
+scripts/yi-hack-Allwinner-v2/

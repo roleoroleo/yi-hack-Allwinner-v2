@@ -93,12 +93,21 @@ BUILD_DIR=$BASE_DIR/build
 OUT_DIR=$BASE_DIR/out/$CAMERA_NAME
 VER=$(cat VERSION)
 
+# Append git short hash when building outside a tagged release,
+# so local builds are distinguishable from official releases.
+GIT_TAG=$(git -C "$BASE_DIR" tag --points-at HEAD 2>/dev/null | grep -Fx "$VER" | head -1)
+if [ -z "$GIT_TAG" ]; then
+    GIT_HASH=$(git -C "$BASE_DIR" rev-parse --short HEAD 2>/dev/null || echo "custom")
+    VER="${VER}-${GIT_HASH}"
+fi
+
 echo ""
 echo "------------------------------------------------------------------------"
 echo " YI-HACK - FIRMWARE PACKER"
 echo "------------------------------------------------------------------------"
 printf " camera_name      : %s\n" $CAMERA_NAME
 printf " camera_id        : %s\n" $CAMERA_ID
+printf " version          : %s\n" $VER
 printf "                      \n"
 printf " sysroot_dir      : %s\n" $SYSROOT_DIR
 printf " static_dir       : %s\n" $STATIC_DIR
@@ -136,8 +145,8 @@ echo -n ">>> Adding defaults... "
 echo "done!"
 
 # insert the version file
-echo -n ">>> Copying the version file... "
-cp $BASE_DIR/VERSION $TMP_DIR/yi-hack/version
+echo -n ">>> Writing the version file... "
+echo "$VER" > $TMP_DIR/yi-hack/version
 echo "done!"
 
 # insert the model suffix file

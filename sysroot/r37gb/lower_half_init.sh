@@ -180,6 +180,10 @@ mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /backup/tools/wifidhcp.sh
 mount --bind /tmp/sd/yi-hack/script/ethdhcp.sh /home/app/script/ethdhcp.sh
 mount --bind /tmp/sd/yi-hack/script/ethdhcp.sh /backup/tools/ethdhcp.sh
 
+if [ "$(grep -w CUSTOM_WATERMARK /tmp/sd/yi-hack/etc/system.conf | cut -d= -f2)" = "yes" ]; then
+    mount --bind /tmp/sd/yi-hack/etc/watermark/blank.bmp /home/app/main_kami.bmp
+    mount --bind /tmp/sd/yi-hack/etc/watermark/blank.bmp /home/app/sub_kami.bmp
+fi
 LD_PRELOAD=/tmp/sd/yi-hack/lib/ipc_multiplex.so ./dispatch &
 #sleep 2
 #./rmm &

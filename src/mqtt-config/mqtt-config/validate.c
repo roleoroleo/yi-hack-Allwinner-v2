@@ -95,7 +95,7 @@ int validate_param(char *file, char *key, char *value)
     char *endptr;
 
     for (i = 0; i < PARAM_NUM; i++) {
-        if (strcasecmp(key, config_params[i][1]) == 0) {
+        if (strncasecmp(key, config_params[i][1], 9) == 0) {
             if (strcasecmp(file, config_params[i][0]) != 0) {
                 validate = 0;
                 break;

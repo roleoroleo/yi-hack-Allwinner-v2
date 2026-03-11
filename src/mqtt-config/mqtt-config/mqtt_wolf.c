@@ -277,7 +277,7 @@ static int mqtt_tls_cb(MqttClient* client)
 static int mqtt_message_cb(MqttClient *client, MqttMessage *msg,
                            byte msg_new, byte msg_done)
 {
-    char topic_prefix[MAX_LINE_LENGTH], topic[MAX_LINE_LENGTH], file[MAX_KEY_LENGTH], param[MAX_KEY_LENGTH];
+    char topic_prefix[MAX_LINE_LENGTH], topic_name[MAX_LINE_LENGTH], topic[MAX_LINE_LENGTH], file[MAX_KEY_LENGTH], param[MAX_KEY_LENGTH];
     char conf_file[256];
     char *slash;
     int len;
@@ -286,7 +286,14 @@ static int mqtt_message_cb(MqttClient *client, MqttMessage *msg,
     char *s;
     char value[MAX_VALUE_LENGTH];
 
-    if (debug) printf("Received message for topic '%s'\n", msg->topic_name);
+    if ((msg_new != 1) || (msg_done != 1)) {
+        if (debug) printf("Unhandled message\n");
+        return -1;
+    }
+
+    memset(topic_name, '\0', MAX_LINE_LENGTH);
+    strncpy(topic_name, msg->topic_name, msg->topic_name_len);
+    if (debug) printf("Received message for topic '%s'\n", topic_name);
 
     /*
      * Check if the topic is in the form topic_prefix/file/parameter
@@ -303,16 +310,16 @@ static int mqtt_message_cb(MqttClient *client, MqttMessage *msg,
         return -1;
     }
     strncpy(topic_prefix, mqtt_conf->mqtt_prefix_cmnd, len);
-    if (strncasecmp(topic_prefix, msg->topic_name, len) != 0) {
+    if (strncasecmp(topic_prefix, topic_name, len) != 0) {
         return -1;
     }
-    if (strlen(msg->topic_name) < len + 2) {
+    if (strlen(topic_name) < len + 2) {
         return -1;
     }
-    if (strchr(msg->topic_name, '/') == NULL) {
+    if (strchr(topic_name, '/') == NULL) {
         return -1;
     }
-    strcpy(topic, &(msg->topic_name)[len + 1]);
+    strcpy(topic, &(topic_name)[len + 1]);
     slash = strchr(topic, '/');
     if (slash == NULL) {
         strcpy(file, topic);
@@ -342,11 +349,11 @@ static int mqtt_message_cb(MqttClient *client, MqttMessage *msg,
         if (debug) printf("Param is empty\n");
         return MQTT_CODE_ERROR_BAD_ARG;
     }
-    if ((msg->buffer == NULL) || (msg->buffer_len == 0)) {
+    if ((msg->buffer == NULL) || (msg->total_len == 0)) {
         if (debug) printf("Payload is empty\n");
         return MQTT_CODE_ERROR_BAD_ARG;
     }
-    if (msg->buffer_len > MAX_VALUE_LENGTH - 1) {
+    if (msg->total_len > MAX_VALUE_LENGTH - 1) {
         if (debug) printf("Payload is too long\n");
         return MQTT_CODE_ERROR_BAD_ARG;
     }
@@ -358,7 +365,7 @@ static int mqtt_message_cb(MqttClient *client, MqttMessage *msg,
     }
     // Convert buffer to null terminated string
     memset(value, '\0', sizeof(value));
-    memcpy(value, msg->buffer, msg->buffer_len);
+    memcpy(value, msg->buffer, msg->total_len);
     if (debug) printf("Validating: file \"%s\", parameter \"%s\", value \"%s\"\n", file, param, value);
     if (validate_param(file, param, value) == 1) {
         // Check if we need to run ipc_cmd
@@ -369,13 +376,15 @@ static int mqtt_message_cb(MqttClient *client, MqttMessage *msg,
                 system(cmd_line);
             } else {
                 sprintf(conf_file, "%s/%s.conf", CONF_FILE_PATH, file);
-                if (debug) fprintf(stderr, "Updating file \"%s\", parameter \"%s\" with value \"%s\"\n", file, param, (char *) msg->buffer);
-                config_replace(conf_file, param, (char *) msg->buffer);
+                if (debug) fprintf(stderr, "Updating file \"%s\", parameter \"%s\" with value \"%s\"\n", file, param, value);
+                config_replace(conf_file, param, value);
             }
         }
     } else {
-        printf("Validation error: file \"%s\", parameter \"%s\", value \"%s\"\n", file, param, (char *) msg->buffer);
-        return -1;
+        printf("Validation error: file \"%s\", parameter \"%s\", value \"%s\"\n", file, param, value);
+        // Avoid disconnect when using wolf
+        // return -1; Avoid disconnect when using wolf
+        return MQTT_CODE_SUCCESS;
     }
 
     return MQTT_CODE_SUCCESS;

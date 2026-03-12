@@ -202,7 +202,20 @@ data:
   message: "All your base are belong to us."
   volume: '-8'
 ``` 
+## Telegram Control System
 
+A complete remote surveillance and control system: control your camera, receive automatic alerts, and communicate bidirectionally — all through a Telegram bot.
+Features
+	- On-demand snapshot and video recording via Telegram commands
+	- Automatic motion alerts with photo
+	- Automatic sound alerts with snapshot + 15s audio clip
+	- Bidirectional voice intercom — speak through Telegram, hear through the camera speaker
+	- Blue LED control — turn on/off remotely
+	- Infrared control — turn on/off remotely
+	- Silent mode — suppress notifications without stopping the watchers
+	- System status — IP, uptime, memory, process PIDs
+	- Remote reboot
+[Get scripts here](https://github.com/tingolinchi/yi-home-telegram).
 
 ## Build your own firmware
 

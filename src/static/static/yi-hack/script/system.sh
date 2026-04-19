@@ -386,13 +386,7 @@ if [[ $(get_config MDNSD) == "yes" ]] ; then
 fi
 
 if [[ $(get_config TIME_OSD) == "yes" ]] ; then
-    log "Enable time osd"
-    # Enable time osd
-    set_tz_offset -c osd -o on
-    # Set timezone for time osd
-    TZP=$(TZ=$TZ_TMP date +%z)
-    TZP_SET=$(echo ${TZP:0:1} ${TZP:1:2} ${TZP:3:2} | awk '{ print ($1$2*3600+$3*60) }')
-    set_tz_offset -c tz_offset_osd -m $MODEL_SUFFIX -f $HV -v $TZP_SET
+    $YI_HACK_PREFIX/script/update_osd_tz.sh
 fi
 
 log "Starting crontab"
@@ -402,6 +396,9 @@ FREE_SPACE=$(get_config FREE_SPACE)
 mkdir -p /var/spool/cron/crontabs/
 if [ ! -z "$CRONTAB" ]; then
     echo -e "$CRONTAB" > /var/spool/cron/crontabs/root
+fi
+if [[ $(get_config TIME_OSD) == "yes" ]] ; then
+    echo "1 * * * * /tmp/sd/yi-hack/script/update_osd_tz.sh" >> /var/spool/cron/crontabs/root
 fi
 if [[ $(get_config SNAPSHOT) == "yes" ]] && [[ $(get_config SNAPSHOT_VIDEO) == "yes" ]] ; then
     echo "* * * * * /tmp/sd/yi-hack/script/thumb.sh cron" >> /var/spool/cron/crontabs/root

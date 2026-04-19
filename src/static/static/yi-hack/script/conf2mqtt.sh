@@ -1,5 +1,8 @@
 #!/bin/sh
 
+TMPFILE=$(LC_ALL=C tr -dc 'a-zA-Z0-9' < /dev/urandom | dd bs=1 count=16 2>/dev/null)
+TMPFILE=/tmp/$TMPFILE.tmp
+
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 CAMERA_CONF_FILE="$YI_HACK_PREFIX/etc/camera.conf"
 MQTT_CONF_FILE="$YI_HACK_PREFIX/etc/mqttv4.conf"
@@ -53,7 +56,13 @@ if [ ! -z "$MQTT_PASSWORD" ]; then
     MQTT_PASSWORD="-w $MQTT_PASSWORD"
 fi
 
+echo "#!/bin/sh" > $TMPFILE
 while IFS='=' read -r key val ; do
     lkey="$(echo $key | tr '[A-Z]' '[a-z]')"
-    $YI_HACK_PREFIX/bin/mqtt-pub -h "$MQTT_IP" -p "$MQTT_PORT" $MQTT_USER $MQTT_PASSWORD $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $MQTT_PREFIX/stat/camera/$lkey -m $val -r
+    echo $YI_HACK_PREFIX/bin/mqtt-pub -h "$MQTT_IP" -p "$MQTT_PORT" $MQTT_USER $MQTT_PASSWORD $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $MQTT_PREFIX/stat/camera/$lkey -m $val -r >> $TMPFILE
+    echo sleep 0.1 >> $TMPFILE
 done < "$CAMERA_CONF_FILE"
+
+chmod 0755 $TMPFILE
+sh $TMPFILE
+rm $TMPFILE

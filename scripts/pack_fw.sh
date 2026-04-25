@@ -173,6 +173,8 @@ rm -f $TMP_DIR/*.tgz
 echo ">>> Copying files to $OUT_DIR... "
 echo "    Copying files..."
 cp $TMP_DIR/${CAMERA_NAME}_${VER}.tgz $OUT_DIR
+mkdir -p $OUT_DIR/../all
+cp $TMP_DIR/${CAMERA_NAME}_${VER}.tgz $OUT_DIR/../all
 echo "    done!"
 
 # Cleanup

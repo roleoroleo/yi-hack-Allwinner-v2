@@ -24,6 +24,7 @@ char *config_params[PARAM_NUM][PARAM_OPTIONS] = {
     { "system", "TIMELAPSE_FTP_SAME_NAME", "bool", "", "", "" , "", "", "" },
     { "system", "TIMELAPSE_DT", "int", "1", "1440", "" , "", "", "" },
     { "system", "TIMELAPSE_VDT", "string", "1", "1440", "" , "", "", "" },
+    { "system", "MOTION_RECORDING_PRIORITY", "bool", "", "", "" , "", "", "" },
     { "system", "ONVIF", "bool", "", "", "" , "", "", "" },
     { "system", "ONVIF_WSDD", "bool", "", "", "" , "", "", "" },
     { "system", "ONVIF_PROFILE", "enum", "high", "low", "both" , "", "", "" },

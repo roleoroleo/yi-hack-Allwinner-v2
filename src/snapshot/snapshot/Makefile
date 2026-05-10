@@ -1,9 +1,9 @@
 OBJECTS = imggrabber.o convert2jpg.o add_water.o water_mark.o
-FFMPEG = ffmpeg-8.0
+FFMPEG = ffmpeg-8.1.1
 FFMPEG_DIR = ./$(FFMPEG)
 INC_FF = -I$(FFMPEG_DIR)
 LIB_FF = $(FFMPEG_DIR)/libavcodec/libavcodec.a $(FFMPEG_DIR)/libavutil/libavutil.a -lpthread -lm
-JPEGLIB_VERSION = 3.1.2
+JPEGLIB_VERSION = 3.1.4.1
 JPEGLIB = libjpeg-turbo-$(JPEGLIB_VERSION)
 JPEGLIB_DIR = ./$(JPEGLIB)
 INSTALL_LIB_J = $(JPEGLIB_DIR)/_install
@@ -85,7 +85,8 @@ define build_jpeglib_turbo
     # build
     if [ ! -f $(LIB_J) ]; then \
         cd ./$(JPEGLIB); \
-        cmake -DCMAKE_TOOLCHAIN_FILE="../arm-openwrt-linux-toolchain.cmake" -DCMAKE_INSTALL_PREFIX="../$(INSTALL_LIB_J)" -DWITH_JPEG7=1 -DWITH_JPEG8=1 ; \
+        patch -p1 < ../../fix_HWCAP_ARM.patch; \
+        cmake -DCMAKE_TOOLCHAIN_FILE="../arm-openwrt-linux-toolchain.cmake" -DCMAKE_INSTALL_PREFIX="../$(INSTALL_LIB_J)" -DWITH_JPEG7=1 -DWITH_JPEG8=1 -DNEON_INTRINSICS=1 -DWITH_SIMD=1; \
         make -j$(nproc); \
         make install; \
         cd ..;\

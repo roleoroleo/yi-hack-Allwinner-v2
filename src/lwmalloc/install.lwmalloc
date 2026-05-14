@@ -9,4 +9,4 @@ mkdir -p ../../build/yi-hack/lib/
 
 rsync -a ./${BUILD_FOLDER}/liblwmalloc.so ../../build/yi-hack/lib/
 
-#/etc/ld.so.preload
+# TODO SET /etc/ld.so.preload for loading for using it everywhere ==> need futher tests

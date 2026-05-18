@@ -110,7 +110,7 @@ APP.configurations = (function($) {
                         $("#RTSP_ALT option[value='go2rtc']").remove();
                     }
                     if (key == "model_suffix") {
-                        var watermarkModels = ["y623", "r37gb", "y28ga"];
+                        var watermarkModels = ["y623", "r37gb", "y28ga", "h52ga", "y21ga"];
                         if (watermarkModels.indexOf(state) !== -1) {
                             $(".watermark-option").show();
                         }

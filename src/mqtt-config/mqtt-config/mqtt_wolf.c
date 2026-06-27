@@ -6,10 +6,10 @@ static MqttNet wolf_net;
 static MqttClient wolf_client;
 static mqtt_conf_t *mqtt_conf;
 
-word16 packet_id = 0;
-
 unsigned char tx_buf[MQTT_MAX_PACKET_SZ];
 unsigned char rx_buf[MQTT_MAX_PACKET_SZ];
+
+word16 packet_id = 0;
 
 enum conn_states {CONN_DISCONNECTED, CONN_CONNECTING, CONN_CONNECTED};
 static enum conn_states conn_state;
@@ -20,6 +20,8 @@ static int mqtt_message_cb(MqttClient *client, MqttMessage *msg,
                            byte msg_new, byte msg_done);
 
 static mqtt_conf_t *mqtt_conf;
+
+int ping_timeout = 0;
 
 extern int debug;
 extern int run;
@@ -183,7 +185,8 @@ static int init_wolf_instance()
 
 void mqtt_loop(void) {
     int rc;
-    int counter = 0;
+    //int counter = 0;
+    int read_timeout = 1000;
 
     rc = MqttClient_WaitMessage(&wolf_client, 1000);
 
@@ -214,10 +217,11 @@ void mqtt_loop(void) {
         }
     }
 
+    ping_timeout += read_timeout;
+
     // Periodic ping
-    counter++;
-    if (counter >= MQTT_PING_INTERVAL) {
-        counter = 0;
+    if ((ping_timeout / 1000 >= MQTT_PING_INTERVAL) || (ping_timeout / 1000 >= mqtt_conf->keepalive / 2)) {
+        ping_timeout = 0;
         fprintf(stderr, "Ping the broker...\n");
         rc = MqttClient_Ping(&wolf_client);
         if (rc != MQTT_CODE_SUCCESS) {

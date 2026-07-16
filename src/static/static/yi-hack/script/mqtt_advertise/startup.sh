@@ -6,7 +6,7 @@ CONF_MQTT_ADVERTISE_FILE="etc/mqtt_advertise.conf"
 
 get_mqtt_advertise_config() {
     key=$1
-    grep -w $1 $YI_HACK_PREFIX/$CONF_MQTT_ADVERTISE_FILE | cut -d "=" -f2
+    grep -w $1 $YI_HACK_PREFIX/$CONF_MQTT_ADVERTISE_FILE | cut -d "=" -f2-
 }
 
 $YI_HACK_PREFIX/script/mqtt_advertise/check_conf.sh

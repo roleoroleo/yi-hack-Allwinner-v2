@@ -12,9 +12,9 @@ if [ ! -f "$CFG_FILE" ]; then
 fi
 
 TMP=$(cat $CFG_FILE | grep wifi_ssid=)
-SSID=$(echo "${TMP:10}")
+SSID=$(echo "${TMP:10}" | tr -d '\r')
 TMP=$(cat $CFG_FILE | grep wifi_psk=)
-KEY=$(echo "${TMP:9}")
+KEY=$(echo "${TMP:9}" | tr -d '\r')
 
 if [ -z "$SSID" ]; then
     echo "error: ssid has not been set"

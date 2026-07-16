@@ -6,7 +6,7 @@ YI_HACK_PREFIX="/tmp/sd/yi-hack"
 get_config()
 {
     key=$1
-    grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2
+    grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2-
 }
 
 LOCAL_IP=$(ifconfig eth0 | awk '/inet addr/{print substr($2,6)}')

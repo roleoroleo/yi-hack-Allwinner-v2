@@ -9,7 +9,7 @@ HV=${HOMEVER:0:2}
 get_config()
 {
     key=$1
-    grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2
+    grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2-
 }
 
 printf "Content-type: application/json\r\n\r\n"

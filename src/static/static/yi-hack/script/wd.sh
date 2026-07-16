@@ -20,13 +20,13 @@ WIFI_FAILSAFE_COUNTER=0
 get_camera_config()
 {
     key=$1
-    grep -w $1 $YI_HACK_PREFIX/$CAMERA_CONF_FILE | cut -d "=" -f2
+    grep -w $1 $YI_HACK_PREFIX/$CAMERA_CONF_FILE | cut -d "=" -f2-
 }
 
 get_config()
 {
     key=$1
-    grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2
+    grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2-
 }
 
 restart_rtsp()
@@ -224,8 +224,8 @@ check_wifi()
     if [ $WIFI_CONNECTED -eq 0 ]; then
         if [ -f /sys/class/net/wlan0/carrier ]; then
             CARRIER=$(cat /sys/class/net/wlan0/carrier 2>/dev/null)
-            if [ "$CARRIER" = "1" ]; then
-                WIFI_CONNECTED=1
+            if [ "$CARRIER" != "1" ]; then
+                WIFI_CONNECTED=0
             fi
         fi
     fi
@@ -262,6 +262,9 @@ check_wifi()
                 kill $KILLER_PID 2>/dev/null
                 wait $KILLER_PID 2>/dev/null
             fi
+
+            # Run wifidhcp.sh
+            $YI_HACK_PREFIX/script/wifidhcp.sh
         fi
     else
         # WiFi is connected - reset failure counter

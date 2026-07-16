@@ -10,12 +10,12 @@ LD_LIBRARY_PATH=$YI_HACK_PREFIX/lib:$LD_LIBRARY_PATH
 
 get_config() {
     key=^$1
-    grep -w $key $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2
+    grep -w $key $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2-
 }
 
 get_mqtt_advertise_config() {
     key=$1
-    grep -w $1 $YI_HACK_PREFIX/$CONF_MQTT_ADVERTISE_FILE | cut -d "=" -f2
+    grep -w $1 $YI_HACK_PREFIX/$CONF_MQTT_ADVERTISE_FILE | cut -d "=" -f2-
 }
 
 MQTT_IP=$(get_config MQTT_IP)

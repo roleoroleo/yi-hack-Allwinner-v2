@@ -98,6 +98,13 @@ mount --bind /tmp/sd/yi-hack/script/wifidhcp.sh /backup/tools/wifidhcp.sh
 mount --bind /tmp/sd/yi-hack/script/ethdhcp.sh /home/app/script/ethdhcp.sh
 mount --bind /tmp/sd/yi-hack/script/ethdhcp.sh /backup/tools/ethdhcp.sh
 
+if [ "$(grep -w CUSTOM_WATERMARK /tmp/sd/yi-hack/etc/system.conf | cut -d= -f2)" = "yes" ]; then
+    mount --bind /tmp/sd/yi-hack/etc/watermark/blank.bmp /home/app/main.bmp
+    mount --bind /tmp/sd/yi-hack/etc/watermark/blank.bmp /home/app/sub.bmp
+    mount --bind /tmp/sd/yi-hack/etc/watermark/blank.bmp /home/app/main_kami.bmp
+    mount --bind /tmp/sd/yi-hack/etc/watermark/blank.bmp /home/app/sub_kami.bmp
+fi
+
 if [ "$HV" == "12" ]; then
     export LD_LIBRARY_PATH=/home/app/locallib:/home/app/script:$LD_LIBRARY_PATH:/tmp
     echo $LD_LIBRARY_PATH

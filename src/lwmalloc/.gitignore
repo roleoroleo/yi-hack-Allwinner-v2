@@ -1,0 +1,6 @@
+# Ignore the install dir
+#lwmalloc-main/
+*.zip
+*.so
+test
+toolchain-glibc

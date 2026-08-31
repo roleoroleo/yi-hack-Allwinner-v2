@@ -58,6 +58,13 @@ do
         else
             ipc_cmd -v detect
         fi
+        # Persist the choice so it survives a reboot and enforce_settings.sh can
+        # re-apply it - the camera page otherwise only changes the live Yi state.
+        sed -i "s/^SAVE_VIDEO_ON_MOTION=.*/SAVE_VIDEO_ON_MOTION=$VAL/" $YI_HACK_PREFIX/etc/camera.conf
+    elif [ "$CONF" == "save_video_on_motion_persist" ] ; then
+        if [ "$VAL" == "yes" ] || [ "$VAL" == "no" ] ; then
+            sed -i "s/^SAVE_VIDEO_ON_MOTION_PERSIST=.*/SAVE_VIDEO_ON_MOTION_PERSIST=$VAL/" $YI_HACK_PREFIX/etc/camera.conf
+        fi
     elif [ "$CONF" == "motion_detection" ] ; then
         if [ "$VAL" == "no" ] || [ "$VAL" == "yes" ] ; then
             MOTION_DETECTION=$VAL

@@ -309,6 +309,145 @@ If the camera still won't start, try the "Unbrick the cam" procedure https://git
 
 ----
 
+## How it works (architecture)
+
+This section is a map for anyone hacking on the firmware. It describes the moving
+parts and how they fit together, independent of any particular camera's settings.
+
+### The big picture
+
+The hack is a **non-destructive SD-card overlay** on top of the stock Yi
+firmware. Nothing is flashed: the stock OS lives on the camera's NAND, and
+everything the hack adds lives on the FAT32 SD card under `/tmp/sd`. Pull the
+card and the camera boots stock. The only permanent change is a one-time patch to
+the stock `/backup/init.sh` (done by `Factory/config.sh` on first boot) that hooks
+the SD card's boot script into the stock startup.
+
+Because RAM is tiny (~60 MB on most models), the guiding constraint everywhere is
+**do less**: fewer processes, fewer copies of the stream, fewer wakeups.
+
+### Boot sequence
+
+```mermaid
+flowchart TD
+    A[Stock /backup/init.sh<br/>patched on first boot] --> B[lower_half_init.sh]
+    B --> C[Mount SD at /tmp/sd<br/>load wifi + sensor drivers]
+    B --> D[Yi 'dispatch' core starts<br/>ipc_multiplex.so preloaded]
+    B --> E[system.sh &]
+    E --> F[check_conf.sh<br/>seed + de-duplicate config]
+    E --> G[swap on, /etc writable, hostname, TZ]
+    E --> H[rmm + Yi pipeline<br/>drain_audio_fifo bounded]
+    E --> I[mp4record<br/>only if CAMERA_RECORDING=yes]
+    E --> J[httpd]
+    E --> K[crond<br/>clean_records, enforce_settings, timelapse...]
+    E --> L[mqtt / rtsp / onvif via service.sh]
+    L --> M[wd.sh watchdog loop]
+```
+
+Key detail: **every network service starts after the Yi camera core (`rmm`) is
+up.** The pipeline is primed by draining a few KB from `/tmp/audio_fifo`. That
+drain is bounded (`drain_audio_fifo` in [system.sh](src/static/static/yi-hack/script/system.sh)) —
+an unbounded read there will hang the whole boot before `httpd`/`rtsp` ever start
+if `rmm` misbehaves.
+
+### Where things live
+
+| On the camera (`/tmp/sd/yi-hack/`) | In this repo (source of truth) |
+| --- | --- |
+| `script/*.sh` (runtime) | `src/static/static/yi-hack/script/` |
+| `etc/*.conf` (config + defaults) | `src/static/static/yi-hack/etc/` |
+| `bin/*` (compiled tools) | `src/<tool>/` (C sources) |
+| `www/` (gzipped web UI) | `src/www/httpd/` (`htdocs` + `cgi-bin`) |
+
+The web UI is **built and gzipped** by `src/www/compile.www`: HTML/JS/CSS are
+concatenated then `gzip -9`'d, so the card only ever holds `*.gz`. Browsers send
+`Accept-Encoding: gzip` and BusyBox `httpd` serves them transparently. `cgi-bin/`
+scripts are copied **as-is** (not gzipped), so a new CGI can be dropped straight
+onto the card.
+
+### Configuration system
+
+Three flat `KEY=VALUE` files under `etc/`:
+
+- `system.conf` — services, ports, cloud, recording, swap, network.
+- `camera.conf` — imaging: motion/AI detection, LED/IR, save-on-motion.
+- `mqttv4.conf` — MQTT broker, topics, credentials.
+
+Rules of the road:
+
+- Read with `get_config KEY` — `grep KEY | cut -d= -f2-`. A **duplicate key
+  therefore yields a multi-line value that breaks comparisons**, so
+  `check_conf.sh` seeds any missing keys *and* de-duplicates (keeps the first
+  occurrence) on every boot.
+- The **Configurations** page writes `system.conf` via `cgi-bin/set_configs.sh`
+  (a `sed` replace). Any `data-key` checkbox inside `.configs-switch` is loaded
+  and saved automatically.
+- The **Camera Settings** page mostly pushes state into the live Yi firmware via
+  `ipc_cmd` (see `src/ipc_cmd/`); settings that must survive a reboot are also
+  written back to `camera.conf`.
+
+### Services
+
+- **httpd** — BusyBox web server, doc root `www/`, basic auth from
+  `/tmp/httpd.conf` (everything except `/onvif` requires the configured user).
+- **RTSP** — `service.sh` selects one of three backends: `rRTSPServer`
+  (standard), `rtsp_server_yi` (alternative), or `go2rtc`. All read H.264 from
+  Yi's shared frame buffer through `h264grabber`, whose per-model memory offsets
+  live in `src/h264grabber/`. Endpoints: `ch0_0.h264` (high), `ch0_1.h264` (low),
+  `ch0_2.h264` (audio).
+- **ONVIF** — `onvif_simple_server` + `wsd_simple_server` (WS-Discovery).
+- **MQTT** — `mqttv4` publishes events; `mqtt_advertise/` adds Home Assistant
+  auto-discovery, including the telemetry topic (uptime, load, CPU%, temperature,
+  memory, swap, SD, wifi strength).
+- **snapshot / timelapse** — on-demand JPEG and periodic AVI (cron-driven).
+- **recording** — the `mp4record` binary is the only thing that writes MP4s to the
+  card. RTSP is independent of it, so recording can be turned off (via
+  `CAMERA_RECORDING`) without affecting live streaming.
+
+### Supervision and self-healing
+
+`wd.sh` runs a ~10 s loop and is the camera's immune system:
+
+- restarts RTSP if the port stops listening or the daemon wedges;
+- restarts `mqtt` and (new) `httpd` if they die;
+- reboots if `rmm` (the Yi core) is gone for 5 checks;
+- watches wifi with a **gentle recovery ladder** — a single missed sample does
+  nothing; only after sustained loss does it ask the supplicant to reconnect,
+  then reload config, then (last resort) bounce the interface, and only after
+  several minutes reboot.
+
+`enforce_settings.sh` (once at boot, hourly via cron) re-asserts settings flagged
+`*_PERSIST=yes`, so the native app can't silently re-enable camera-side recording
+or flip the save-on-motion mode.
+
+### Logging
+
+Important events are appended to `/tmp/sd/log/hack-YYYYMMDD.log` and kept for 7
+days (pruned at boot and daily by cron), independent of `DEBUG_LOG`. This
+survives power cycles, which is what makes post-mortems possible. View it in a
+browser at `http://<cam>/cgi-bin/log.sh` (add `?log=wifi` for the wifi log). The
+verbose `DEBUG_LOG` dump (`hack_debug.log`, includes `ps`) is deliberately *not*
+exposed over HTTP because it can contain the RTSP password.
+
+### Building
+
+- `./scripts/compile.sh` — build all C tools and the web UI.
+- `./scripts/pack_fw.all.sh` — assemble the installable `.tgz` per model.
+- The runtime shell scripts are plain files: for a quick fix you can copy the
+  changed `script/*.sh` straight onto the card and reboot, no full build needed.
+
+### Adding a setting (checklist)
+
+1. Add the key + default to `etc/*.conf` and to the matching `PARMS` list in
+   `check_conf.sh`.
+2. Consume it where it takes effect (`system.sh`, `service.sh`, a CGI, or
+   `enforce_settings.sh`).
+3. Expose it in the web UI: a `data-key` checkbox on the Configurations page is
+   auto-wired; anything else needs a line in the page's JS module.
+4. `validate.sh#validateKey` must accept the key name (upper-case + `_` is fine).
+
+----
+
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
 

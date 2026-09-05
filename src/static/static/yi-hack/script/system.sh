@@ -37,10 +37,19 @@ start_buffer()
     ipc_cmd -x
 }
 
+LOG_DIR="/tmp/sd/log"
+LOG_FILE="$LOG_DIR/hack-$(date +%Y%m%d).log"
+
 log()
 {
+    # Always keep a lightweight, persistent boot log so a failure that survives a
+    # power cycle can still be diagnosed. The verbose ps/free dump stays behind
+    # DEBUG_LOG because it is heavy and only wanted when actively debugging.
+    mkdir -p "$LOG_DIR"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $1" >> "$LOG_FILE"
+
     if [ "$DEBUG_LOG" == "yes" ]; then
-        echo $1 >> /tmp/sd/hack_debug.log
+        echo "$1" >> /tmp/sd/hack_debug.log
 
         if [ "$2" == "1" ]; then
             echo "" >> /tmp/sd/hack_debug.log
@@ -52,8 +61,33 @@ log()
     fi
 }
 
+drain_audio_fifo()
+{
+    # Prime the audio pipeline by draining a few KB from the FIFO that rmm
+    # creates. Opening a FIFO blocks until a writer appears, so if rmm fails to
+    # start an unbounded read here would stall every service started below
+    # (httpd, rtsp, mqtt, the watchdog) - the "camera pings but nothing answers
+    # and a power cycle doesn't help" hang. Cap the wait and move on.
+    ( dd if=/tmp/audio_fifo of=/dev/null bs=1 count=8192 >/dev/null 2>&1 ) &
+    _adf_pid=$!
+    _adf_wait=0
+    while kill -0 $_adf_pid 2>/dev/null; do
+        if [ $_adf_wait -ge 10 ]; then
+            kill -9 $_adf_pid 2>/dev/null
+            log "audio_fifo drain timed out after ${_adf_wait}s, continuing boot"
+            break
+        fi
+        sleep 1
+        _adf_wait=$((_adf_wait + 1))
+    done
+}
+
 DEBUG_LOG=$(get_config DEBUG_LOG)
 rm -f /tmp/sd/hack_debug.log
+
+# Keep 7 days of persistent logs, then drop older ones to spare the SD card.
+mkdir -p "$LOG_DIR"
+find "$LOG_DIR" -name 'hack-*.log' -mtime +7 -exec rm -f {} \; 2>/dev/null
 
 log "Starting system.sh"
 
@@ -205,11 +239,13 @@ if [[ $(get_config DISABLE_CLOUD) == "no" ]] ; then
         sleep 2
         LD_LIBRARY_PATH="/tmp/sd/yi-hack/lib:/lib:/usr/lib:/home/lib:/home/qigan/lib:/home/app/locallib:/tmp/sd:/tmp/sd/gdb" ./rmm &
         sleep 6
-        dd if=/tmp/audio_fifo of=/dev/null bs=1 count=8192
-        if [[ $(get_config TIME_OSD) == "yes" ]] ; then
-            (sleep 30; export TZP=`TZ=$TZ_TMP date +%z`; export TZP=${TZP:0:3}:${TZP:3:2}; export TZ=GMT$TZP; ./mp4record) &
-        else
-            ./mp4record &
+        drain_audio_fifo
+        if [[ $(get_config CAMERA_RECORDING) != "no" ]] ; then
+            if [[ $(get_config TIME_OSD) == "yes" ]] ; then
+                (sleep 30; export TZP=`TZ=$TZ_TMP date +%z`; export TZP=${TZP:0:3}:${TZP:3:2}; export TZ=GMT$TZP; ./mp4record) &
+            else
+                ./mp4record &
+            fi
         fi
         ./cloud &
         ./p2p_tnp &
@@ -246,10 +282,10 @@ else
         sleep 2
         LD_LIBRARY_PATH="/tmp/sd/yi-hack/lib:/lib:/usr/lib:/home/lib:/home/qigan/lib:/home/app/locallib:/tmp/sd:/tmp/sd/gdb" ./rmm &
         sleep 6
-        dd if=/tmp/audio_fifo of=/dev/null bs=1 count=8192
+        drain_audio_fifo
         # Trick to start circular buffer filling
         start_buffer
-        if [[ $(get_config REC_WITHOUT_CLOUD) == "yes" ]] ; then
+        if [[ $(get_config REC_WITHOUT_CLOUD) == "yes" ]] && [[ $(get_config CAMERA_RECORDING) != "no" ]] ; then
             if [[ $(get_config TIME_OSD) == "yes" ]] ; then
                 (sleep 30; export TZP=`TZ=$TZ_TMP date +%z`; export TZP=${TZP:0:3}:${TZP:3:2}; export TZ=GMT$TZP; ./mp4record) &
             else
@@ -406,6 +442,9 @@ fi
 if [ "$FREE_SPACE" != "0" ]; then
     echo "0 * * * * sleep 20; /tmp/sd/yi-hack/script/clean_records.sh $FREE_SPACE" >> /var/spool/cron/crontabs/root
 fi
+# Re-assert camera settings flagged PERSIST, and prune logs older than 7 days.
+echo "30 * * * * /tmp/sd/yi-hack/script/enforce_settings.sh cron" >> /var/spool/cron/crontabs/root
+echo "15 0 * * * find /tmp/sd/log -name 'hack-*.log' -mtime +7 -exec rm -f {} \;" >> /var/spool/cron/crontabs/root
 if [[ $(get_config FTP_UPLOAD) == "yes" ]] ; then
     echo "* * * * * sleep 40; /tmp/sd/yi-hack/script/ftppush.sh cron" >> /var/spool/cron/crontabs/root
 fi
@@ -455,6 +494,9 @@ if [[ $(get_config TIMELAPSE) == "yes" ]] ; then
     fi
 fi
 $YI_HACK_PREFIX/usr/sbin/crond -c /var/spool/cron/crontabs/
+
+# Apply persisted camera settings now that the pipeline is up (also hourly via cron).
+$YI_HACK_PREFIX/script/enforce_settings.sh boot &
 
 # Add MQTT Advertise
 if [ -f "$YI_HACK_PREFIX/script/mqtt_advertise/startup.sh" ]; then

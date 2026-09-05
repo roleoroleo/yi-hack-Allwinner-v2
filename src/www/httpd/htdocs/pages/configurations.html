@@ -63,6 +63,32 @@
                         </td>
                     </tr>
                     <tr class="row">
+                        <td title="Master switch for the camera writing MP4 files to its own SD card (the mp4record process). Turn OFF when Frigate or another NVR records the RTSP stream - live streaming is unaffected.">Camera-side recording</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="CAMERA_RECORDING"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Record video to the camera's own SD card. Turn this off if an external NVR (e.g. Frigate) already records the RTSP stream; live streaming keeps working either way.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td title="When on, the hack re-checks every hour and stops camera-side recording again if the native Yi app silently turned it back on.">Keep camera-side recording off (persist)</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="CAMERA_RECORDING_PERSIST"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Re-assert the setting above once an hour, so the native firmware/app cannot quietly re-enable recording.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
                         <td>RTSP</td>
                         <td>
                             <label class="switch small">
@@ -592,7 +618,7 @@
 # | | | | |<br/>
 # * * * * * &lt;command to execute&gt;<br/>
                             </span>
-                            <textarea class="u-full-width" rows="4" cols="50" data-key="CRONTAB" id="CRONTAB"/>
+                            <textarea class="u-full-width" rows="4" cols="50" data-key="CRONTAB" id="CRONTAB"></textarea>
                             <span class="switch-description">
                                 Insert here your scheduled process using crontab syntax.
                                 <br/>

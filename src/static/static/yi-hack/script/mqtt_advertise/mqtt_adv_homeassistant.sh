@@ -270,6 +270,15 @@ if [ "$MQTT_ADV_TELEMETRY_ENABLE" == "yes" ]; then
     #Load AVG
     hass_setup_sensor "load_avg" "Load AVG" "network" $MQTT_ADV_TELEMETRY_TOPIC "" "diagnostic"
     mqtt_publish
+    #CPU Usage
+    hass_setup_sensor "cpu_usage" "CPU Usage" "chip" $MQTT_ADV_TELEMETRY_TOPIC "%" "diagnostic"
+    mqtt_publish
+    #Temperature
+    hass_setup_sensor "temperature" "Temperature" "thermometer" $MQTT_ADV_TELEMETRY_TOPIC "\u00b0C" "diagnostic"
+    mqtt_publish
+    #Free Swap
+    hass_setup_sensor "free_swap" "Free Swap" "memory" $MQTT_ADV_TELEMETRY_TOPIC "KB" "diagnostic"
+    mqtt_publish
     #Uptime
     hass_topic "sensor" "uptime" "Uptime"
     CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "device_class":"timestamp","icon":"mdi:timer-outline","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","'unique_id'":"'$UNIQUE_ID'","value_template":"{{ (as_timestamp(now())-(value_json.uptime|int))|timestamp_local }}", "platform": "mqtt","entity_category": "diagnostic"}'
@@ -279,7 +288,7 @@ if [ "$MQTT_ADV_TELEMETRY_ENABLE" == "yes" ]; then
     CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS','$QOS' '$RETAIN' "icon":"mdi:wifi","state_topic":"'$MQTT_PREFIX'/'$MQTT_ADV_TELEMETRY_TOPIC'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","value_template":"{{ ((value_json.wlan_strength|int) * 100 / 70 )|int }}","platform": "mqtt","unit_of_measurement":"%","entity_category": "diagnostic"}'
     mqtt_publish
 else
-    for ITEM in total_memory free_memory free_sd load_avg uptime wlan_strength; do
+    for ITEM in total_memory free_memory free_sd load_avg cpu_usage temperature free_swap uptime wlan_strength; do
         hass_topic "sensor" "$ITEM"
         $YI_HACK_PREFIX/bin/mqtt-pub $HA_QOS $HA_RETAIN -h $HOST $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m ""
     done

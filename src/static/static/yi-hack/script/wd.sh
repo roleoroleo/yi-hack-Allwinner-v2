@@ -17,6 +17,22 @@ COUNTER_LIMIT=10
 INTERVAL=10
 WIFI_FAILSAFE_COUNTER=0
 
+# WiFi recovery ladder thresholds (each loop is ~INTERVAL seconds). Dropping the
+# interface and rebooting are deliberately far out - most "losses" are a single
+# missed sample and clear on their own within a cycle or two.
+WIFI_SOFT=3      # ~30s: ask wpa_supplicant to re-associate
+WIFI_MED=6       # ~60s: reload supplicant config
+WIFI_HARD=12     # ~2min: bounce the interface (last resort before reboot)
+WIFI_REBOOT=30   # ~5min: reboot as the absolute last resort
+
+# Persistent, low-volume event log (kept 7 days, pruned by system.sh/cron).
+LOG_DIR="/tmp/sd/log"
+plog()
+{
+    mkdir -p "$LOG_DIR"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') wd: $1" >> "$LOG_DIR/hack-$(date +%Y%m%d).log"
+}
+
 get_camera_config()
 {
     key=$1
@@ -170,6 +186,7 @@ check_rmm()
     # Only reboot after 5 consecutive failures (~50 seconds with 10s interval)
     if [ $FAIL_COUNT -ge 5 ]; then
         echo "$(date +'%Y-%m-%d %H:%M:%S') - rmm failed 5 times consecutively, rebooting..." >> $LOG_FILE
+        plog "rmm failed 5x consecutively, rebooting"
         reboot
     fi
 }
@@ -182,96 +199,101 @@ check_mqtt()
 
     if [ $PS -eq 0 ]; then
         echo "check_mqtt failed, restart it!" >> $LOG_FILE
+        plog "mqtt not running, restarting"
         $START_STOP_SCRIPT mqtt start
     fi
 }
 
+check_httpd()
+{
+    # httpd is started once at boot and was never supervised: RTSP could be
+    # perfectly healthy while the web UI was dead. Restart it if it is neither
+    # listening nor running.
+    if [[ $(get_config HTTPD) != "yes" ]] ; then
+        return
+    fi
+    case $(get_config HTTPD_PORT) in
+        ''|*[!0-9]*) HTTPD_PORT_NUMBER=80 ;;
+        *) HTTPD_PORT_NUMBER=$(get_config HTTPD_PORT) ;;
+    esac
+    LISTEN=`$YI_HACK_PREFIX/bin/netstat -an 2>&1 | grep ":$HTTPD_PORT_NUMBER " | grep LISTEN | grep -c ^`
+    RUNNING=`ps | grep -v grep | grep httpd | grep -c ^`
+    if [ $LISTEN -eq 0 ] || [ $RUNNING -eq 0 ]; then
+        plog "httpd down (listen=$LISTEN running=$RUNNING), restarting"
+        killall -q httpd
+        sleep 1
+        httpd -p $HTTPD_PORT_NUMBER -h $YI_HACK_PREFIX/www/ -c /tmp/httpd.conf
+    fi
+}
+
+wpa_cli_run()
+{
+    # Run wpa_cli with a hard 2s kill guard - it can hang or segfault on some
+    # models (e.g. r37gb). $1 is the sub-command (status/reconnect/reconfigure).
+    [ -x /home/base/tools/wpa_cli ] || return 1
+    (sleep 2 && killall -9 wpa_cli 2>/dev/null) &
+    _k=$!
+    _out=$(/home/base/tools/wpa_cli -i wlan0 "$1" 2>/dev/null)
+    _rc=$?
+    kill $_k 2>/dev/null
+    wait $_k 2>/dev/null
+    echo "$_out"
+    return $_rc
+}
+
+wifi_has_ip()
+{
+    # A usable connection means a v4 address is assigned - that is what the web
+    # UI and RTSP actually need. Association without an IP is treated as down so
+    # the ladder below can renew DHCP.
+    ifconfig wlan0 2>/dev/null | grep -q "inet addr:"
+}
+
 check_wifi()
 {
-    # Check WiFi connection using multiple methods for compatibility
-    # Some camera models (e.g., r37gb) have broken wpa_cli that causes segfaults
-
-    WIFI_CONNECTED=0
-
-    # Method 1: Try wpa_cli if available and working (preferred method)
-    # Wrap in timeout to avoid hanging - wpa_cli may block on some models
-    if [ -x /home/base/tools/wpa_cli ]; then
-        # Run wpa_cli with auto-kill after 2 seconds if it hangs
-        (sleep 2 && killall -9 wpa_cli 2>/dev/null) &
-        KILLER_PID=$!
-
-        WPA_OUTPUT=$(/home/base/tools/wpa_cli -i wlan0 status 2>/dev/null)
-        WPA_EXIT=$?
-
-        # Kill the timeout killer if wpa_cli finished
-        kill $KILLER_PID 2>/dev/null
-        wait $KILLER_PID 2>/dev/null
-
-        # Check if wpa_cli succeeded and returned valid output
-        if [ $WPA_EXIT -eq 0 ] && echo "$WPA_OUTPUT" | grep -q "wpa_state=COMPLETED"; then
-            WIFI_CONNECTED=1
-        fi
-    fi
-
-    # Method 2: Fallback - check if interface has IP address (reliable on all models)
-    if [ $WIFI_CONNECTED -eq 0 ]; then
-        if ifconfig wlan0 2>/dev/null | grep -q "inet addr:"; then
-            WIFI_CONNECTED=1
-        fi
-    fi
-
-    # Method 3: Additional check - interface carrier state
-    if [ $WIFI_CONNECTED -eq 0 ]; then
-        if [ -f /sys/class/net/wlan0/carrier ]; then
-            CARRIER=$(cat /sys/class/net/wlan0/carrier 2>/dev/null)
-            if [ "$CARRIER" != "1" ]; then
-                WIFI_CONNECTED=0
-            fi
-        fi
-    fi
-
-    # Handle WiFi disconnection
-    if [ $WIFI_CONNECTED -eq 0 ]; then
-        # Rotate log file to prevent it from growing too large
-        if [ -e "$LOGWIFI_FILE" ]; then
-            $YI_HACK_PREFIX/usr/bin/tail -n 145 "$LOGWIFI_FILE" > "$LOGWIFI_FILE.tmp" && mv "$LOGWIFI_FILE.tmp" "$LOGWIFI_FILE"
-        fi
-
-        echo -e "$(date): WiFi connection lost (failsafe attempt $((WIFI_FAILSAFE_COUNTER + 1))/6)" >> "$LOGWIFI_FILE"
-
-        WIFI_FAILSAFE_COUNTER=$((WIFI_FAILSAFE_COUNTER + 1))
-
-        if [ "$WIFI_FAILSAFE_COUNTER" -ge 6 ]; then
-            echo -e "$(date): WiFi connection could not be restored after 6 attempts. Rebooting..." >> "$LOGWIFI_FILE"
-            reboot
-        else
-            echo -e "$(date): Attempting WiFi reconnect..." >> "$LOGWIFI_FILE"
-
-            # Try to reconnect
-            sleep 2
-            ifconfig wlan0 down
-            sleep 1
-            ifconfig wlan0 up
-            sleep 1
-
-            # Try wpa_cli reconfigure if available and working
-            if [ -x /home/base/tools/wpa_cli ]; then
-                (sleep 2 && killall -9 wpa_cli 2>/dev/null) &
-                KILLER_PID=$!
-                /home/base/tools/wpa_cli -i wlan0 reconfigure 2>/dev/null
-                kill $KILLER_PID 2>/dev/null
-                wait $KILLER_PID 2>/dev/null
-            fi
-
-            # Run wifidhcp.sh
-            $YI_HACK_PREFIX/script/wifidhcp.sh
-        fi
-    else
-        # WiFi is connected - reset failure counter
+    if wifi_has_ip; then
         if [ $WIFI_FAILSAFE_COUNTER -gt 0 ]; then
+            plog "WiFi recovered after $WIFI_FAILSAFE_COUNTER failed check(s)"
             echo -e "$(date): WiFi connection restored" >> "$LOGWIFI_FILE"
             WIFI_FAILSAFE_COUNTER=0
         fi
+        return
+    fi
+
+    # No usable IP this cycle. Count it, but act gently and escalate slowly.
+    WIFI_FAILSAFE_COUNTER=$((WIFI_FAILSAFE_COUNTER + 1))
+
+    # Keep the wifi log from growing without bound.
+    if [ -e "$LOGWIFI_FILE" ]; then
+        $YI_HACK_PREFIX/usr/bin/tail -n 145 "$LOGWIFI_FILE" > "$LOGWIFI_FILE.tmp" && mv "$LOGWIFI_FILE.tmp" "$LOGWIFI_FILE"
+    fi
+    echo -e "$(date): WiFi check failed ($WIFI_FAILSAFE_COUNTER)" >> "$LOGWIFI_FILE"
+
+    if [ $WIFI_FAILSAFE_COUNTER -lt $WIFI_SOFT ]; then
+        # Transient - do nothing disruptive, just re-check next cycle.
+        return
+    elif [ $WIFI_FAILSAFE_COUNTER -eq $WIFI_SOFT ]; then
+        plog "WiFi down ${WIFI_FAILSAFE_COUNTER}x: asking supplicant to reconnect"
+        echo -e "$(date): soft recovery - wpa_cli reconnect" >> "$LOGWIFI_FILE"
+        wpa_cli_run reconnect >/dev/null
+    elif [ $WIFI_FAILSAFE_COUNTER -eq $WIFI_MED ]; then
+        plog "WiFi still down ${WIFI_FAILSAFE_COUNTER}x: reloading supplicant config"
+        echo -e "$(date): medium recovery - wpa_cli reconfigure" >> "$LOGWIFI_FILE"
+        wpa_cli_run reconfigure >/dev/null
+    elif [ $WIFI_FAILSAFE_COUNTER -eq $WIFI_HARD ]; then
+        # Last resort before reboot: bounce the interface and restart DHCP.
+        plog "WiFi still down ${WIFI_FAILSAFE_COUNTER}x: bouncing wlan0 (last resort)"
+        echo -e "$(date): last resort - bouncing wlan0" >> "$LOGWIFI_FILE"
+        ifconfig wlan0 down
+        sleep 1
+        ifconfig wlan0 up
+        sleep 1
+        wpa_cli_run reconfigure >/dev/null
+        $YI_HACK_PREFIX/script/wifidhcp.sh >/dev/null 2>&1 &
+    elif [ $WIFI_FAILSAFE_COUNTER -ge $WIFI_REBOOT ]; then
+        plog "WiFi unrecoverable after ${WIFI_FAILSAFE_COUNTER} checks: rebooting"
+        echo -e "$(date): WiFi could not be restored. Rebooting..." >> "$LOGWIFI_FILE"
+        reboot
     fi
 }
 
@@ -303,6 +325,7 @@ do
     fi
     check_rmm
     check_mqtt
+    check_httpd
     check_wifi
 
     echo 1500 > /sys/class/net/eth0/mtu

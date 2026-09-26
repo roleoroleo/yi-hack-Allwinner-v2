@@ -27,21 +27,39 @@ if [ "$VAL" == "info" ] ; then
 
     MODEL_SUFFIX=`cat $YI_HACK_PREFIX/model_suffix`
     FW_VERSION=`cat $YI_HACK_PREFIX/version`
-    LATEST_FW=`/tmp/sd/yi-hack/usr/bin/wget -O -  https://api.github.com/repos/roleoroleo/yi-hack-Allwinner-v2/releases/latest 2>&1 | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
+    case "$FW_VERSION" in
+        *dev*) DEV_BUILD="true" ;;
+        *) DEV_BUILD="false" ;;
+    esac
     if [ -f /tmp/sd/${MODEL_SUFFIX}_x.x.x.tgz ]; then
         LOCAL_FW="true"
     else
         LOCAL_FW="false"
+    fi
+    # A dev build skips the automatic online version check - the -dev marker
+    # blocks auto-update. A manual "Switch to Latest Public Build" (get=upgrade)
+    # is still allowed and fetches the newest public release on demand.
+    if [ "$DEV_BUILD" == "true" ]; then
+        LATEST_FW="disabled"
+    else
+        LATEST_FW=`/tmp/sd/yi-hack/usr/bin/wget -O -  https://api.github.com/repos/roleoroleo/yi-hack-Allwinner-v2/releases/latest 2>&1 | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
     fi
 
     printf "{\n"
     printf "\"%s\":\"%s\",\n" "error" "false"
     printf "\"%s\":\"%s\",\n" "fw_version"      "$FW_VERSION"
     printf "\"%s\":\"%s\",\n" "latest_fw"       "$LATEST_FW"
+    printf "\"%s\":%s,\n" "dev_build"           "$DEV_BUILD"
     printf "\"%s\":%s\n" "local_fw"             "$LOCAL_FW"
     printf "}"
 
 elif [ "$VAL" == "upgrade" ] ; then
+
+    # get=upgrade only ever runs from a deliberate button click, so it is always
+    # user-invoked - a dev build is allowed through here and the button below is
+    # relabelled "Switch to Latest Public Build". Only the automatic version
+    # check in get=info is suppressed for dev builds; the switch itself fetches
+    # the newest public release exactly like a normal upgrade.
 
     FREE_SD=$(df | grep -m1 '/tmp/sd' | grep mmc | awk '{print $4}')
     if [ -z "$FREE_SD" ]; then

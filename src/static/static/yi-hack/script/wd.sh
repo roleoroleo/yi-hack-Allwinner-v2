@@ -14,6 +14,12 @@ LOGWIFI_FILE="/tmp/sd/hack_wififailsafe.log"
 
 COUNTER=0
 COUNTER_LIMIT=10
+# rRTSPServer can stay in LISTEN with CPU busy while its event loop no longer
+# accepts connections (the accept queue never drains). Restart it when the
+# listen socket Recv-Q stays above zero for STUCK_LIMIT consecutive checks.
+STUCK_COUNTER=0
+STUCK_LIMIT=3
+RTSP_WD_LOG="/tmp/wd_rtsp.log"
 INTERVAL=10
 WIFI_FAILSAFE_COUNTER=0
 
@@ -34,6 +40,38 @@ restart_rtsp()
     $START_STOP_SCRIPT rtsp start
 }
 
+# Echo the Recv-Q of the RTSP listen socket (pending connections not accepted)
+get_rtsp_backlog()
+{
+    $YI_HACK_PREFIX/bin/netstat -an 2>&1 | grep LISTEN | awk -v p=":$RTSP_PORT_NUMBER" '$4 ~ p"$" {print $2; exit}'
+}
+
+# Restart rRTSPServer if the accept queue is stuck. Returns 0 if restarted.
+check_rtsp_stuck()
+{
+    BACKLOG=$(get_rtsp_backlog)
+    case "$BACKLOG" in
+        ''|*[!0-9]*) STUCK_COUNTER=0; return 1 ;;
+    esac
+    if [ "$BACKLOG" -gt 0 ]; then
+        STUCK_COUNTER=$((STUCK_COUNTER+1))
+        if [ $STUCK_COUNTER -ge $STUCK_LIMIT ]; then
+            MSG="$(date +'%Y-%m-%d %H:%M:%S') - rtsp accept queue stuck (Recv-Q=$BACKLOG), restarting rtsp process"
+            echo "$MSG" >> $LOG_FILE
+            echo "$MSG" >> $RTSP_WD_LOG
+            killall -q rRTSPServer
+            sleep 1
+            restart_rtsp
+            STUCK_COUNTER=0
+            COUNTER=0
+            return 0
+        fi
+    else
+        STUCK_COUNTER=0
+    fi
+    return 1
+}
+
 check_rtsp()
 {
     if [[ $(get_camera_config SWITCH_ON) == "yes" ]] ; then
@@ -47,6 +85,8 @@ check_rtsp()
             killall -q rRTSPServer
             sleep 1
             restart_rtsp
+        else
+            check_rtsp_stuck
         fi
         if [ "$CPU" == "" ]; then
             echo "$(date +'%Y-%m-%d %H:%M:%S') - No running processes, restarting..." >> $LOG_FILE

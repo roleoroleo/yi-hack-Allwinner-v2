@@ -56,7 +56,8 @@ private:
     char *fSemFile;
     sem_t *fSemSpeaker;
     Boolean fIsActive;
-    Boolean fExitThread;
+    volatile Boolean fExitThread;
+    pthread_t fThread;
     int fSpeakerCounter;
 };
 

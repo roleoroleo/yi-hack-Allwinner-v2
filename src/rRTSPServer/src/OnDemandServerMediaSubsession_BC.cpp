@@ -236,6 +236,36 @@ void OnDemandServerMediaSubsession_BC::pauseStream(unsigned /*clientSessionId*/,
     if (streamState != NULL) streamState->pause();
 }
 
+void OnDemandServerMediaSubsession_BC::deleteStream(unsigned clientSessionId,
+						   void*& streamToken) {
+    // Without this override the base class does nothing, so the StreamState_BC
+    // (media sink, RTCP, sockets and the Speaker thread owned by the sink)
+    // of every finished session was leaked.
+    StreamState_BC* streamState = (StreamState_BC*)streamToken;
+
+    // Look up (and remove) the destinations for this client session:
+    Destinations* destinations
+      = (Destinations*)(fDestinationsHashTable->Lookup((char const*)clientSessionId));
+    if (destinations != NULL) {
+        fDestinationsHashTable->Remove((char const*)clientSessionId);
+
+        // Stop streaming to these destinations:
+        if (streamState != NULL) streamState->endPlaying(destinations, clientSessionId);
+    }
+
+    // Delete the "StreamState_BC" structure if it's no longer being used:
+    if (streamState != NULL) {
+        if (streamState->referenceCount() > 0) --streamState->referenceCount();
+        if (streamState->referenceCount() == 0) {
+            delete streamState;
+            streamToken = NULL;
+        }
+    }
+
+    // Finally, delete the destinations themselves:
+    delete destinations;
+}
+
 MediaSink* OnDemandServerMediaSubsession_BC::getStreamSink(void* streamToken) {
 
     if (streamToken == NULL) return NULL;
@@ -530,6 +560,26 @@ void StreamState_BC::pause() {
     if (fRTPSource != NULL) fMediaSink->stopPlaying();
     if (fUDPSource != NULL) fMediaSink->stopPlaying();
     fAreCurrentlyPlaying = False;
+}
+
+void StreamState_BC::endPlaying(Destinations* dests, unsigned clientSessionId) {
+    if (dests->isTCP) {
+        if (fRTCPInstance != NULL) {
+            fRTCPInstance->removeStreamSocket(dests->tcpSocketNum, dests->rtcpChannelId);
+
+            struct sockaddr_storage tcpSocketNumAsAddress; // hack
+            tcpSocketNumAsAddress.ss_family = AF_INET;
+            ((sockaddr_in&)tcpSocketNumAsAddress).sin_addr.s_addr = dests->tcpSocketNum;
+            fRTCPInstance->unsetSpecificRRHandler(tcpSocketNumAsAddress, dests->rtcpChannelId);
+        }
+    } else {
+        // Tell the RTP and RTCP 'groupsocks' to stop using these destinations:
+        if (fRTPgs != NULL) fRTPgs->removeDestination(clientSessionId);
+        if (fRTCPgs != NULL && fRTCPgs != fRTPgs) fRTCPgs->removeDestination(clientSessionId);
+        if (fRTCPInstance != NULL) {
+            fRTCPInstance->unsetSpecificRRHandler(dests->addr, dests->rtcpPort);
+        }
+    }
 }
 
 void StreamState_BC::sendRTCPAppPacket(u_int8_t subtype, char const* name,

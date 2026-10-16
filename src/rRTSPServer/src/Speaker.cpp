@@ -49,14 +49,13 @@ static void *speaker(void *ptr)
 }
 
 Speaker::Speaker(sem_t *semSpeaker): fSemSpeaker(semSpeaker),
-    fIsActive(False), fExitThread(False), fSpeakerCounter(-1) {
+    fIsActive(False), fExitThread(False), fThread(0), fSpeakerCounter(-1) {
 
     fSemFile = strDup(SEM_FILE);
 }
 
 Speaker* Speaker::createNew() {
     int pth_ret;
-    pthread_t speakerThread;
     sem_t *semSpeaker;
 
     // Open semaphore
@@ -69,20 +68,21 @@ Speaker* Speaker::createNew() {
     Speaker *tmpSpeaker = new Speaker(semSpeaker);
 
     // Start speaker thread
-    pth_ret = pthread_create(&speakerThread, NULL, speaker, (void*) tmpSpeaker);
+    pth_ret = pthread_create(&tmpSpeaker->fThread, NULL, speaker, (void*) tmpSpeaker);
     if (pth_ret != 0) {
         fprintf(stderr, "Failed to create speaker thread\n");
+        tmpSpeaker->fThread = 0;
         delete tmpSpeaker;
         return NULL;
     }
-    pthread_detach(speakerThread);
 
     return tmpSpeaker;
 }
 
 Speaker::~Speaker() {
     fExitThread = True;
-    usleep(100000);
+    // Wait for the speaker thread to finish before the object goes away
+    if (fThread != 0) pthread_join(fThread, NULL);
     if (fSemSpeaker != SEM_FAILED) {
         sem_close(fSemSpeaker);
         fSemSpeaker = SEM_FAILED;

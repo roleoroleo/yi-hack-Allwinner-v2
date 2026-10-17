@@ -3,6 +3,7 @@ var APP = APP || {};
 APP.maintenance = (function($) {
 
     var timeoutVar;
+    var isDevSwitch = false;
 
     function init() {
         registerEventHandler();
@@ -134,6 +135,9 @@ APP.maintenance = (function($) {
     }
 
     function upgradeFirmware() {
+        if (isDevSwitch && !confirm("Switch to the latest public build? This replaces your dev build.")) {
+            return;
+        }
         $('#button-upgrade').attr("disabled", true);
         setFwStatus("Firmware download in progress.");
         $.ajax({
@@ -194,6 +198,12 @@ APP.maintenance = (function($) {
             success: function(data) {
                 if (data.local_fw) {
                     setFwStatus("Installed: " + data.fw_version + " - Available: local SD");
+                } else if (data.dev_build) {
+                    setFwStatus("Installed: " + data.fw_version + " - Dev build (auto-update off)");
+                    isDevSwitch = true;
+                    $('#button-upgrade').val("Switch to Latest Public Build");
+                    $('#button-upgrade').attr("disabled", false);
+                    return;
                 } else {
                     setFwStatus("Installed: " + data.fw_version + " - Available: " + data.latest_fw);
                 }

@@ -4,6 +4,20 @@ SYSTEM_CONF_FILE="/tmp/sd/yi-hack/etc/system.conf"
 CAMERA_CONF_FILE="/tmp/sd/yi-hack/etc/camera.conf"
 MQTTV4_CONF_FILE="/tmp/sd/yi-hack/etc/mqttv4.conf"
 
+# Collapse accidental duplicate keys (e.g. ONVIF_PROFILE written several times by
+# older UI versions) down to their first occurrence. get_config() everywhere else
+# does `grep KEY | cut -f2`, so a duplicated key otherwise yields a multi-line
+# value that quietly breaks every comparison against it.
+dedupe_conf()
+{
+    _f="$1"
+    [ -f "$_f" ] || return
+    awk -F= '
+        /^[A-Za-z0-9_]+=/ { if (!seen[$1]++) print; next }
+        { print }
+    ' "$_f" > "$_f.dedupe" 2>/dev/null && mv "$_f.dedupe" "$_f"
+}
+
 PARMS1="
 HTTPD=yes
 TELNETD=yes
@@ -13,6 +27,8 @@ BUSYBOX_FTPD=no
 MDNSD=yes
 DISABLE_CLOUD=no
 REC_WITHOUT_CLOUD=no
+CAMERA_RECORDING=yes
+CAMERA_RECORDING_PERSIST=no
 MQTT=no
 RTSP=yes
 RTSP_ALT=standard
@@ -72,6 +88,7 @@ CUSTOM_WATERMARK=no"
 PARMS2="
 SWITCH_ON=yes
 SAVE_VIDEO_ON_MOTION=yes
+SAVE_VIDEO_ON_MOTION_PERSIST=no
 MOTION_DETECTION=no
 SENSITIVITY=low
 AI_HUMAN_DETECTION=no
@@ -158,3 +175,8 @@ do
         fi
     fi
 done
+
+# Now that any missing keys have been added, drop duplicates from all three.
+dedupe_conf "$SYSTEM_CONF_FILE"
+dedupe_conf "$CAMERA_CONF_FILE"
+dedupe_conf "$MQTTV4_CONF_FILE"

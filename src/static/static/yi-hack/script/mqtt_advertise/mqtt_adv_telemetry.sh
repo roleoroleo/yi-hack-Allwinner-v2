@@ -33,6 +33,44 @@ FREE_MEMORY=$(free -k | awk 'NR==2{print $7}')
 FREE_SD=$(df | grep -m1 '/tmp/sd' |  grep mmc | awk '{print $5}' | tr -d '%')
 WLAN_STRENGTH=$(cat /proc/net/wireless | grep wlan0 | awk '{ print $3 }' | sed 's/\.$//')
 
+# CPU usage %: sample /proc/stat twice ~1s apart and diff busy vs total jiffies.
+read _cpu u_user u_nice u_sys u_idle u_iowait u_irq u_softirq u_steal _rest < /proc/stat 2>/dev/null
+BUSY1=$((u_user + u_nice + u_sys + u_irq + u_softirq + u_steal))
+IDLE1=$((u_idle + u_iowait))
+sleep 1
+read _cpu v_user v_nice v_sys v_idle v_iowait v_irq v_softirq v_steal _rest < /proc/stat 2>/dev/null
+BUSY2=$((v_user + v_nice + v_sys + v_irq + v_softirq + v_steal))
+IDLE2=$((v_idle + v_iowait))
+DTOT=$(( (BUSY2 + IDLE2) - (BUSY1 + IDLE1) ))
+DBUSY=$(( BUSY2 - BUSY1 ))
+if [ "$DTOT" -gt 0 ]; then
+    CPU_USAGE=$(( (DBUSY * 100) / DTOT ))
+else
+    CPU_USAGE=0
+fi
+
+# SoC temperature: Allwinner exposes it through the thermal framework. The value
+# may be in millidegrees (e.g. 45123) or already whole degrees; normalise to C.
+TEMPERATURE="N/A"
+for _tz in /sys/class/thermal/thermal_zone*/temp /sys/class/hwmon/hwmon*/temp1_input; do
+    if [ -f "$_tz" ]; then
+        _t=$(cat "$_tz" 2>/dev/null)
+        case "$_t" in
+            ''|*[!0-9-]*) continue ;;
+        esac
+        if [ "$_t" -gt 1000 ]; then
+            TEMPERATURE=$((_t / 1000))
+        else
+            TEMPERATURE=$_t
+        fi
+        break
+    fi
+done
+
+# Free swap (KB) - this device leans on swap, so it is worth keeping an eye on.
+FREE_SWAP=$(free -k | awk '/^Swap:/{print $4}')
+[ -z "$FREE_SWAP" ] && FREE_SWAP=0
+
 # MQTT configuration
 
 LD_LIBRARY_PATH=$YI_HACK_PREFIX/lib:$LD_LIBRARY_PATH
@@ -112,6 +150,9 @@ if [ ! -z "$FREE_SD" ]; then
 fi
 CONTENT=$CONTENT'"total_memory":"'$TOTAL_MEMORY'",'
 CONTENT=$CONTENT'"free_memory":"'$FREE_MEMORY'",'
+CONTENT=$CONTENT'"cpu_usage":"'$CPU_USAGE'",'
+CONTENT=$CONTENT'"temperature":"'$TEMPERATURE'",'
+CONTENT=$CONTENT'"free_swap":"'$FREE_SWAP'",'
 CONTENT=$CONTENT'"wlan_strength":"'$WLAN_STRENGTH'"'
 CONTENT=$CONTENT" }"
 $YI_HACK_PREFIX/bin/mqtt-pub $QOS $RETAIN -h $HOST $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m "$CONTENT"

@@ -30,6 +30,13 @@ require_root
 
 SCRIPT_DIR=$(get_script_dir)
 
+# Pass "dev" through to every per-camera pack to build unofficial images whose
+# version is suffixed -dev and whose online auto-update is disabled.
+DEV_BUILD=""
+if [ "$1" == "dev" ]; then
+    DEV_BUILD="dev"
+fi
+
 for CAMERA_NAME in "${!CAMERAS[@]}"; do 
-    $SCRIPT_DIR/pack_fw.sh $CAMERA_NAME
+    $SCRIPT_DIR/pack_fw.sh $CAMERA_NAME $DEV_BUILD
 done

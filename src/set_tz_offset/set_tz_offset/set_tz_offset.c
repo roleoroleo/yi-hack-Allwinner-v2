@@ -62,6 +62,28 @@ int tz_offset_osd_addr[37][2] = {
 int debug;
 mqd_t ipc_mq;
 
+// A timezone offset is in seconds, a multiple of 15 minutes, within +/- 14 hours
+int is_valid_tz_offset(int val)
+{
+    return (val >= -14 * 3600) && (val <= 14 * 3600) && (val % 900 == 0);
+}
+
+// Models with a second layout (the next entry of tz_offset_osd_addr) used by newer fw
+int has_newer_layout(int model)
+{
+    switch (model) {
+    case Y20GA:
+    case H30GA:
+    case H60GA:
+    case Y211GA:
+    case Y21GA:
+    case Y291GA:
+        return 1;
+    default:
+        return 0;
+    }
+}
+
 void dump_string(char *source_file, const char *func, int line, char *text, ...)
 {
     time_t now;
@@ -162,6 +184,7 @@ int set_tz_offset_osd(int enable, int addr, int val)
     long mmap_info_size;
     unsigned char *mmap_info_ptr;
     int *mmap_info_ptri;
+    int ret = 0;
 
     struct stat st;
     stat(MMAP_INFO, &st);
@@ -210,10 +233,19 @@ int set_tz_offset_osd(int enable, int addr, int val)
 
     if (addr > 0) {
         mmap_info_ptri = (int *) &mmap_info_ptr[addr];
-        if (*mmap_info_ptri != val)
+        // If the current value is not a timezone offset, the address doesn't match
+        // this fw layout: writing it would corrupt other data (e.g. the wifi ssid)
+        if (addr + sizeof(int) > mmap_info_size) {
+            fprintf(stderr, "Error - address 0x%x out of %s\n", addr, MMAP_INFO);
+            ret = -3;
+        } else if (!is_valid_tz_offset(*mmap_info_ptri)) {
+            fprintf(stderr, "Error - unexpected value 0x%08x at address 0x%x, not writing\n", *mmap_info_ptri, addr);
+            ret = -3;
+        } else if (*mmap_info_ptri != val) {
             *mmap_info_ptri = val;
-        else
+        } else {
             if (debug & 1) fprintf(stderr, "Value already set\n");
+        }
     }
 
     if (munmap(mmap_info_ptr, mmap_info_size) == -1) {
@@ -222,7 +254,7 @@ int set_tz_offset_osd(int enable, int addr, int val)
         if (debug & 1) fprintf(stderr, "Unmapping file %s, size %d, from %08x\n", MMAP_INFO, mmap_info_size, (unsigned int) mmap_info_ptr);
     }
 
-    return 0;
+    return ret;
 }
 
 void print_usage(char *progname)
@@ -264,6 +296,7 @@ int main(int argc, char **argv)
     int fw = -1;
     int osd = -1;
     int ivalue;
+    int ret;
 
     debug = 0;
 
@@ -461,8 +494,26 @@ int main(int argc, char **argv)
             model_addr = tz_offset_osd_addr[model][0];
             to_set = tz_offset_osd_addr[model][1];
         }
+        ivalue = str2int(value);
+        if (!is_valid_tz_offset(ivalue)) {
+            printf("Invalid value: %s\n", value);
+            return -2;
+        }
+
         if ((model_addr > 0) && (to_set == 1)) {
-            set_tz_offset_osd(-1, model_addr, str2int(value));
+            ret = set_tz_offset_osd(-1, model_addr, ivalue);
+            // Some fw 9 versions (e.g. h30ga 9.0.26.07) already use the newer layout
+            if ((ret == -3) && (fw <= 10) && has_newer_layout(model)) {
+                model_addr = tz_offset_osd_addr[model + 1][0];
+                to_set = tz_offset_osd_addr[model + 1][1];
+                if ((model_addr > 0) && (to_set == 1)) {
+                    fprintf(stderr, "Trying address 0x%x\n", model_addr);
+                    ret = set_tz_offset_osd(-1, model_addr, ivalue);
+                }
+            }
+            if (ret != 0) {
+                return ret;
+            }
         }
     } else if (cmd == 2) {
 

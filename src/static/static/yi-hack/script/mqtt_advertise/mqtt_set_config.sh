@@ -137,13 +137,26 @@ $YI_HACK_PREFIX/bin/mqtt-sub -h $HOST $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT 
         ptz_preset)
             IPC_OPT="-p"
         ;;
+        force_night|force_night_persist)
+            IPC_OPT="none"
+        ;;
     esac
     if [ "$VAL" == "no" ] || [ "$VAL" == "off" ] ; then
         VAL="off"
     elif [ "$VAL" == "yes" ] || [ "$VAL" == "on" ] ; then
         VAL="on"
     fi
-    ipc_cmd $IPC_OPT $VAL &
+    if [ "$CONF" == "force_night" ] ; then
+        # force_night.sh saves FORCE_NIGHT only if the patch succeeds,
+        # keep the saved value in sync with the real state
+        if [ "$($YI_HACK_PREFIX/script/force_night.sh $VAL)" == "on" ] ; then
+            sed -i "s/^\(FORCE_NIGHT\s*=\s*\).*$/\1yes/" $YI_HACK_PREFIX/$CONF_FILE
+        else
+            sed -i "s/^\(FORCE_NIGHT\s*=\s*\).*$/\1no/" $YI_HACK_PREFIX/$CONF_FILE
+        fi
+    elif [ "$IPC_OPT" != "none" ] ; then
+        ipc_cmd $IPC_OPT $VAL &
+    fi
 
     $YI_HACK_PREFIX/$CONFIG_SET
 done

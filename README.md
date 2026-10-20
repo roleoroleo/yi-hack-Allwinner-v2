@@ -109,6 +109,7 @@ This custom firmware contains features replicated from the [yi-hack-MStar](https
     - status led
     - ir led
     - rotate
+    - force night mode (keeps IR led and black and white image on regardless of the light, on supported rmm builds)
     - ...
   - Management of motion detect events and videos through a web page.
   - View recorded video through a web page (thanks to @BenjaminFaal).

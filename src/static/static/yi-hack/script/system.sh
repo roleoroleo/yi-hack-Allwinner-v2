@@ -283,6 +283,9 @@ fi
 
 log "Yi processes started successfully" 1
 
+log "Restoring force night mode"
+$YI_HACK_PREFIX/script/force_night.sh boot > /dev/null 2>&1 &
+
 # The cam works in GMT time when the hack is disabled
 # Yi processes receive the time from the clound
 export TZ=$TZ_TMP

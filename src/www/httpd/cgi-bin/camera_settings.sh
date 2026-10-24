@@ -19,7 +19,7 @@ fi
 
 CONF_LAST="CONF_LAST"
 
-for I in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+for I in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
 do
     CONF="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f1)"
     VAL="$(echo $QUERY_STRING | cut -d'&' -f$I | cut -d'=' -f2)"
@@ -135,6 +135,20 @@ do
             ipc_cmd -C on
             sleep 0.5
             ipc_cmd -C 360
+        fi
+    elif [ "$CONF" == "force_night" ] ; then
+        if [ "$VAL" == "yes" ] ; then
+            $YI_HACK_PREFIX/script/force_night.sh on > /dev/null
+        elif [ "$VAL" == "no" ] ; then
+            $YI_HACK_PREFIX/script/force_night.sh off > /dev/null
+        fi
+    elif [ "$CONF" == "force_night_persist" ] ; then
+        if [ "$VAL" == "yes" ] || [ "$VAL" == "no" ] ; then
+            if grep -q "^FORCE_NIGHT_PERSIST=" $YI_HACK_PREFIX/etc/camera.conf; then
+                sed -i "s/^\(FORCE_NIGHT_PERSIST\s*=\s*\).*$/\1$VAL/" $YI_HACK_PREFIX/etc/camera.conf
+            else
+                echo "FORCE_NIGHT_PERSIST=$VAL" >> $YI_HACK_PREFIX/etc/camera.conf
+            fi
         fi
     fi
     sleep 0.5

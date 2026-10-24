@@ -109,6 +109,8 @@ APP.camera_settings = (function($) {
                 '&ir=' + configs["IR"] +
                 '&rotate=' + configs["ROTATE"] +
                 '&cruise=' + configs["CRUISE"] +
+                '&force_night_persist=' + configs["FORCE_NIGHT_PERSIST"] +
+                '&force_night=' + configs["FORCE_NIGHT"] +
                 '&switch_on=' + configs["SWITCH_ON"],
             dataType: "json",
             success: function(response) {
@@ -127,6 +129,11 @@ APP.camera_settings = (function($) {
             url: 'cgi-bin/status.json',
             dataType: "json",
             success: function(data) {
+                var force_night = data["force_night"] || "unsupported";
+                $(".force-night").css('display', (force_night == "on" || force_night == "off") ? 'table-row' : 'none');
+                if (force_night == "on" || force_night == "off")
+                    $('#FORCE_NIGHT').prop('checked', force_night == "on");
+
                 ptz_enabled = ["r30gb", "r35gb", "r37gb", "r40ga", "h51ga", "h52ga", "h60ga", "q321br_lsx", "qg311r", "b091qp"];
                 this_model = data["model_suffix"] || "unknown";
                 if (ptz_enabled.includes(this_model)) {

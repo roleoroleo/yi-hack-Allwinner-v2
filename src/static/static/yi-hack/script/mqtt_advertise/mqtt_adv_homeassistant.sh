@@ -404,8 +404,20 @@ if [ "$MQTT_ADV_CAMERA_SETTING_ENABLE" == "yes" ]; then
     # Rotate
     hass_setup_switch "ROTATE" "Rotate" "rotate-right" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
     mqtt_publish
+    # Force night mode (only on rmm builds supported by force_night.sh)
+    if [ "$($YI_HACK_PREFIX/script/force_night.sh supported)" == "yes" ]; then
+        hass_setup_switch "FORCE_NIGHT" "Force Night Mode" "weather-night" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
+        mqtt_publish
+        hass_setup_switch "FORCE_NIGHT_PERSIST" "Keep Night Mode After Reboot" "weather-night" $MQTT_ADV_CAMERA_SETTING_TOPIC "config"
+        mqtt_publish
+    else
+        for ITEM in FORCE_NIGHT FORCE_NIGHT_PERSIST; do
+            hass_topic "switch" "$ITEM"
+            $YI_HACK_PREFIX/bin/mqtt-pub $HA_QOS $HA_RETAIN -h $HOST $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m ""
+        done
+    fi
 else
-    for ITEM in SWITCH_ON SOUND_DETECTION LED IR ROTATE; do
+    for ITEM in SWITCH_ON SOUND_DETECTION LED IR ROTATE FORCE_NIGHT FORCE_NIGHT_PERSIST; do
         hass_topic "switch" "$ITEM"
         $YI_HACK_PREFIX/bin/mqtt-pub $HA_QOS $HA_RETAIN -h $HOST $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m ""
     done

@@ -1,0 +1,7 @@
+
+set -e
+
+LIBMAIN_PATH=$PWD/toolchain-glibc/toolchain
+
+echo $LIBMAIN_PATH
+qemu-arm-static -L $LIBMAIN_PATH -E LD_LIBRARY_PATH=./_install/lib/ -E LD_PRELOAD=$PWD/lwmalloc-main/liblwmalloc.so ./lwmalloc-main/test

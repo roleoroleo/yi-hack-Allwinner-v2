@@ -9,6 +9,10 @@ get_config()
     grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2-
 }
 
+if [[ $(get_config WIFI_POWERSAVE) == "no" ]] ; then
+    iwconfig wlan0 power off > /dev/null 2>&1
+fi
+
 STATIC_IP=$(get_config STATIC_IP)
 STATIC_MASK=$(get_config STATIC_MASK)
 STATIC_GW=$(get_config STATIC_GW)

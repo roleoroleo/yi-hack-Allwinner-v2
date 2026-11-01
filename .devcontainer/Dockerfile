@@ -1,7 +1,9 @@
 ARG VARIANT="debian-11"
 FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT}
 
+# Debian 11 LTS ended in Aug 2026: bullseye-security packages are only on archive.debian.org now (deb.debian.org returns 404)
 RUN export DEBIAN_FRONTEND=noninteractive               && \
+    sed -i "s#http://deb.debian.org/debian-security#http://archive.debian.org/debian-security#" /etc/apt/sources.list && \
     apt-get update                                      && \
     apt-get -y install --no-install-recommends             \
       git wget unzip build-essential libtool bison         \

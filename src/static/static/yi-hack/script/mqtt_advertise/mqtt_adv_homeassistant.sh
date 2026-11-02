@@ -305,7 +305,7 @@ MQTT_RETAIN_AI_HUMAN_DETECTION=$(get_config MQTT_RETAIN_MOTION)
 # else
     RETAIN=""
 # fi
-CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS', "qos": "'$MQTT_QOS'", '$RETAIN' "device_class":"motion","state_topic":"'$MQTT_PREFIX'/'$TOPIC_MOTION'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","payload_on":"'$AI_HUMAN_DETECTION_MSG'","payload_off":"'$MOTION_STOP_MSG'", "platform": "mqtt"}'
+CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS', "qos": "'$MQTT_QOS'", '$RETAIN' "device_class":"motion","state_topic":"'$MQTT_PREFIX'/'$TOPIC_MOTION'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","payload_on":"'$AI_HUMAN_DETECTION_MSG'","payload_off":"'$MOTION_STOP_MSG'", "off_delay":30, "platform": "mqtt"}'
 mqtt_publish
 # Vehicle Detection
 hass_topic "binary_sensor" "ai_vehicle_detection" "Vehicle Detection"
@@ -316,7 +316,7 @@ MQTT_RETAIN_AI_VEHICLE_DETECTION=$(get_config MQTT_RETAIN_MOTION)
 # else
     RETAIN=""
 # fi
-CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS', "qos": "'$MQTT_QOS'", '$RETAIN' "device_class":"motion","state_topic":"'$MQTT_PREFIX'/'$TOPIC_MOTION'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","payload_on":"'$AI_VEHICLE_DETECTION_MSG'","payload_off":"'$MOTION_STOP_MSG'", "platform": "mqtt"}'
+CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS', "qos": "'$MQTT_QOS'", '$RETAIN' "device_class":"motion","state_topic":"'$MQTT_PREFIX'/'$TOPIC_MOTION'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","payload_on":"'$AI_VEHICLE_DETECTION_MSG'","payload_off":"'$MOTION_STOP_MSG'", "off_delay":30, "platform": "mqtt"}'
 mqtt_publish
 # Animal Detection
 hass_topic "binary_sensor" "ai_animal_detection" "Animal Detection"
@@ -327,7 +327,7 @@ MQTT_RETAIN_AI_ANIMAL_DETECTION=$(get_config MQTT_RETAIN_MOTION)
 # else
     RETAIN=""
 # fi
-CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS', "qos": "'$MQTT_QOS'", '$RETAIN' "device_class":"motion","state_topic":"'$MQTT_PREFIX'/'$TOPIC_MOTION'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","payload_on":"'$AI_ANIMAL_DETECTION_MSG'","payload_off":"'$MOTION_STOP_MSG'", "platform": "mqtt"}'
+CONTENT='{"availability_topic":"'$MQTT_PREFIX'/'$TOPIC_BIRTH_WILL'","payload_available":"'$BIRTH_MSG'","payload_not_available":"'$WILL_MSG'","device":'$DEVICE_DETAILS', "qos": "'$MQTT_QOS'", '$RETAIN' "device_class":"motion","state_topic":"'$MQTT_PREFIX'/'$TOPIC_MOTION'","name":"'$UNIQUE_NAME'","unique_id":"'$UNIQUE_ID'","payload_on":"'$AI_ANIMAL_DETECTION_MSG'","payload_off":"'$MOTION_STOP_MSG'", "off_delay":30, "platform": "mqtt"}'
 mqtt_publish
 # Sound Detection
 hass_topic "binary_sensor" "sound_detection" "Sound Detection"

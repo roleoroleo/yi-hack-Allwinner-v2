@@ -241,7 +241,7 @@ int main(int argc, char ** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:E:N:O:c:o:I:b:B:n:m:M:guj:J:p:P:HR:C:f:S:Twxdh",
+        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:E:N:O:c:o:I:b:B:n:m:M:guj:J:p:P:HR:C:f:S:Twxdh1",
                          long_options, &option_index);
 
         /* Detect the end of the options. */

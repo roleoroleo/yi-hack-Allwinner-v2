@@ -1,0 +1,152 @@
+diff -Naur live.ori/liveMedia/GenericMediaServer.cpp live/liveMedia/GenericMediaServer.cpp
+--- live.ori/liveMedia/GenericMediaServer.cpp	2026-01-12 00:00:00.000000000 +0100
++++ live/liveMedia/GenericMediaServer.cpp	2026-11-02 00:00:00.000000000 +0100
+@@ -240,7 +240,19 @@
+   }
+   ignoreSigPipeOnSocket(clientSocket); // so that clients on the same host that are killed don't also kill us
+   makeSocketNonBlocking(clientSocket);
+-  increaseSendBufferTo(envir(), clientSocket, 50*1024);
++  // Room for whole key frames with RTP over TCP (see "RTPInterface::sendRTPorRTCPPacketOverTCP()").
++  // A 1080p key frame is 140-330 KB on these cameras; the regular request is capped at
++  // net.core.wmem_max, so also try SO_SNDBUFFORCE, which works when running as root.
++#ifndef GENERICMEDIASERVER_CLIENT_SEND_BUFFER_SIZE
++#define GENERICMEDIASERVER_CLIENT_SEND_BUFFER_SIZE (1024*1024)
++#endif
++  increaseSendBufferTo(envir(), clientSocket, GENERICMEDIASERVER_CLIENT_SEND_BUFFER_SIZE);
++#ifdef SO_SNDBUFFORCE
++  {
++    int size = GENERICMEDIASERVER_CLIENT_SEND_BUFFER_SIZE;
++    setsockopt(clientSocket, SOL_SOCKET, SO_SNDBUFFORCE, (char const*)&size, sizeof size); // ignored without CAP_NET_ADMIN
++  }
++#endif
+   
+ #ifdef DEBUG
+   envir() << "accept()ed connection from " << AddressString(clientAddr).val() << "\n";
+diff -Naur live.ori/liveMedia/RTPInterface.cpp live/liveMedia/RTPInterface.cpp
+--- live.ori/liveMedia/RTPInterface.cpp	2026-01-12 00:00:00.000000000 +0100
++++ live/liveMedia/RTPInterface.cpp	2026-11-02 00:00:00.000000000 +0100
+@@ -21,6 +21,11 @@
+ // Implementation
+ 
+ #include "RTPInterface.hh"
++#ifdef __linux__
++#include <sys/ioctl.h>
++#include <string.h>
++#include <time.h>
++#endif
+ #include <GroupsockHelper.hh>
+ #include <stdio.h>
+ 
+@@ -339,6 +344,99 @@
+ 
+ ////////// Helper Functions - Implementation /////////
+ 
++#if defined(__linux__) && !defined(RTPINTERFACE_NO_TCP_FRAME_DROP)
++// RTP over TCP must never write part of a packet: a partial write forces the blocking
++// send() in "sendDataOverTCP()", and if that times out the stream is removed from the
++// connection for the rest of the session. So, per (socket, channel), decide at the start
++// of each frame (after a packet with the RTP marker bit) whether the whole frame can be
++// sent. When more than 512 KB (at most a quarter of the send buffer) is queued, drop
++// whole frames until less than 128 KB is queued, then resume at an H.264 key frame; the
++// client sees ordinary lost frames.
++struct TcpChannelState {
++  int sock; unsigned char channel;
++  Boolean used, midFrame, dropFrame, overload, seenKeyFrame;
++  time_t lowSince;
++};
++#define TCP_CHANNEL_STATES 64
++static TcpChannelState tcpChannelStates[TCP_CHANNEL_STATES];
++
++static TcpChannelState* lookupTcpChannelState(int sock, unsigned char channel) {
++  int freeIndex = -1;
++  for (int i = 0; i < TCP_CHANNEL_STATES; ++i) {
++    TcpChannelState* s = &tcpChannelStates[i];
++    if (s->used && s->sock == sock && s->channel == channel) return s;
++    if (!s->used && freeIndex < 0) freeIndex = i;
++  }
++  if (freeIndex < 0) freeIndex = (unsigned)(sock*31 + channel) % TCP_CHANNEL_STATES;
++  TcpChannelState* s = &tcpChannelStates[freeIndex];
++  memset(s, 0, sizeof *s);
++  s->used = True; s->sock = sock; s->channel = channel;
++  return s;
++}
++
++// H.264 IDR/SPS/PPS at the start of the RTP payload (single NAL, STAP-A or FU-A start)
++static Boolean isH264KeyFrameStart(u_int8_t const* packet, unsigned packetSize) {
++  unsigned hdr = 12 + 4*(packet[0] & 0x0F);
++  if ((packet[0] & 0x10) && packetSize >= hdr + 4) hdr += 4 + 4*((packet[hdr+2] << 8) | packet[hdr+3]);
++  if (packetSize < hdr + 2) return False;
++  u_int8_t const* p = &packet[hdr];
++  unsigned type = p[0] & 0x1F;
++  if (type == 5 || type == 7 || type == 8) return True;
++  if (type == 28) return (p[1] & 0x80) && (p[1] & 0x1F) == 5;
++  if (type == 24 && packetSize >= hdr + 4) { unsigned t = p[3] & 0x1F; return t == 5 || t == 7; }
++  return False;
++}
++
++// Returns False if this packet should not be sent.
++static Boolean tcpPacketFits(int sock, unsigned char channel, u_int8_t const* packet, unsigned packetSize) {
++  int queued = 0, sndBuf = 0;
++  SOCKLEN_T len = sizeof sndBuf;
++  if (packetSize < 12 || ioctl(sock, TIOCOUTQ, &queued) != 0
++      || getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char*)&sndBuf, &len) != 0 || sndBuf <= 0) {
++    return True;
++  }
++  int needed = queued + 4 + (int)packetSize;
++  int hardLimit = sndBuf/8*5 < 1280*1024 ? sndBuf/8*5 : 1280*1024;
++  if (packet[1] >= 200 && packet[1] <= 204) return needed <= hardLimit; // RTCP
++  int high = sndBuf/4 < 512*1024 ? sndBuf/4 : 512*1024;
++  int low = sndBuf/8 < 128*1024 ? sndBuf/8 : 128*1024;
++  TcpChannelState* s = lookupTcpChannelState(sock, channel);
++  if (!s->midFrame) { // first packet of a frame: decide for the whole frame
++    Boolean key = isH264KeyFrameStart(packet, packetSize);
++    if (key) s->seenKeyFrame = True;
++    if (s->overload) {
++      if (needed >= low) {
++        s->lowSince = 0;
++      } else if (key || !s->seenKeyFrame) {
++        s->overload = False; // resume at a key frame (or at once on non-H.264 streams, e.g. audio)
++      } else if (s->lowSince == 0) {
++        s->lowSince = time(NULL);
++      } else if (time(NULL) - s->lowSince > 5) {
++        s->overload = False; // no key frame seen: don't wait forever
++      }
++    }
++    if (!s->overload && needed > high) { s->overload = True; s->lowSince = 0; }
++    s->dropFrame = s->overload;
++  }
++  if (!s->dropFrame && needed > hardLimit) s->dropFrame = True; // last resort: never block
++  s->midFrame = !(packet[1] & 0x80);
++#ifdef RTPINTERFACE_TCP_DIAG
++  {
++    static time_t t0 = 0; static unsigned sent = 0, dropped = 0; static int maxQ = 0;
++    if (s->dropFrame) ++dropped; else ++sent;
++    if (queued > maxQ) maxQ = queued;
++    time_t t = time(NULL);
++    if (t != t0) {
++      fprintf(stderr, "TCPDIAG %ld sent %u dropped %u maxQueued %d sndbuf %d\n", (long)t, sent, dropped, maxQ, sndBuf);
++      t0 = t; sent = dropped = 0; maxQ = 0;
++    }
++  }
++#endif
++  return !s->dropFrame;
++}
++#endif
++
++
+ Boolean RTPInterface::sendRTPorRTCPPacketOverTCP(u_int8_t* packet, unsigned packetSize,
+ 						 int socketNum, unsigned char streamChannelId,
+ 						 TLSState* tlsState) {
+@@ -352,6 +450,12 @@
+   // the subsequent "send()" for the <packet> data to succeed, even if we have to do so with
+   // a blocking "send()".)
+   do {
++#if defined(__linux__) && !defined(RTPINTERFACE_NO_TCP_FRAME_DROP)
++    if ((tlsState == NULL || !tlsState->isNeeded)
++	&& !tcpPacketFits(socketNum, streamChannelId, packet, packetSize)) {
++      break; // dropped; the stream stays attached
++    }
++#endif
+     u_int8_t framingHeader[4];
+     framingHeader[0] = '$';
+     framingHeader[1] = streamChannelId;

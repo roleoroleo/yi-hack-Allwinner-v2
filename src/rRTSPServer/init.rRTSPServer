@@ -58,6 +58,7 @@ find live -type f -name "Makefile*" -exec chmod 644 {} +
 
 patch -p0 < rRTSPServer.patch
 patch -p0 < friend.patch
+patch -p0 < rtp-tcp-drop-packet.patch
 
 cd live || exit 1
 

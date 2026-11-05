@@ -857,8 +857,8 @@ void *capture(void *ptr)
                                     copy_src = VPS5_1920X1080_TI;
                                 } else if (stream_type.sps_type_high == 0x1002) {
                                     frame_len = sizeof(VPS5_2_1920X1080_TI);
-                                    copy_src = VPS5_2_1920_1080_TI;
-                                } else if (stream_type.sps_type_high == 0x2002) {
+                                    copy_src = VPS5_2_1920X1080_TI;
+                                } else if (stream_type.sps_type_high == 0x2004) {
                                     frame_len = sizeof(VPS5_3_2304X1296_TI);
                                     copy_src = VPS5_3_2304X1296_TI;
                                 } else { */

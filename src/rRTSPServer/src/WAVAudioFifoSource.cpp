@@ -29,12 +29,31 @@
 
 extern int debug;
 
+// Open the fifo O_RDWR | O_NONBLOCK:
+// - open() never blocks, even if the writer isn't running yet
+// - we are a writer too, so read() never returns 0 (EOF) when the writer
+//   closes the fifo: the stream goes on when the writer is restarted
+static FILE* openFifo(UsageEnvironment& env, char const* fileName) {
+    int fd = open(fileName, O_RDWR | O_NONBLOCK);
+    if (fd < 0) {
+        env.setResultMsg("unable to open fifo \"", fileName, "\"");
+        return NULL;
+    }
+    FILE* fid = fdopen(fd, "rb");
+    if (fid == NULL) {
+        close(fd);
+        env.setResultMsg("unable to fdopen fifo \"", fileName, "\"");
+    }
+
+    return fid;
+}
+
 WAVAudioFifoSource*
 WAVAudioFifoSource::createNew(UsageEnvironment& env, char const* fileName,
                               unsigned samplingFrequency, unsigned char numChannels,
                               unsigned char bitsPerSample) {
     do {
-        FILE* fid = OpenInputFile(env, fileName);
+        FILE* fid = openFifo(env, fileName);
         if (fid == NULL) break;
 
         WAVAudioFifoSource* newSource = new WAVAudioFifoSource(env, fid, samplingFrequency, numChannels, bitsPerSample);

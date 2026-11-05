@@ -662,19 +662,19 @@ void *capture(void *ptr)
                         stream_type.sps_type_high = 0x0102;
                     } else if (cb_memcmp(SPS4_2304X1296, buf_idx_cur, sizeof(SPS4_2304X1296)) == 0) {
                         stream_type.codec_high = CODEC_H264;
-                        stream_type.sps_type_high = 0x0103;
+                        stream_type.sps_type_high = 0x0104;
                     } else if (cb_memcmp(SPS4_2_1920X1080, buf_idx_cur, sizeof(SPS4_2_1920X1080)) == 0) {
                         stream_type.codec_high = CODEC_H264;
                         stream_type.sps_type_high = 0x0202;
                     } else if (cb_memcmp(SPS4_2_2304X1296, buf_idx_cur, sizeof(SPS4_2_2304X1296)) == 0) {
                         stream_type.codec_high = CODEC_H264;
-                        stream_type.sps_type_high = 0x0203;
+                        stream_type.sps_type_high = 0x0204;
                     } else if (cb_memcmp(SPS4_3_1920X1080, buf_idx_cur, sizeof(SPS4_3_1920X1080)) == 0) {
                         stream_type.codec_high = CODEC_H264;
                         stream_type.sps_type_high = 0x0402;
                     } else if (cb_memcmp(SPS4_3_2304X1296, buf_idx_cur, sizeof(SPS4_3_2304X1296)) == 0) {
                         stream_type.codec_high = CODEC_H264;
-                        stream_type.sps_type_high = 0x0403;
+                        stream_type.sps_type_high = 0x0404;
                     } else if (cb_memcmp(SPS5_1920X1080, buf_idx_cur, sizeof(SPS5_1920X1080)) == 0) {
                         stream_type.codec_high = CODEC_H265;
                         stream_type.sps_type_high = 0x0802;
@@ -683,7 +683,7 @@ void *capture(void *ptr)
                         stream_type.sps_type_high = 0x1002;
                     } else if (cb_memcmp(SPS5_3_2304X1296, buf_idx_cur, sizeof(SPS5_3_2304X1296)) == 0) {
                         stream_type.codec_high = CODEC_H265;
-                        stream_type.sps_type_high = 0x2003;
+                        stream_type.sps_type_high = 0x2004;
                     } else if (cb_memcmp(SPS4_START, buf_idx_cur, sizeof(SPS4_START)) == 0) {
                         stream_type.codec_high = CODEC_H264;
                         stream_type.sps_type_high = 0x0000;
@@ -798,13 +798,13 @@ void *capture(void *ptr)
                         // Overwrite SPS or VPS with one that contains timing info at 20 fps
                         if (fhs[i].type & 0x0002) {
                             if (frame_type == TYPE_LOW) {
-                                if (stream_type.sps_type_low & 0x0101) {
+                                if (stream_type.sps_type_low == 0x0101) {
                                     frame_len = sizeof(SPS4_640X360_TI);
                                     copy_src = SPS4_640X360_TI;
-                                } else if (stream_type.sps_type_low & 0x0201) {
+                                } else if (stream_type.sps_type_low == 0x0201) {
                                     frame_len = sizeof(SPS4_2_640X360_TI);
                                     copy_src = SPS4_2_640X360_TI;
-                                } else if (stream_type.sps_type_low & 0x0401) {
+                                } else if (stream_type.sps_type_low == 0x0401) {
                                     frame_len = sizeof(SPS4_3_640X360_TI);
                                     copy_src = SPS4_3_640X360_TI;
                                 } else {
@@ -821,22 +821,22 @@ void *capture(void *ptr)
                                 } else if (stream_type.sps_type_high == 0x0402) {
                                     frame_len = sizeof(SPS4_3_1920X1080_TI);
                                     copy_src = SPS4_3_1920X1080_TI;
-                                } else if (stream_type.sps_type_high == 0x0103) {
+                                } else if (stream_type.sps_type_high == 0x0104) {
                                     frame_len = sizeof(SPS4_2304X1296_TI);
                                     copy_src = SPS4_2304X1296_TI;
-                                } else if (stream_type.sps_type_high == 0x0203) {
+                                } else if (stream_type.sps_type_high == 0x0204) {
                                     frame_len = sizeof(SPS4_2_2304X1296_TI);
                                     copy_src = SPS4_2_2304X1296_TI;
-                                } else if (stream_type.sps_type_high == 0x0403) {
+                                } else if (stream_type.sps_type_high == 0x0404) {
                                     frame_len = sizeof(SPS4_3_2304X1296_TI);
                                     copy_src = SPS4_3_2304X1296_TI;
-/*                                } else if (stream_type.sps_type_high & 0x0802) {
+/*                                } else if (stream_type.sps_type_high == 0x0802) {
                                     frame_len = sizeof(SPS5_1920X1080_TI);
                                     copy_src = SPS5_1920X1080_TI;
-                                } else if (stream_type.sps_type_high & 0x1002) {
+                                } else if (stream_type.sps_type_high == 0x1002) {
                                     frame_len = sizeof(SPS5_2_1920X1080_TI);
                                     copy_src = SPS5_2_1920X1080_TI;
-                                } else if (stream_type.sps_type_high & 0x2002) {
+                                } else if (stream_type.sps_type_high == 0x2004) {
                                     frame_len = sizeof(SPS5_3_2304X1296_TI);
                                     copy_src = SPS5_3_2304X1296_TI; */
                                 } else {

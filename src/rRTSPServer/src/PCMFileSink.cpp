@@ -26,9 +26,34 @@
 #include "Speaker.hh"
 #include "rRTSPServer.h"
 
+#include <cstring>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+
 ////////// PCMFileSink //////////
 
 extern int debug;
+
+// Open the output fifo O_WRONLY | O_NONBLOCK:
+// open() never blocks the event loop; if nobody is reading the fifo it
+// fails immediately (ENXIO) instead of hanging until a reader appears
+static FILE* openOutputFifo(UsageEnvironment& env, char const* fileName) {
+    int fd = open(fileName, O_WRONLY | O_NONBLOCK);
+    if (fd < 0) {
+        fprintf(stderr, "%lld: unable to open output fifo %s: %s\n",
+                current_timestamp(), fileName, strerror(errno));
+        env.setResultMsg("unable to open output fifo \"", fileName, "\"");
+        return NULL;
+    }
+    FILE* fid = fdopen(fd, "wb");
+    if (fid == NULL) {
+        close(fd);
+        env.setResultMsg("unable to fdopen output fifo \"", fileName, "\"");
+    }
+
+    return fid;
+}
 
 // ulaw and alaw functions
 static int16_t linear16FromuLaw(unsigned char uLawByte) {
@@ -99,6 +124,7 @@ PCMFileSink::PCMFileSink(UsageEnvironment& env, FILE* fid,
     }
     fPCMBuffer = new int16_t[bufferSize];
     fLastSample = 0;
+    fOutputClosed = False;
 }
 
 PCMFileSink::~PCMFileSink() {
@@ -119,7 +145,7 @@ PCMFileSink* PCMFileSink::createNew(UsageEnvironment& env,
 
     do {
         FILE* fid;
-        fid = OpenOutputFile(env, fileName);
+        fid = openOutputFifo(env, fileName);
         if (fid == NULL) break;
 
         return new PCMFileSink(env, fid, destSampleRate, srcLaw, enableSpeaker, bufferSize);
@@ -166,7 +192,7 @@ void PCMFileSink::addData(unsigned char* data, unsigned dataSize,
             if (fSpeaker != NULL)
                 fSpeaker->switchSpeaker(SPEAKER_ON);
 
-            fwrite(fPCMBuffer, sizeof(int16_t), dataSize * 2, fOutFid);
+            writeNonBlocking(fPCMBuffer, dataSize * 2 * sizeof(int16_t));
         } else  if (fDestSampleRate == 8000) {
             for (unsigned i = 0; i < dataSize; ++i) {
                 if (fSrcLaw == ULAW) {
@@ -179,9 +205,19 @@ void PCMFileSink::addData(unsigned char* data, unsigned dataSize,
             if (fSpeaker != NULL)
                 fSpeaker->switchSpeaker(SPEAKER_ON);
 
-            fwrite(fPCMBuffer, sizeof(u_int16_t), dataSize, fOutFid);
+            writeNonBlocking(fPCMBuffer, dataSize * sizeof(u_int16_t));
         }
     }
+}
+
+void PCMFileSink::writeNonBlocking(void const* buf, unsigned nbytes) {
+    if (fOutFid == NULL || nbytes == 0) return;
+    ssize_t n = write(fileno(fOutFid), buf, nbytes);
+    if (n < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR) {
+        // Reader gone (EPIPE) or bad fd: mark the output as closed.
+        fOutputClosed = True;
+    }
+    // Partial writes / EAGAIN (fifo full): intentionally drop the excess
 }
 
 void PCMFileSink::afterGettingFrame(unsigned frameSize,
@@ -197,8 +233,8 @@ void PCMFileSink::afterGettingFrame(unsigned frameSize,
     }
     addData(fBuffer, frameSize, presentationTime);
 
-    if (fOutFid == NULL || fflush(fOutFid) == EOF) {
-        // The output file has closed.  Handle this the same way as if the input source had closed:
+    if (fOutFid == NULL || fOutputClosed) {
+        // The output fifo has closed.  Handle this the same way as if the input source had closed:
         if (fSource != NULL) fSource->stopGettingFrames();
         onSourceClosure();
         return;

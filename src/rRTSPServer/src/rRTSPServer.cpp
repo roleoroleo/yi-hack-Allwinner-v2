@@ -59,6 +59,9 @@
 #include <semaphore.h>
 #endif
 
+// Max frames parsed from the shared buffer in a single poll (every ~10 ms)
+#define MAX_FRAMES_PER_POLL 64
+
 int buf_offset;
 int buf_size;
 int frame_header_size;
@@ -361,7 +364,11 @@ void cb2s_headercpy(unsigned char *dest, unsigned char *src, size_t n)
     } else if (n == sizeof(fh28)) {
         fp = (unsigned char *) &fh28;
     }
-    if (fp == NULL) return;
+    if (fp == NULL) {
+        // Unsupported header size: never leave the caller's header uninitialized
+        std::memset(fh, 0, sizeof(struct frame_header));
+        return;
+    }
 
     if (src + n > input_buffer.buffer + input_buffer.size) {
         std::memcpy(fp, src, input_buffer.buffer + input_buffer.size - src);
@@ -470,8 +477,8 @@ void *capture(void *ptr)
     int write_enable = 0;
     int frame_sync = 0;
 
-    struct frame_header fhs[10];
-    unsigned char* fhs_addr[10];
+    struct frame_header fhs[MAX_FRAMES_PER_POLL];
+    unsigned char* fhs_addr[MAX_FRAMES_PER_POLL];
     uint32_t last_counter;
 
 #ifdef USE_SEMAPHORE
@@ -529,16 +536,24 @@ void *capture(void *ptr)
     // Autodetect header size if not defined
     if ((frame_header_size == FRAME_HEADER_SIZE_AUTODETECT) && (debug & 3)) fprintf(stderr, "%lld: capture - detecting frame header size\n", current_timestamp());
     while (frame_header_size == FRAME_HEADER_SIZE_AUTODETECT) {
-        header_a2 = (unsigned char *) std::search(input_buffer.buffer + input_buffer.offset, input_buffer.buffer + input_buffer.size, PPS4_START, PPS4_START + sizeof(PPS4_START));
-        if ((header_a2 != NULL) && (header_a2 - 40 > input_buffer.buffer + input_buffer.offset)) {
-            header_a1 = cb_move(header_a2, -40);
-            header_a1 = (unsigned char *) std::search(header_a1, header_a1 + 40, PPS4_HEADER, PPS4_HEADER + sizeof(PPS4_HEADER));
-            if (header_a1 != NULL) {
+        // std::search returns the end of the range (never NULL) when nothing is found
+        unsigned char *search_end = input_buffer.buffer + input_buffer.size;
+        header_a2 = (unsigned char *) std::search(input_buffer.buffer + input_buffer.offset, search_end, PPS4_START, PPS4_START + sizeof(PPS4_START));
+        if ((header_a2 != search_end) && (header_a2 - 40 > input_buffer.buffer + input_buffer.offset)) {
+            unsigned char *window_start = cb_move(header_a2, -40);
+            header_a1 = (unsigned char *) std::search(window_start, window_start + 40, PPS4_HEADER, PPS4_HEADER + sizeof(PPS4_HEADER));
+            if (header_a1 != window_start + 40) {
                 frame_header_size = header_a2 - header_a1;
                 if (frame_header_size < 0)
                         frame_header_size += (input_buffer.size - input_buffer.offset);
-                if ((frame_header_size < 0) && (frame_header_size > 40))
+                // Accept only the header layouts that cb2s_headercpy() can decode
+                if ((frame_header_size != (int) sizeof(struct frame_header_22)) &&
+                        (frame_header_size != (int) sizeof(struct frame_header_24)) &&
+                        (frame_header_size != (int) sizeof(struct frame_header_26)) &&
+                        (frame_header_size != (int) sizeof(struct frame_header_28))) {
+                    if (debug & 3) fprintf(stderr, "%lld: capture - unsupported frame header size %d, retrying\n", current_timestamp(), frame_header_size);
                     frame_header_size = FRAME_HEADER_SIZE_AUTODETECT;
+                }
             }
         }
         usleep(1000);
@@ -591,9 +606,9 @@ void *capture(void *ptr)
             buf_idx_cur = cb_move(buf_idx_cur, fhs[i].len + frame_header_size);
             i++;
             // Check if the sync is lost
-            if (i == 10) {
+            if (i == MAX_FRAMES_PER_POLL) {
                 frame_sync = 0;
-                if (debug & 3) fprintf(stderr, "%lld: capture - i=10\n", current_timestamp());
+                if (debug & 3) fprintf(stderr, "%lld: capture - more than %d frames in one poll\n", current_timestamp(), MAX_FRAMES_PER_POLL);
                 break;
             }
         }
@@ -883,13 +898,23 @@ void *capture(void *ptr)
                         output_frame of;
                         of.frame.resize(frame_len);
                         cb2s_memcpy(of.frame.data(), copy_src, frame_len);   // copy outside the lock
-                        of.counter = frame_counter;
-                        of.time = frame_time;
-                        // Lock only for the queue push + overflow trim
-                        pthread_mutex_lock(&(p_output_queue->mutex));
-                        p_output_queue->frame_queue.push(std::move(of));
-                        while (p_output_queue->frame_queue.size() > MAX_QUEUE_SIZE) p_output_queue->frame_queue.pop();
-                        pthread_mutex_unlock(&(p_output_queue->mutex));
+                        // The writer may have overwritten this frame while we parsed and
+                        // copied it. It rewrites the ring in order, so it reaches the
+                        // header before the data: if the header is unchanged, the copy is good.
+                        struct frame_header fh_check;
+                        __sync_synchronize();
+                        cb2s_headercpy((unsigned char *) &fh_check, fhs_addr[i], frame_header_size);
+                        if ((fh_check.counter != fhs[i].counter) || (fh_check.len != fhs[i].len)) {
+                            fprintf(stderr, "%lld: h264/aac in - warning - frame overwritten during copy, frame dropped\n", current_timestamp());
+                        } else {
+                            of.counter = frame_counter;
+                            of.time = frame_time;
+                            // Lock only for the queue push + overflow trim
+                            pthread_mutex_lock(&(p_output_queue->mutex));
+                            p_output_queue->frame_queue.push(std::move(of));
+                            while (p_output_queue->frame_queue.size() > MAX_QUEUE_SIZE) p_output_queue->frame_queue.pop();
+                            pthread_mutex_unlock(&(p_output_queue->mutex));
+                        }
                     } else {
                         fprintf(stderr, "%lld: h264/aac in - warning - invalid frame_len %d, frame dropped\n", current_timestamp(), frame_len);
                     }

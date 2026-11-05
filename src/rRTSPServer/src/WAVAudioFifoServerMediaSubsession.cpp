@@ -113,7 +113,7 @@ FramedSource* WAVAudioFifoServerMediaSubsession
 
     // Iterate back into the filter chain until a source is found that 
     // has a bits per sample = 16 and expected to be a WAVAudioFifoSource.
-    for (int x = 0; x < 10; x++) {
+    for (int x = 0; x < 10 && previousSource != NULL; x++) {
         if ((((WAVAudioFifoSource*)(previousSource))->bitsPerSample() == fBitsPerSample) &&
            (((WAVAudioFifoSource*)(previousSource))->numChannels() == fNumChannels) &&
            (((WAVAudioFifoSource*)(previousSource))->samplingFrequency() == fSamplingFrequency)) {
@@ -127,6 +127,10 @@ FramedSource* WAVAudioFifoServerMediaSubsession
     resultSource = fReplicator->createStreamReplica();
     if (resultSource == NULL) {
         fprintf(stderr, "%lld: WAVAudioFifoServerMediaSubsession - Failed to create stream replica\n", current_timestamp());
+        Medium::close(resultSource);
+        return NULL;
+    } else if (originalSource == NULL) {
+        fprintf(stderr, "%lld: WAVAudioFifoServerMediaSubsession - Source not found in filter chain\n", current_timestamp());
         Medium::close(resultSource);
         return NULL;
     } else {

@@ -112,7 +112,7 @@ void WAVAudioFifoSource::cleanFifo() {
     };
 
     // Clean fifo content
-    unsigned char null[4];
+    unsigned char null[1024];
     while (read(fileno(fFid), null, sizeof(null)) > 0) {}
 
     // Restore old blocking
@@ -213,28 +213,27 @@ void WAVAudioFifoSource::doReadFromFile() {
     if (bytesPerSample == 0) bytesPerSample = 1; // because we can't read less than a byte at a time
 
     unsigned bytesToRead = fMaxSize - fMaxSize%bytesPerSample;
-    unsigned numBytesRead;
 
-    while (1) { // loop for 'trick play' only
-        while (1) {
-            // For non-seekable files (e.g., pipes), call "read()" rather than "fread()", to ensure that the read doesn't block:
-            numBytesRead = read(fileno(fFid), fTo, bytesToRead);
-            if (numBytesRead > 0) {
-                break;
-            }
-            usleep(2000);
-        }
-
-        fFrameSize += numBytesRead;
-        fTo += numBytesRead;
-        fMaxSize -= numBytesRead;
-        fNumBytesToStream -= numBytesRead;
-
-        // If we did an asynchronous read, and didn't read an integral number of samples, then we need to wait for another read:
-        if (fFrameSize%bytesPerSample > 0) return;
-
-        break; // from the loop (normal case)
+    // Non-blocking read: never loop/sleep inside the event loop
+    ssize_t numBytesRead = read(fileno(fFid), fTo, bytesToRead);
+    if (numBytesRead == 0) {
+        // EOF: can't happen with O_RDWR, but don't spin if it does
+        handleClosure();
+        return;
     }
+    if (numBytesRead < 0) {
+        // No data right now (EAGAIN) or transient error:
+        // wait for the next readable notification
+        return;
+    }
+
+    fFrameSize += (unsigned) numBytesRead;
+    fTo += numBytesRead;
+    fMaxSize -= (unsigned) numBytesRead;
+    fNumBytesToStream -= (unsigned) numBytesRead;
+
+    // If we didn't read an integral number of samples, wait for another read:
+    if (fFrameSize%bytesPerSample > 0) return;
 
     if (debug & 8) fprintf(stderr, "%lld: WAVAudioFifoSource - doReadFromFile() - fFrameSize %d - fMaxSize %d\n", current_timestamp(), fFrameSize, fMaxSize);
 

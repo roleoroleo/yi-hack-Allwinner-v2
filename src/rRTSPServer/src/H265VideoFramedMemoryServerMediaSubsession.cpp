@@ -29,7 +29,7 @@ H265VideoFramedMemoryServerMediaSubsession::createNew(UsageEnvironment& env,
                                                 output_queue *qBuffer,
                                                 Boolean useTimeForPres,
                                                 Boolean reuseFirstSource) {
-    return new H265VideoFramedMemoryServerMediaSubsession(env, qBuffer, reuseFirstSource, useTimeForPres);
+    return new H265VideoFramedMemoryServerMediaSubsession(env, qBuffer, useTimeForPres, reuseFirstSource);
 }
 
 H265VideoFramedMemoryServerMediaSubsession::H265VideoFramedMemoryServerMediaSubsession(UsageEnvironment& env,

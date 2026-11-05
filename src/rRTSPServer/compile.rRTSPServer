@@ -34,8 +34,8 @@ cd ..
 
 cd live || exit 1
 
-sed 's/-DNO_OPENSSL=1 -DRTP_PAYLOAD_MAX_SIZE=1352/-DNO_OPENSSL=1 -DNO_STD_LIB -DRTP_PAYLOAD_MAX_SIZE=1352/' -i ./BasicUsageEnvironment/Makefile || exit 1
-sed 's/-DNO_OPENSSL=1 -DRTP_PAYLOAD_MAX_SIZE=1352/-DNO_OPENSSL=1 -DNO_STD_LIB -DRTP_PAYLOAD_MAX_SIZE=1352/' -i ./testProgs/Makefile || exit 1
+#sed 's/-DNO_OPENSSL=1 -DRTP_PAYLOAD_MAX_SIZE=1352/-DNO_OPENSSL=1 -DNO_STD_LIB -DRTP_PAYLOAD_MAX_SIZE=1352/' -i ./BasicUsageEnvironment/Makefile || exit 1
+#sed 's/-DNO_OPENSSL=1 -DRTP_PAYLOAD_MAX_SIZE=1352/-DNO_OPENSSL=1 -DNO_STD_LIB -DRTP_PAYLOAD_MAX_SIZE=1352/' -i ./testProgs/Makefile || exit 1
 make clean
 make all || exit 1
 

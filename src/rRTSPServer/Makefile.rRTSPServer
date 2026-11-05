@@ -1,5 +1,5 @@
 ##### Change the following for your environment:
-COMPILE_OPTS =		$(INCLUDES) -I. -I./include -I./include/libhelix-aac -O0 -ffunction-sections -fdata-sections -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DNO_OPENSSL=1 -DNO_STD_LIB -DRTP_PAYLOAD_MAX_SIZE=1352
+COMPILE_OPTS =		$(INCLUDES) -I. -I./include -I./include/libhelix-aac -O0 -ffunction-sections -fdata-sections -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -DNO_OPENSSL=1 -DNO_STD_LIB -DRTP_PAYLOAD_MAX_SIZE=1352 -DALLOW_SERVER_PORT_REUSE -DRTPINTERFACE_BLOCKING_WRITE_TIMEOUT_MS=3000
 C =			c
 C_COMPILER =		$(CC)
 C_FLAGS =		$(COMPILE_OPTS) $(CPPFLAGS) $(CFLAGS)

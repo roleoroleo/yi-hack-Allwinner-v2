@@ -94,6 +94,8 @@ echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/p
 chmod 0755 ../_install/www/onvif/ptz_service
 echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/deviceio_service || exit 1
 chmod 0755 ../_install/www/onvif/deviceio_service
+echo "#!/tmp/sd/yi-hack/www/onvif/onvif_simple_server" > ../_install/www/onvif/imaging_service || exit 1
+chmod 0755 ../_install/www/onvif/imaging_service
 cp -R ./device_service_files ../_install/www/onvif
 cp -R ./events_service_files ../_install/www/onvif
 cp -R ./generic_files ../_install/www/onvif
@@ -101,9 +103,10 @@ cp -R ./media_service_files ../_install/www/onvif
 cp -R ./media2_service_files ../_install/www/onvif
 cp -R ./ptz_service_files ../_install/www/onvif
 cp -R ./deviceio_service_files ../_install/www/onvif
+cp -R ./imaging_service_files ../_install/www/onvif
 if [ "$USE_ZLIB" == "1" ]; then
     PROJ_PWD=$(pwd)
-    for DIR in device_service deviceio_service events_service generic media_service media2_service ptz_service; do
+    for DIR in device_service deviceio_service events_service generic imaging_service media_service media2_service ptz_service; do
         cd ../_install/www/onvif/${DIR}_files
         rm -f *.gz
         for FILE in *.xml; do gzip $FILE; done;

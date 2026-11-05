@@ -20,7 +20,7 @@ diff -Naur onvif_simple_server.ori/onvif_notify_server.c onvif_simple_server/onv
 diff -Naur onvif_simple_server.ori/onvif_simple_server.c onvif_simple_server/onvif_simple_server.c
 --- onvif_simple_server.ori/onvif_simple_server.c	2025-05-20 16:05:41.953491940 +0200
 +++ onvif_simple_server/onvif_simple_server.c	2025-05-19 22:11:39.609081482 +0200
-@@ -38,9 +38,9 @@
+@@ -39,9 +39,9 @@
  #include "utils.h"
  #include "log.h"
  

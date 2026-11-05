@@ -32,25 +32,33 @@ extern int debug;
 static void *speaker(void *ptr)
 {
     Speaker *s = (Speaker *) ptr;
-    int c;
 
     while (!s->stopThread()) {
-        c = s->getCounter();
         usleep(100 * 1000);
-        if (c == 0) {
-            s->switchSpeaker(SPEAKER_OFF);
-            s->setCounter(-1);
-        } else if (c > 0) {
-            s->setCounter(s->getCounter() - 100);
-        }
+        s->tick(100);
     }
 
     return NULL;
 }
 
+// Count down the time since the last audio packet and switch the speaker
+// off when it expires. Check and switch happen under the same lock, so a
+// packet arriving meanwhile can't be cut off by a stale decision.
+void Speaker::tick(int elapsedMs) {
+    pthread_mutex_lock(&fLock);
+    if (fSpeakerCounter > 0) {
+        fSpeakerCounter -= elapsedMs;
+        if (fSpeakerCounter <= 0) {
+            switchSpeakerLocked(SPEAKER_OFF);
+        }
+    }
+    pthread_mutex_unlock(&fLock);
+}
+
 Speaker::Speaker(sem_t *semSpeaker): fSemSpeaker(semSpeaker),
     fIsActive(False), fExitThread(False), fThread(0), fSpeakerCounter(-1) {
 
+    pthread_mutex_init(&fLock, NULL);
     fSemFile = strDup(SEM_FILE);
 }
 
@@ -83,6 +91,14 @@ Speaker::~Speaker() {
     fExitThread = True;
     // Wait for the speaker thread to finish before the object goes away
     if (fThread != 0) pthread_join(fThread, NULL);
+
+    // If the session ends while the speaker is on, switch it off and
+    // release the semaphore, otherwise it stays locked for everyone
+    pthread_mutex_lock(&fLock);
+    if (fIsActive) switchSpeakerLocked(SPEAKER_OFF);
+    pthread_mutex_unlock(&fLock);
+    pthread_mutex_destroy(&fLock);
+
     if (fSemSpeaker != SEM_FAILED) {
         sem_close(fSemSpeaker);
         fSemSpeaker = SEM_FAILED;
@@ -115,11 +131,16 @@ Boolean Speaker::isActive() {
 }
 
 int Speaker::getCounter() {
-    return fSpeakerCounter;
+    pthread_mutex_lock(&fLock);
+    int value = fSpeakerCounter;
+    pthread_mutex_unlock(&fLock);
+    return value;
 }
 
 void Speaker::setCounter(int value) {
+    pthread_mutex_lock(&fLock);
     fSpeakerCounter = value;
+    pthread_mutex_unlock(&fLock);
 }
 
 Boolean Speaker::stopThread() {
@@ -128,7 +149,16 @@ Boolean Speaker::stopThread() {
 
 int Speaker::switchSpeaker(int on)
 {
+    pthread_mutex_lock(&fLock);
+    int ret = switchSpeakerLocked(on);
+    pthread_mutex_unlock(&fLock);
+    return ret;
+}
+
+int Speaker::switchSpeakerLocked(int on)
+{
     int num = -1;
+    int ret = 0;
 
     if (on == SPEAKER_ON) {
         num = 16;
@@ -144,6 +174,12 @@ int Speaker::switchSpeaker(int on)
     int fd = openCpld();
     if (fd < 0) {
         fprintf(stderr, "Error: cannot open %s\n", CPLD_DEV);
+        if ((on == SPEAKER_OFF) && (fIsActive == True)) {
+            // Can't drive the GPIO, but still release our state and the semaphore
+            fSpeakerCounter = -1;
+            fIsActive = False;
+            sem_post(fSemSpeaker);
+        }
         return -3;
     }
 
@@ -151,29 +187,32 @@ int Speaker::switchSpeaker(int on)
         // If semaphore is locked, exit
         if (sem_trywait(fSemSpeaker) == -1) {
             fprintf(stderr, "Speaker is busy\n");
-            return -1;
+            ret = -1;
+        } else {
+            fIsActive = True;
+            fSpeakerCounter = SPEAKER_MAX_VALUE;
+            if (debug) fprintf(stderr, "Speaker on\n");
         }
-        fIsActive = True;
-        setCounter(SPEAKER_MAX_VALUE);
-        if (debug) fprintf(stderr, "Speaker on\n");
     } else if (fIsActive == True) {
         if (on == SPEAKER_OFF) {
-            setCounter(-1);
+            fSpeakerCounter = -1;
             fIsActive = False;
             sem_post(fSemSpeaker);
             if (debug) fprintf(stderr, "Speaker off\n");
         } else {
-            setCounter(SPEAKER_MAX_VALUE);
+            fSpeakerCounter = SPEAKER_MAX_VALUE;
         }
     } else {
-        closeCpld(fd);
-        return -4;
+        ret = -4;
     }
 
-    if (debug) fprintf(stderr, "Running ioctl: num %d\n", num);
-    runIO(fd, num);
+    if (ret == 0) {
+        if (debug) fprintf(stderr, "Running ioctl: num %d\n", num);
+        runIO(fd, num);
+    }
 
+    // Close the device on every path (it leaked when the speaker was busy)
     closeCpld(fd);
 
-    return 0;
+    return ret;
 }

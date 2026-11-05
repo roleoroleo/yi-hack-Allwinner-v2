@@ -43,6 +43,7 @@ public:
     void setCounter(int value);
     Boolean isActive();
     Boolean stopThread();
+    void tick(int elapsedMs); // called by the speaker thread
 
 protected:
     Speaker(sem_t *semSpeaker);
@@ -51,6 +52,7 @@ private:
     int openCpld();
     void closeCpld(int fd);
     void runIO(int fd, int n);
+    int switchSpeakerLocked(int on); // fLock must be held
 
 private:
     char *fSemFile;
@@ -59,6 +61,9 @@ private:
     volatile Boolean fExitThread;
     pthread_t fThread;
     int fSpeakerCounter;
+    // Protects fIsActive and fSpeakerCounter: they are used both by the
+    // live555 event loop and by the speaker thread
+    pthread_mutex_t fLock;
 };
 
 #endif

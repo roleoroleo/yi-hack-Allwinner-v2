@@ -58,8 +58,8 @@ MediaSink* PCMAudioFileServerMediaSubsession_BC
 
 RTPSource* PCMAudioFileServerMediaSubsession_BC
 ::createNewRTPSource(Groupsock* rtpGroupsock,
-		     unsigned char rtpPayloadTypeIfDynamic,
-		     MediaSink* outputSink) {
+                     unsigned char rtpPayloadTypeIfDynamic,
+                     MediaSink* outputSink) {
 
     // Create the data source: a "Simple RTP source"
     SimpleRTPSource *rtpSource;
@@ -83,14 +83,14 @@ RTPSource* PCMAudioFileServerMediaSubsession_BC
 
 FramedSource* PCMAudioFileServerMediaSubsession_BC
 ::createNewStreamSource(unsigned clientSessionId,
-			unsigned& estBitrate) {
+                        unsigned& estBitrate) {
     return NULL;
 }
 
 RTPSink* PCMAudioFileServerMediaSubsession_BC
 ::createNewRTPSink(Groupsock* rtpGroupsock,
-		   unsigned char rtpPayloadTypeIfDynamic,
-		   FramedSource* inputSource) {
+                   unsigned char rtpPayloadTypeIfDynamic,
+                   FramedSource* inputSource) {
 
     return NULL;
 }

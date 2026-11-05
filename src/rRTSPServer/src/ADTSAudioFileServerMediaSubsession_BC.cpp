@@ -24,6 +24,7 @@
 #include "MPEG4GenericRTPSource.hh"
 
 extern int debug;
+
 ADTSAudioFileServerMediaSubsession_BC*
 ADTSAudioFileServerMediaSubsession_BC::createNew(UsageEnvironment& env,
                                                  char const* fileName,
@@ -36,9 +37,9 @@ ADTSAudioFileServerMediaSubsession_BC::createNew(UsageEnvironment& env,
 
 ADTSAudioFileServerMediaSubsession_BC
 ::ADTSAudioFileServerMediaSubsession_BC(UsageEnvironment& env,
-                                       char const* fileName, Boolean reuseFirstSource,
-                                       int sampleRate, int numChannels,
-                                       Boolean enableSpeaker)
+                                        char const* fileName, Boolean reuseFirstSource,
+                                        int sampleRate, int numChannels,
+                                        Boolean enableSpeaker)
   : FileServerMediaSubsession_BC(env, fileName, reuseFirstSource),
     fSampleRate(sampleRate), fNumChannels(numChannels),
     fEnableSpeaker(enableSpeaker),
@@ -58,8 +59,8 @@ MediaSink* ADTSAudioFileServerMediaSubsession_BC
 
 RTPSource* ADTSAudioFileServerMediaSubsession_BC
 ::createNewRTPSource(Groupsock* rtpGroupsock,
-		     unsigned char rtpPayloadTypeIfDynamic,
-		     MediaSink* outputSink) {
+                     unsigned char rtpPayloadTypeIfDynamic,
+                     MediaSink* outputSink) {
 
 
     // Create the data source: a "MPEG4 Generic RTP source"
@@ -90,21 +91,21 @@ char const* ADTSAudioFileServerMediaSubsession_BC::getAuxSDPLine(MediaSink* medi
     }
     fAuxSDPLine = strDup(pTmpStr);
 
-    if (debug) fprintf(stderr, "ADTSAudioFileServerMediaSubsession_BC::getAuxSDPLine() line:%d, pTmpStr=%s\n", __LINE__, pTmpStr);
+    if (debug & 16) fprintf(stderr, "ADTSAudioFileServerMediaSubsession_BC::getAuxSDPLine() line:%d, pTmpStr=%s\n", __LINE__, pTmpStr);
 
     return fAuxSDPLine;
 }
 
 FramedSource* ADTSAudioFileServerMediaSubsession_BC
 ::createNewStreamSource(unsigned clientSessionId,
-			unsigned& estBitrate) {
+                        unsigned& estBitrate) {
     return NULL;
 }
 
 RTPSink* ADTSAudioFileServerMediaSubsession_BC
 ::createNewRTPSink(Groupsock* rtpGroupsock,
-		   unsigned char rtpPayloadTypeIfDynamic,
-		   FramedSource* inputSource) {
+                   unsigned char rtpPayloadTypeIfDynamic,
+                   FramedSource* inputSource) {
 
     return NULL;
 }

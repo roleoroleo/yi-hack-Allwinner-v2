@@ -80,7 +80,7 @@ void ipc_stop()
 
 void print_usage(char *progname)
 {
-    fprintf(stderr, "\nUsage: %s [t ON/OFF] [-s SENS] [-l LED] [-v WHEN] [-i IR] [-r ROTATE] [-1] [-a AIHUMANDETECTION] [-E AIVEHICLEDETECTION] [-N AIANIMALDETECTION] [-O AIMOTIONDETECTION] [-c FACEDETECTION] [-o MOTIONTRACKING] [-I MIC] [-b SOUNDDETECTION] [-B BABYCRYING] [-n SOUNDSENSITIVITY] [-m MOVE] [-g] [-u] [-j ABS_POSITION] [-J REL_POSITION] [-p NUM] [-P NAME] [-R NUM] [-C MODE] [-f FILE] [-S TIME] [-T] [-d]\n\n", progname);
+    fprintf(stderr, "\nUsage: %s [t ON/OFF] [-s SENS] [-l LED] [-v WHEN] [-i IR] [-r ROTATE] [-1] [-a AIHUMANDETECTION] [-E AIVEHICLEDETECTION] [-N AIANIMALDETECTION] [-O AIMOTIONDETECTION] [-c FACEDETECTION] [-o MOTIONTRACKING] [-I MIC] [-b SOUNDDETECTION] [-B BABYCRYING] [-n SOUNDSENSITIVITY] [-z ZONE] [-m MOVE] [-g] [-u] [-j ABS_POSITION] [-J REL_POSITION] [-p NUM] [-P NAME] [-R NUM] [-C MODE] [-f FILE] [-S TIME] [-T] [-d]\n\n", progname);
     fprintf(stderr, "\t-t ON/OFF, --switch ON/OFF\n");
     fprintf(stderr, "\t\tswitch ON or OFF the cam\n");
     fprintf(stderr, "\t-s SENS, --sensitivity SENS\n");
@@ -115,6 +115,9 @@ void print_usage(char *progname)
     fprintf(stderr, "\t\tset baby crying detection: ON or OFF\n");
     fprintf(stderr, "\t-n SOUNDSENSITIVITY, --soundsensitivity SOUNDSENSITIVITY\n");
     fprintf(stderr, "\t\tset Sound Detection Sensitivity: 30 - 90\n");
+    fprintf(stderr, "\t-z ZONE, --detection_zone ZONE\n");
+    fprintf(stderr, "\t\tset detection zone: x1,y1,x2,y2 in 1280x720 coordinates or OFF\n");
+    fprintf(stderr, "\t\t(example -z 450,110,1030,720)\n");
     fprintf(stderr, "\t-m MOVE, --move MOVE\n");
     fprintf(stderr, "\t\tsend PTZ command: RIGHT, LEFT, DOWN, UP or STOP\n");
     fprintf(stderr, "\t-g, --get-ptz\n");
@@ -172,6 +175,9 @@ int main(int argc, char ** argv)
     int sounddetection = NONE;
     int babycrying = NONE;
     int soundsensitivity = NONE;
+    int detection_zone = NONE;
+    int zx1 = 0, zy1 = 0, zx2 = 0, zy2 = 0;
+    unsigned char zone_msg[IPC_DETECTION_ZONE_LEN];
     int move = NONE;
     int get_pos = NONE;
     int is_moving = NONE;
@@ -218,6 +224,7 @@ int main(int argc, char ** argv)
             {"sounddetection",  required_argument, 0, 'b'},
             {"babycrying",  required_argument, 0, 'B'},
             {"soundsensitivity",  required_argument, 0, 'n'},
+            {"detection_zone",  required_argument, 0, 'z'},
             {"move",  required_argument, 0, 'm'},
             {"move-reverse",  required_argument, 0, 'M'},
             {"get-pos", no_argument, 0, 'g'},
@@ -241,7 +248,7 @@ int main(int argc, char ** argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:E:N:O:c:o:I:b:B:n:m:M:guj:J:p:P:HR:C:f:S:Twxdh1",
+        c = getopt_long (argc, argv, "t:s:l:v:i:r:a:E:N:O:c:o:I:b:B:n:z:m:M:guj:J:p:P:HR:C:f:S:Twxdh1",
                          long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -439,6 +446,23 @@ int main(int argc, char ** argv)
             } else {
                 print_usage(argv[0]);
                 exit(EXIT_FAILURE);
+            }
+            break;
+
+        case 'z':
+            if ((strcasecmp("off", optarg) == 0) || (strcasecmp("no", optarg) == 0)) {
+                detection_zone = 0;
+            } else {
+                if (sscanf(optarg, "%d,%d,%d,%d", &zx1, &zy1, &zx2, &zy2) != 4) {
+                    print_usage(argv[0]);
+                    exit(EXIT_FAILURE);
+                }
+                if ((zx1 < 0) || (zy1 < 0) || (zx2 > DETECTION_ZONE_MAX_X) || (zy2 > DETECTION_ZONE_MAX_Y) ||
+                        (zx1 >= zx2) || (zy1 >= zy2)) {
+                    print_usage(argv[0]);
+                    exit(EXIT_FAILURE);
+                }
+                detection_zone = 1;
             }
             break;
 
@@ -764,6 +788,23 @@ int main(int argc, char ** argv)
         mq_send(ipc_mq, IPC_SOUND_SENS_80, sizeof(IPC_SOUND_SENS_80) - 1, 0);
     } else if (soundsensitivity == SOUND_SENS_90) {
         mq_send(ipc_mq, IPC_SOUND_SENS_90, sizeof(IPC_SOUND_SENS_90) - 1, 0);
+    }
+
+    if (detection_zone != NONE) {
+        unsigned short rect[4];
+
+        memset(zone_msg, 0, sizeof(zone_msg));
+        memcpy(zone_msg, IPC_DETECTION_ZONE_HEADER, sizeof(IPC_DETECTION_ZONE_HEADER) - 1);
+        zone_msg[16] = detection_zone & 0xff;
+        if (detection_zone == 1) {
+            rect[0] = zx1;
+            rect[1] = zy1;
+            rect[2] = zx2;
+            rect[3] = zy2;
+            memcpy(&zone_msg[24], rect, sizeof(rect));
+        }
+        if (debug) fprintf(stderr, "Detection zone: enable = %d, rect = %d,%d,%d,%d\n", detection_zone, zx1, zy1, zx2, zy2);
+        mq_send(ipc_mq, (char *) zone_msg, IPC_DETECTION_ZONE_LEN, 0);
     }
 
     if (move != NONE) {

@@ -50,6 +50,12 @@
 #define IPC_SENS_MEDIUM "\x01\x00\x00\x00\x08\x00\x00\x00\x27\x10\x01\x00\x04\x00\x00\x00\x01\x00\x00\x00"
 #define IPC_SENS_LOW    "\x01\x00\x00\x00\x08\x00\x00\x00\x27\x10\x01\x00\x04\x00\x00\x00\x02\x00\x00\x00"
 
+// Detection zone (0x1023): header + enable u32 + u32 0 + x1,y1,x2,y2 u16 (1280x720 coordinates)
+#define IPC_DETECTION_ZONE_HEADER "\x01\x00\x00\x00\x08\x00\x00\x00\x23\x10\x01\x00\x10\x00\x00\x00"
+#define IPC_DETECTION_ZONE_LEN    32
+#define DETECTION_ZONE_MAX_X      1280
+#define DETECTION_ZONE_MAX_Y      720
+
 #define SENSITIVITY_HIGH   0
 #define SENSITIVITY_MEDIUM 1
 #define SENSITIVITY_LOW    2

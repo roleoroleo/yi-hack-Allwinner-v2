@@ -452,7 +452,9 @@ if [ "$ACTION" == "start" ] ; then
     elif [ "$NAME" == "ftpd" ]; then
         start_ftpd $PARAM1
     elif [ "$NAME" == "mqtt" ]; then
-        if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
+        if [ "$(ps_program mqttv4)" == "started" ]; then
+            echo "mqttv4 already running"
+        elif [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
             if [ "$MODEL_SUFFIX" != "y291ga" ] && [ "$MODEL_SUFFIX" != "y211ga" ] && [ "$MODEL_SUFFIX" != "y623" ]; then
                 mqttv4 -t local > /dev/null &
             else

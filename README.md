@@ -214,6 +214,8 @@ Frigate can consume the RTSP streams directly. Enable the RTSP server in the cam
 - `rtsp://IP-CAM/ch0_1.h264` - low resolution
 - `rtsp://IP-CAM/ch0_2.h264` - audio only
 
+The camera serves only the streams selected in Configurations > RTSP Stream. The default is High, so for the examples below, which use `ch0_1.h264` for detection, set it to Low or Both; otherwise `ch0_1.h264` returns 404.
+
 For a minimal setup, use the low resolution stream for detection to reduce load on the camera:
 
 ```yaml

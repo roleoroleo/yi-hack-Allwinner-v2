@@ -24,7 +24,7 @@ ensure_symlink ../../libtomcrypt-1.18.2 onvif_simple_server/extras/libtomcrypt
 
 MBEDTLS_VERSION=3.6.5
 MBEDTLS_NAME=mbedtls-3.6.5
-if [ ! -f "${MBEDTLS_VERSION}.tar.gz" ]; then
+if [ ! -f "${MBEDTLS_NAME}.tar.bz2" ]; then
     wget https://github.com/Mbed-TLS/mbedtls/releases/download/${MBEDTLS_NAME}/${MBEDTLS_NAME}.tar.bz2
 fi
 tar xvf ./${MBEDTLS_NAME}.tar.bz2

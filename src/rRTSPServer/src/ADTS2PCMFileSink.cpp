@@ -25,9 +25,34 @@
 
 #include "Speaker.hh"
 
+#include <cstring>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+
 ////////// ADTS2PCMFileSink //////////
 
 extern int debug;
+
+// Open the output fifo O_WRONLY | O_NONBLOCK:
+// open() never blocks the event loop; if nobody is reading the fifo it
+// fails immediately (ENXIO) instead of hanging until a reader appears
+static FILE* openOutputFifo(UsageEnvironment& env, char const* fileName) {
+    int fd = open(fileName, O_WRONLY | O_NONBLOCK);
+    if (fd < 0) {
+        fprintf(stderr, "%lld: unable to open output fifo %s: %s\n",
+                current_timestamp(), fileName, strerror(errno));
+        env.setResultMsg("unable to open output fifo \"", fileName, "\"");
+        return NULL;
+    }
+    FILE* fid = fdopen(fd, "wb");
+    if (fid == NULL) {
+        close(fd);
+        env.setResultMsg("unable to fdopen output fifo \"", fileName, "\"");
+    }
+
+    return fid;
+}
 
 unsigned samplingFrequencyTable[16] = {
     96000, 88200, 64000, 48000,
@@ -41,7 +66,7 @@ ADTS2PCMFileSink::ADTS2PCMFileSink(UsageEnvironment& env, FILE* fid,
                                    Boolean enableSpeaker,
                                    unsigned bufferSize)
     : FileSink(env, fid, bufferSize, NULL), fSampleRate(sampleRate),
-      fNumChannels(numChannels), fPacketCounter(0) {
+      fNumChannels(numChannels), fPacketCounter(0), fSpeaker(NULL), fOutputClosed(False) {
 
     if (debug & 16) fprintf(stderr, "%lld: ADTS2PCMFileSink - Starting sink\n", current_timestamp());
 
@@ -110,7 +135,7 @@ ADTS2PCMFileSink* ADTS2PCMFileSink::createNew(UsageEnvironment& env,
                                               Boolean enableSpeaker, unsigned bufferSize) {
     do {
         FILE* fid;
-        fid = OpenOutputFile(env, fileName);
+        fid = openOutputFifo(env, fileName);
         if (fid == NULL) break;
 
         return new ADTS2PCMFileSink(env, fid, sampleRate, numChannels, enableSpeaker, bufferSize);
@@ -175,15 +200,28 @@ void ADTS2PCMFileSink::addData(unsigned char* data, unsigned dataSize,
         if (fSpeaker != NULL)
             fSpeaker->switchSpeaker(SPEAKER_ON);
 
-        if (fSampleRate == frameInfoOut.sampRateOut / 2) {
-            for (i = 0; i < frameInfoOut.outputSamps / 2; i++) {
-                fPCMBuffer[i] = fPCMBuffer[2 * i];
-            }
-            fwrite(fPCMBuffer, sizeof(short), frameInfoOut.outputSamps / 2, fOutFid);
-        } else {
-            fwrite(fPCMBuffer, sizeof(short), frameInfoOut.outputSamps, fOutFid);
+        // The output fifo is mono: keep only the first channel and,
+        // if the decoder doubled the rate (SBR), drop every other sample.
+        // Done in place: the write index never overtakes the read index.
+        int nChans = (frameInfoOut.nChans > 0) ? frameInfoOut.nChans : 1;
+        int numFrames = frameInfoOut.outputSamps / nChans;
+        int decimation = (fSampleRate == frameInfoOut.sampRateOut / 2) ? 2 : 1;
+        int numOut = 0;
+        for (i = 0; i < numFrames; i += decimation) {
+            fPCMBuffer[numOut++] = fPCMBuffer[i * nChans];
         }
+        writeNonBlocking(fPCMBuffer, numOut * sizeof(short));
     }
+}
+
+void ADTS2PCMFileSink::writeNonBlocking(void const* buf, unsigned nbytes) {
+    if (fOutFid == NULL || nbytes == 0) return;
+    ssize_t n = write(fileno(fOutFid), buf, nbytes);
+    if (n < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR) {
+        // Reader gone (EPIPE) or bad fd: mark the output as closed.
+        fOutputClosed = True;
+    }
+    // Partial writes / EAGAIN (fifo full): intentionally drop the excess
 }
 
 void ADTS2PCMFileSink::afterGettingFrame(unsigned frameSize,
@@ -199,8 +237,8 @@ void ADTS2PCMFileSink::afterGettingFrame(unsigned frameSize,
     }
     addData(fBuffer, frameSize, presentationTime);
 
-    if (fOutFid == NULL || fflush(fOutFid) == EOF) {
-        // The output file has closed.  Handle this the same way as if the input source had closed:
+    if (fOutFid == NULL || fOutputClosed) {
+        // The output fifo has closed.  Handle this the same way as if the input source had closed:
         if (fSource != NULL) fSource->stopGettingFrames();
         onSourceClosure();
         return;

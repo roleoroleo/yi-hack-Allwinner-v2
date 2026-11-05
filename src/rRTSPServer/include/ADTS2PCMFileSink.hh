@@ -57,6 +57,7 @@ protected:
     virtual void afterGettingFrame(unsigned frameSize,
                                    unsigned numTruncatedBytes,
                                    struct timeval presentationTime);
+    void writeNonBlocking(void const* buf, unsigned nbytes);
 
     int fSampleRate;
     int fNumChannels;
@@ -64,10 +65,12 @@ protected:
     int fPacketCounter;
     HAACDecoder fAACDecoder;
     _AACFrameInfo fAACFrameInfo{};
-    short fPCMBuffer[1024];
+    // Worst case decoder output: SBR (x2) on AAC_MAX_NCHANS channels
+    short fPCMBuffer[AAC_MAX_NSAMPS * AAC_MAX_NCHANS * 2];
     unsigned fSampleRateIndex;
     unsigned fChannelConfiguration;
     Speaker *fSpeaker;
+    Boolean fOutputClosed;
 };
 
 #endif

@@ -70,13 +70,17 @@ source "$(get_script_dir)/common.sh"
 require_root
 
 
-if [ $# -ne 1 ]; then
-    echo "Usage: pack_sw.sh camera_name"
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+    echo "Usage: pack_fw.sh camera_name [dev]"
     echo ""
     exit 1
 fi
 
 CAMERA_NAME=$1
+DEV_BUILD="no"
+if [ "$2" == "dev" ]; then
+    DEV_BUILD="yes"
+fi
 
 check_camera_name $CAMERA_NAME
 
@@ -93,12 +97,11 @@ BUILD_DIR=$BASE_DIR/build
 OUT_DIR=$BASE_DIR/out/$CAMERA_NAME
 VER=$(cat VERSION)
 
-# Append git short hash when building outside a tagged release,
-# so local builds are distinguishable from official releases.
-GIT_TAG=$(git -C "$BASE_DIR" tag --points-at HEAD 2>/dev/null | grep -Fx "$VER" | head -1)
-if [ -z "$GIT_TAG" ]; then
-    GIT_HASH=$(git -C "$BASE_DIR" rev-parse --short HEAD 2>/dev/null || echo "custom")
-    VER="${VER}-${GIT_HASH}"
+# A "dev" build appends -dev to the version. That marker force-disables the
+# online auto-update on the camera (cgi-bin/fw_upgrade.sh), so a local build can
+# never be clobbered by a release that happens to share the base version.
+if [ "$DEV_BUILD" == "yes" ]; then
+    VER="${VER}-dev"
 fi
 
 echo ""

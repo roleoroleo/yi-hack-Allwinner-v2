@@ -96,6 +96,7 @@ APP.camera_settings = (function($) {
             type: "GET",
             url: 'cgi-bin/camera_settings.sh?' +
                 'save_video_on_motion=' + configs["SAVE_VIDEO_ON_MOTION"] +
+                '&save_video_on_motion_persist=' + configs["SAVE_VIDEO_ON_MOTION_PERSIST"] +
                 '&motion_detection=' + configs["MOTION_DETECTION"] +
                 '&sensitivity=' + configs["SENSITIVITY"] +
                 '&ai_human_detection=' + configs["AI_HUMAN_DETECTION"] +

@@ -217,14 +217,8 @@ check_wifi()
     if [ $WIFI_CONNECTED -eq 0 ]; then
         if ifconfig wlan0 2>/dev/null | grep -q "inet addr:"; then
             WIFI_CONNECTED=1
-        fi
-    fi
-
-    # Method 3: Additional check - interface carrier state
-    if [ $WIFI_CONNECTED -eq 0 ]; then
-        if [ -f /sys/class/net/wlan0/carrier ]; then
-            CARRIER=$(cat /sys/class/net/wlan0/carrier 2>/dev/null)
-            if [ "$CARRIER" != "1" ]; then
+            # Method 3: the address stays after the link drops, so also require carrier
+            if [ "$(cat /sys/class/net/wlan0/carrier 2>/dev/null)" == "0" ]; then
                 WIFI_CONNECTED=0
             fi
         fi

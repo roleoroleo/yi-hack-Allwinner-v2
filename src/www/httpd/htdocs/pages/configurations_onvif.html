@@ -96,6 +96,32 @@
                         </td>
                     </tr>
                     <tr class="row">
+                        <td>Enable Imaging</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="ONVIF_ENABLE_IMAGING"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Enable Imaging service.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td>Empty response if unknown request</td>
+                        <td>
+                            <label class="switch small">
+                                <input type="checkbox" data-key="ONVIF_EMPTY_IF_UNKNOWN"/>
+                                <span class="slider round"></span>
+                                <span class="switch-text"></span>
+                            </label>
+                            <span class="switch-description">
+                                Reply with an empty response if the request is unknown.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row">
                         <td>Fault response if unknown request</td>
                         <td>
                             <label class="switch small">
@@ -118,6 +144,8 @@
                             </label>
                             <span class="switch-description">
                                 Check this option to improve compatibility with Synology NVRs.
+                                <br/>
+                                If it's not enough, enable "Empty response if unknown request".
                             </span>
                         </td>
                     </tr>

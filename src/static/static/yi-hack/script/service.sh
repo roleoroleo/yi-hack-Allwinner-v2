@@ -121,6 +121,16 @@ init_config()
     else
         ONVIF_ENABLE_MEDIA2=0
     fi
+    if [[ $(get_config ONVIF_ENABLE_IMAGING) == "yes" ]] ; then
+        ONVIF_ENABLE_IMAGING=1
+    else
+        ONVIF_ENABLE_IMAGING=0
+    fi
+    if [[ $(get_config ONVIF_EMPTY_IF_UNKNOWN) == "yes" ]] ; then
+        ONVIF_EMPTY_IF_UNKNOWN=1
+    else
+        ONVIF_EMPTY_IF_UNKNOWN=0
+    fi
     if [[ $(get_config ONVIF_FAULT_IF_UNKNOWN) == "yes" ]] ; then
         ONVIF_FAULT_IF_UNKNOWN=1
     else
@@ -268,6 +278,8 @@ start_onvif()
     echo "scope=onvif://www.onvif.org/hardware" >> $ONVIF_SRVD_CONF
     echo "scope=onvif://www.onvif.org/name" >> $ONVIF_SRVD_CONF
     echo "adv_enable_media2=$ONVIF_ENABLE_MEDIA2" >> $ONVIF_SRVD_CONF
+    echo "adv_enable_imaging=$ONVIF_ENABLE_IMAGING" >> $ONVIF_SRVD_CONF
+    echo "adv_empty_if_unknown=$ONVIF_EMPTY_IF_UNKNOWN" >> $ONVIF_SRVD_CONF
     echo "adv_fault_if_unknown=$ONVIF_FAULT_IF_UNKNOWN" >> $ONVIF_SRVD_CONF
     echo "adv_fault_if_set=$ONVIF_FAULT_IF_SET" >> $ONVIF_SRVD_CONF
     echo "adv_synology_nvr=$ONVIF_SYNOLOGY_NVR" >> $ONVIF_SRVD_CONF

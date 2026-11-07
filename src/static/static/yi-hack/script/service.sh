@@ -194,7 +194,7 @@ start_rtsp()
             echo "  password: \"$PASSWORD\"" >> /tmp/go2rtc.yaml
         fi
 
-        $RTSP_DAEMON -c /tmp/go2rtc.yaml -d
+        GOMEMLIMIT=4MiB $RTSP_DAEMON -c /tmp/go2rtc.yaml -d
     else
 
         if [[ $RTSP_RES == "low" ]]; then

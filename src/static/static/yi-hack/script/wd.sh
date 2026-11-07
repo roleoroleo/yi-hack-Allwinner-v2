@@ -16,6 +16,9 @@ COUNTER=0
 COUNTER_LIMIT=10
 INTERVAL=10
 WIFI_FAILSAFE_COUNTER=0
+PROBE_TIMEOUT=10
+PROBE_FIFO=/tmp/wd_rtsp_probe
+CR=$(printf '\r')
 
 get_camera_config()
 {
@@ -32,6 +35,30 @@ get_config()
 restart_rtsp()
 {
     $START_STOP_SCRIPT rtsp start
+}
+
+# Sends an RTSP OPTIONS request and succeeds if an answer comes back (a 401
+# counts). nc -w only limits the connect: if the server accepts the connection
+# but never answers, nc waits for ever. So nc writes into a FIFO and the
+# answer is read with a timeout, longer than the 3 s a blocking send may hold
+# the server's event loop; then our own nc is stopped.
+rtsp_answers()
+{
+    if [ ! -p $PROBE_FIFO ]; then
+        rm -f $PROBE_FIFO
+        mknod $PROBE_FIFO p
+    fi
+    nc -w 3 127.0.0.1 $RTSP_PORT_NUMBER > $PROBE_FIFO 2>/dev/null <<EOF &
+OPTIONS rtsp://127.0.0.1:$RTSP_PORT_NUMBER/ RTSP/1.0$CR
+CSeq: 1$CR
+$CR
+EOF
+    NC_PID=$!
+    PROBE=""
+    read -t $PROBE_TIMEOUT -r PROBE < $PROBE_FIFO
+    kill $NC_PID 2>/dev/null
+    wait $NC_PID 2>/dev/null
+    [ -n "$PROBE" ]
 }
 
 check_rtsp()
@@ -55,7 +82,7 @@ check_rtsp()
             sleep 1
             restart_rtsp
             COUNTER=0
-        elif [ -z "$(printf "OPTIONS rtsp://127.0.0.1:$RTSP_PORT_NUMBER/ RTSP/1.0\r\nCSeq: 1\r\n\r\n" | nc -w 3 127.0.0.1 $RTSP_PORT_NUMBER 2>/dev/null)" ]; then
+        elif ! rtsp_answers; then
             echo "$(date +'%Y-%m-%d %H:%M:%S') - RTSP not answering, restarting..." >> $LOG_FILE
             killall -q rRTSPServer
             sleep 1

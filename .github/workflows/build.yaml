@@ -24,7 +24,8 @@ jobs:
             bison bisonc++ libbison-dev autoconf autotools-dev \
             automake libssl-dev zlib1g-dev libzzip-dev flex libfl-dev \
             yui-compressor closure-compiler optipng jpegoptim node-less \
-            sassc sass-spec libhtml-tidy-perl libxml2-utils rsync qemu-user-static
+            sassc sass-spec libhtml-tidy-perl libxml2-utils rsync qemu-user
+          command -v qemu-arm-static || sudo ln -s "$(command -v qemu-arm)" /usr/local/bin/qemu-arm-static
       - name: Download toolchain
         run: |
           git clone https://github.com/lindenis-org/lindenis-v536-prebuilt

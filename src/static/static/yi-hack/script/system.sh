@@ -1,6 +1,7 @@
 #!/bin/sh
 
 CONF_FILE="etc/system.conf"
+CAMERA_CONF_FILE="etc/camera.conf"
 
 YI_PREFIX="/home/app"
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
@@ -15,6 +16,12 @@ HV=${HOMEVER:0:2}
 if [ "${HV:1:1}" == "." ]; then
     HV=${HV:0:1}
 fi
+
+get_camera_config()
+{
+    key=$1
+    grep -w $1 $YI_HACK_PREFIX/$CAMERA_CONF_FILE | cut -d "=" -f2-
+}
 
 get_config()
 {
@@ -261,18 +268,18 @@ else
         if [ "$HV" == "11" ] || [ "$HV" == "12" ]; then
             ipc_cmd -1
             sleep 0.5
-            if [[ $(get_config MOTION_DETECTION) == "yes" ]] ; then
+            if [[ $(get_camera_config MOTION_DETECTION) == "yes" ]] ; then
                 ipc_cmd -O on
             else
-                if [[ $(get_config AI_HUMAN_DETECTION) == "yes" ]] ; then
+                if [[ $(get_camera_config AI_HUMAN_DETECTION) == "yes" ]] ; then
                     ipc_cmd -a on
                     sleep 0.1
                 fi
-                if [[ $(get_config AI_VEHICLE_DETECTION) == "yes" ]] ; then
+                if [[ $(get_camera_config AI_VEHICLE_DETECTION) == "yes" ]] ; then
                     ipc_cmd -E on
                     sleep 0.1
                 fi
-                if [[ $(get_config AI_ANIMAL_DETECTION) == "yes" ]] ; then
+                if [[ $(get_camera_config AI_ANIMAL_DETECTION) == "yes" ]] ; then
                     ipc_cmd -N on
                     sleep 0.1
                 fi

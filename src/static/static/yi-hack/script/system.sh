@@ -285,6 +285,13 @@ else
                 fi
             fi
         fi
+        if [[ $(get_camera_config SOUND_DETECTION) == "yes" ]] ; then
+            ipc_cmd -b on
+            sleep 0.1
+            SENS=$(get_camera_config SOUND_SENSITIVITY)
+            [ -n "$SENS" ] && ipc_cmd -n "$SENS"
+            sleep 0.1
+        fi
     )
 fi
 

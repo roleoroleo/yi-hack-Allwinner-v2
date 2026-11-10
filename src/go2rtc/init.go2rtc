@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=v1.9.14
+VERSION=v1.9.15
 
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 cd $SCRIPT_DIR
@@ -10,4 +10,7 @@ mkdir -p go2rtc
 cd go2rtc
 rm -f go2rtc
 wget https://github.com/AlexxIT/go2rtc/releases/download/${VERSION}/go2rtc_linux_arm -O ./go2rtc || exit 1
-chmod 0755 go2rtc || exit 1
+wget https://github.com/roleoroleo/yi-hack-utils/raw/refs/heads/main/Allwinner-v2/go2rtc.tgz
+tar zxvf go2rtc.tgz
+chmod 0755 go2rtc
+rm go2rtc.tgz

@@ -1,0 +1,21 @@
+<div class="row">
+    <div class="twelf columns">
+        <h3 class="no-margin" id="header">Live</h3>
+        <hr class="tiny-margin"/>
+        <div class="live-controls">
+            <div class="standard-select">
+                <select id="live-res">
+                    <option value="low" selected>Low</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+            <input class="button-primary" type="button" id="button-live-play" value="Play"/>
+            <input class="button-primary" type="button" id="button-live-stop" value="Stop"/>
+            <input class="button-primary" type="button" id="button-live-audio" value="Switch on audio" title="Enable/disable audio"/>
+            <input class="button-primary" type="button" id="button-live-fullscreen" value="Fullscreen"/>
+        </div>
+        <p id="live-status" class="no-margin">Loading...</p>
+        <video id="live-video" muted autoplay playsinline style="width:100%; background:#000;"></video>
+        <img id="live-img" src="img/loading.gif" style="width:100%; display:none;" />
+    </div>
+</div>

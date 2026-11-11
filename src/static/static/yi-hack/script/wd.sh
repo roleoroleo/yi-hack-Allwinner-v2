@@ -16,6 +16,7 @@ COUNTER=0
 COUNTER_LIMIT=10
 INTERVAL=10
 WIFI_FAILSAFE_COUNTER=0
+CPU_SAMPLED=no
 
 get_camera_config()
 {
@@ -34,13 +35,99 @@ restart_rtsp()
     $START_STOP_SCRIPT rtsp start
 }
 
+# The checks below run every 10 s, so they only use shell builtins and read
+# /proc and /sys: a healthy loop starts no new process apart from sleep and
+# the nc of the RTSP probe.
+# Command substitution forks in ash even for functions, so results are
+# returned in variables.
+
+# read_conf FILE KEY -> CONF_VAL
+read_conf()
+{
+    CONF_VAL=""
+    while IFS='=' read -r K V || [ -n "$K" ]; do
+        if [ "$K" == "$2" ]; then
+            CONF_VAL=$V
+            return 0
+        fi
+    done < $1
+    return 1
+}
+
+# PID_<NAME> for the processes the watchdog looks after ("" = not running)
+scan_processes()
+{
+    PID_RRTSPSERVER=""
+    PID_H264GRABBER=""
+    PID_RTSP_SERVER_YI=""
+    PID_GO2RTC=""
+    PID_RMM=""
+    PID_MQTTV4=""
+    for P in /proc/[0-9]*; do
+        { read -r C < $P/comm; } 2>/dev/null || continue
+        case "$C" in
+            rRTSPServer) PID_RRTSPSERVER=${P#/proc/} ;;
+            h264grabber) PID_H264GRABBER=${P#/proc/} ;;
+            rtsp_server_yi) PID_RTSP_SERVER_YI=${P#/proc/} ;;
+            go2rtc) PID_GO2RTC=${P#/proc/} ;;
+            rmm) PID_RMM=${P#/proc/} ;;
+            mqttv4) PID_MQTTV4=${P#/proc/} ;;
+        esac
+    done
+}
+
+# LISTEN and SOCKET: listening and established TCP sockets on the RTSP port
+count_rtsp_sockets()
+{
+    LISTEN=0
+    SOCKET=0
+    for F in /proc/net/tcp /proc/net/tcp6; do
+        [ -r $F ] || continue
+        while read -r SL LOCAL REMOTE STATE REST; do
+            case "$LOCAL" in
+                *:$RTSP_PORT_HEX)
+                    case "$STATE" in
+                        0A) LISTEN=$((LISTEN+1)) ;;
+                        01) SOCKET=$((SOCKET+1)) ;;
+                    esac
+                    ;;
+            esac
+        done < $F
+    done
+}
+
+# TICKS: CPU time (utime + stime) used so far by process $1, "" if it is gone
+proc_ticks()
+{
+    TICKS=""
+    { read -r X X X X X X X X X X X X X U S X < /proc/$1/stat; } 2>/dev/null && TICKS=$((U + S))
+}
+
 check_rtsp()
 {
-    if [[ $(get_camera_config SWITCH_ON) == "yes" ]] ; then
+    read_conf $YI_HACK_PREFIX/$CAMERA_CONF_FILE SWITCH_ON
+    if [[ "$CONF_VAL" == "yes" ]] ; then
         #  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking RTSP process..." >> $LOG_FILE
-        LISTEN=`$YI_HACK_PREFIX/bin/netstat -an 2>&1 | grep ":$RTSP_PORT_NUMBER " | grep LISTEN | grep -c ^`
-        SOCKET=`$YI_HACK_PREFIX/bin/netstat -an 2>&1 | grep ":$RTSP_PORT_NUMBER " | grep ESTABLISHED | grep -c ^`
-        CPU=`top -b -n 2 -d 1 | grep rRTSPServer | grep -v grep | tail -n 1 | awk '{print $8}'`
+        count_rtsp_sockets
+        # CPU: "" if rRTSPServer is not running, otherwise the CPU ticks it
+        # used in 1 s (measured only when a client is connected, as before
+        # with top -d 1)
+        CPU=""
+        if [ -n "$PID_RRTSPSERVER" ]; then
+            CPU="-"
+            if [ $SOCKET -gt 0 ]; then
+                proc_ticks $PID_RRTSPSERVER
+                T1=$TICKS
+                sleep 1
+                CPU_SAMPLED=yes
+                proc_ticks $PID_RRTSPSERVER
+                if [ -n "$T1" ] && [ -n "$TICKS" ]; then
+                    CPU=$((TICKS - T1))
+                else
+                    CPU=""
+                fi
+            fi
+        fi
 
         # One restart at most per loop: the first failing check restarts the server
         if [ $LISTEN -eq 0 ]; then
@@ -62,7 +149,7 @@ check_rtsp()
             restart_rtsp
             COUNTER=0
         elif [ $SOCKET -gt 0 ]; then
-            if [ "$CPU" == "0.0" ]; then
+            if [ "$CPU" == "0" ]; then
                 COUNTER=$((COUNTER+1))
                 echo "$(date +'%Y-%m-%d %H:%M:%S') - Detected possible locked process ($COUNTER)" >> $LOG_FILE
                 if [ $COUNTER -ge $COUNTER_LIMIT ]; then
@@ -83,11 +170,12 @@ check_rtsp()
 
 check_rtsp_alt()
 {
-    if [[ $(get_camera_config SWITCH_ON) == "yes" ]] ; then
+    read_conf $YI_HACK_PREFIX/$CAMERA_CONF_FILE SWITCH_ON
+    if [[ "$CONF_VAL" == "yes" ]] ; then
         #  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking RTSP process..." >> $LOG_FILE
-        LISTEN=`$YI_HACK_PREFIX/bin/netstat -an 2>&1 | grep ":$RTSP_PORT_NUMBER " | grep LISTEN | grep -c ^`
-        CPU1=`top -b -n 2 -d 1 | grep h264grabber | grep -v grep | tail -n 1 | awk '{print $8}'`
-        CPU2=`top -b -n 2 -d 1 | grep rtsp_server_yi | grep -v grep | tail -n 1 | awk '{print $8}'`
+        count_rtsp_sockets
+        CPU1=$PID_H264GRABBER
+        CPU2=$PID_RTSP_SERVER_YI
 
         if [ $LISTEN -eq 0 ]; then
             echo "$(date +'%Y-%m-%d %H:%M:%S') - Restarting rtsp process" >> $LOG_FILE
@@ -110,11 +198,12 @@ check_rtsp_alt()
 
 check_rtsp_go2rtc()
 {
-    if [[ $(get_camera_config SWITCH_ON) == "yes" ]] ; then
+    read_conf $YI_HACK_PREFIX/$CAMERA_CONF_FILE SWITCH_ON
+    if [[ "$CONF_VAL" == "yes" ]] ; then
         #  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking RTSP process..." >> $LOG_FILE
-        LISTEN=`$YI_HACK_PREFIX/bin/netstat -an 2>&1 | grep ":$RTSP_PORT_NUMBER " | grep LISTEN | grep -c ^`
-        CPU1=`top -b -n 2 -d 1 | grep h264grabber | grep -v grep | tail -n 1 | awk '{print $8}'`
-        CPU2=`top -b -n 2 -d 1 | grep go2rtc | grep -v grep | tail -n 1 | awk '{print $8}'`
+        count_rtsp_sockets
+        CPU1=$PID_H264GRABBER
+        CPU2=$PID_GO2RTC
 
         if [ $LISTEN -eq 0 ]; then
             echo "$(date +'%Y-%m-%d %H:%M:%S') - Restarting rtsp process" >> $LOG_FILE
@@ -139,11 +228,12 @@ check_rmm()
 {
     #  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking rmm process..." >> $LOG_FILE
 
-    # Method 1: Basic ps check (most reliable, avoids ps ww parsing issues)
-    PS_BASIC=`ps | grep -v grep | grep "./rmm" | grep -c ^`
-    if [ $PS_BASIC -gt 0 ]; then
+    # Method 1: process name from /proc (see scan_processes)
+    if [ -n "$PID_RMM" ]; then
         # Reset failure counter on successful detection
-        rm -f /tmp/rmm_fail_count 2>/dev/null
+        if [ -f /tmp/rmm_fail_count ]; then
+            rm -f /tmp/rmm_fail_count 2>/dev/null
+        fi
         return 0
     fi
 
@@ -182,9 +272,7 @@ check_mqtt()
 {
     #  echo "$(date +'%Y-%m-%d %H:%M:%S') - Checking mqttv4 process..." >> $LOG_FILE
 
-    PS=`ps ww | grep mqttv4 | grep -v grep | grep -c ^`
-
-    if [ $PS -eq 0 ]; then
+    if [ -z "$PID_MQTTV4" ]; then
         echo "check_mqtt failed, restart it!" >> $LOG_FILE
         $START_STOP_SCRIPT mqtt start
     fi
@@ -197,9 +285,22 @@ check_wifi()
 
     WIFI_CONNECTED=0
 
+    # Method 0: carrier up and a route on wlan0 (an address is configured)
+    # means connected for methods 1-3 too; read without starting processes
+    CARRIER=""
+    { read -r CARRIER < /sys/class/net/wlan0/carrier; } 2>/dev/null
+    if [ "$CARRIER" == "1" ]; then
+        while read -r IFACE REST; do
+            if [ "$IFACE" == "wlan0" ]; then
+                WIFI_CONNECTED=1
+                break
+            fi
+        done < /proc/net/route
+    fi
+
     # Method 1: Try wpa_cli if available and working (preferred method)
     # Wrap in timeout to avoid hanging - wpa_cli may block on some models
-    if [ -x /home/base/tools/wpa_cli ]; then
+    if [ $WIFI_CONNECTED -eq 0 ] && [ -x /home/base/tools/wpa_cli ]; then
         # Run wpa_cli with auto-kill after 2 seconds if it hangs
         (sleep 2 && killall -9 wpa_cli 2>/dev/null) &
         KILLER_PID=$!
@@ -285,6 +386,8 @@ esac
 if [ ! -z $RTSP_PORT ]; then
     RTSP_PORT_NUMBER=$RTSP_PORT
 fi
+# Local port as in /proc/net/tcp (4 hex digits, upper case)
+RTSP_PORT_HEX=$(printf "%04X" $RTSP_PORT_NUMBER)
 
 RTSP_ALT=$(get_config RTSP_ALT)
 
@@ -292,6 +395,8 @@ echo "$(date +'%Y-%m-%d %H:%M:%S') - Starting RTSP watchdog..." >> $LOG_FILE
 
 while true
 do
+    scan_processes
+    CPU_SAMPLED=no
     if [[ "$RTSP_ALT" == "standard" ]] ; then
         check_rtsp
     elif [[ "$RTSP_ALT" == "alternative" ]] ; then
@@ -308,5 +413,10 @@ do
 
     if [ $COUNTER -eq 0 ]; then
         sleep $INTERVAL
+    elif [ "$CPU_SAMPLED" != "yes" ]; then
+        # Checking a possibly locked rRTSPServer: loop again soon, but not
+        # without a pause. top used to take this time; the CPU sample takes
+        # it while a client is connected, this covers the loops without one.
+        sleep 1
     fi
 done

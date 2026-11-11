@@ -55,7 +55,7 @@ check_rtsp()
             sleep 1
             restart_rtsp
             COUNTER=0
-        elif [ -z "$(printf "OPTIONS rtsp://127.0.0.1:$RTSP_PORT_NUMBER/ RTSP/1.0\r\nCSeq: 1\r\n\r\n" | nc -w 3 127.0.0.1 $RTSP_PORT_NUMBER 2>/dev/null)" ]; then
+        elif [ -z "$(printf "OPTIONS rtsp://127.0.0.1:$RTSP_PORT_NUMBER/ RTSP/1.0\r\nCSeq: 1\r\n\r\n" | $YI_HACK_PREFIX/usr/bin/nc -w 5 127.0.0.1 $RTSP_PORT_NUMBER 2>/dev/null)" ]; then
             echo "$(date +'%Y-%m-%d %H:%M:%S') - RTSP not answering, restarting..." >> $LOG_FILE
             killall -q rRTSPServer
             sleep 1

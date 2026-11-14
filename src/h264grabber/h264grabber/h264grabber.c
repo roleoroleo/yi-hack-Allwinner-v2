@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/time.h>
+#include <sys/resource.h>
 #include <getopt.h>
 #include <signal.h>
 #include <pthread.h>

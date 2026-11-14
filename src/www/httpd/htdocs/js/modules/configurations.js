@@ -78,6 +78,7 @@ APP.configurations = (function($) {
         configs["PASSWORD"] = $('input[type="password"][data-key="PASSWORD"]').prop('value');
         configs["SSH_PASSWORD"] = $('input[type="password"][data-key="SSH_PASSWORD"]').prop('value');
         configs["CRONTAB"] = $('textarea#CRONTAB').prop('value');
+        configs["SYSLOG_SERVER"] = $('input[type="text"][data-key="SYSLOG_SERVER"]').prop('value');
         configs["SWAP_SWAPPINESS"] = $('select[data-key="SWAP_SWAPPINESS"]').prop('value');
 
         var configData = JSON.stringify(configs);

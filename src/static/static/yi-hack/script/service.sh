@@ -21,6 +21,12 @@ get_config()
 
 init_config()
 {
+    # Remote syslog is on when system.sh started syslogd (SYSLOG_SERVER set)
+    SYSLOG=no
+    if [ ! -z "$(get_config SYSLOG_SERVER)" ] && [ -S /dev/log ]; then
+        SYSLOG=yes
+    fi
+
     TZ_TMP=$(get_config TIMEZONE)
 
     if [[ x$(get_config USERNAME) != "x" ]] ; then
@@ -202,19 +208,31 @@ start_rtsp()
                 h264grabber -p -m $MODEL_SUFFIX $RTSP_G_STI -r low $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
-            $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
+            if [ "$SYSLOG" == "yes" ]; then
+                ( $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC 2>&1 | logger -t rtsp-server ) &
+            else
+                $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
+            fi
         elif [[ $RTSP_RES == "high" ]]; then
             if [ "$RTSP_ALT" == "alternative" ]; then
                 h264grabber -p -m $MODEL_SUFFIX $RTSP_G_STI -r high $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
-            $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
+            if [ "$SYSLOG" == "yes" ]; then
+                ( $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC 2>&1 | logger -t rtsp-server ) &
+            else
+                $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
+            fi
         elif [[ $RTSP_RES == "both" ]]; then
             if [ "$RTSP_ALT" == "alternative" ]; then
                 h264grabber -p -m $MODEL_SUFFIX $RTSP_G_STI -r both $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
-            $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
+            if [ "$SYSLOG" == "yes" ]; then
+                ( $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC 2>&1 | logger -t rtsp-server ) &
+            else
+                $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
+            fi
         fi
 
         WD_COUNT=$(ps | grep wd.sh | grep -v grep | grep -c ^)

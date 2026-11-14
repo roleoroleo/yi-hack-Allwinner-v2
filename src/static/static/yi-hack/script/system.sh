@@ -46,6 +46,9 @@ start_buffer()
 
 log()
 {
+    if [ "$SYSLOG" == "yes" ]; then
+        logger -t system.sh "$1"
+    fi
     if [ "$DEBUG_LOG" == "yes" ]; then
         echo $1 >> /tmp/sd/hack_debug.log
 
@@ -136,6 +139,24 @@ cp -R /etc/* /tmp/etc
 mount --bind /tmp/etc /etc
 
 hostname -F $YI_HACK_PREFIX/etc/hostname
+
+# Remote syslog: forward the messages of syslog() callers and of the kernel
+SYSLOG_SERVER=$(get_config SYSLOG_SERVER)
+if [ ! -z "$SYSLOG_SERVER" ]; then
+    case "$SYSLOG_SERVER" in
+        *[!A-Za-z0-9.:_-]*)
+            log "Invalid SYSLOG_SERVER, syslogd not started"
+            ;;
+        *)
+            log "Starting syslogd, remote server $SYSLOG_SERVER"
+            # Network only: no local log file in RAM (the kernel has no SysV IPC for -C)
+            $YI_HACK_PREFIX/sbin/syslogd -R "$SYSLOG_SERVER"
+            $YI_HACK_PREFIX/sbin/klogd
+            SYSLOG=yes
+            log "syslogd started"
+            ;;
+    esac
+fi
 
 TZ_TMP=$(get_config TIMEZONE)
 

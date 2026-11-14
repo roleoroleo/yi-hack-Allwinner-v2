@@ -29,6 +29,15 @@ get_config()
     grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2-
 }
 
+# Write a watchdog message to LOG_FILE and, when remote syslog is on, to syslog
+log()
+{
+    echo "$(date +'%Y-%m-%d %H:%M:%S') - $1" >> $LOG_FILE
+    if [ "$SYSLOG" == "yes" ]; then
+        logger -t wd.sh "$1"
+    fi
+}
+
 restart_rtsp()
 {
     $START_STOP_SCRIPT rtsp start
@@ -44,19 +53,19 @@ check_rtsp()
 
         # One restart at most per loop: the first failing check restarts the server
         if [ $LISTEN -eq 0 ]; then
-            echo "$(date +'%Y-%m-%d %H:%M:%S') - Restarting rtsp process" >> $LOG_FILE
+            log "Restarting rtsp process"
             killall -q rRTSPServer
             sleep 1
             restart_rtsp
             COUNTER=0
         elif [ "$CPU" == "" ]; then
-            echo "$(date +'%Y-%m-%d %H:%M:%S') - No running processes, restarting..." >> $LOG_FILE
+            log "No running processes, restarting..."
             killall -q rRTSPServer
             sleep 1
             restart_rtsp
             COUNTER=0
         elif [ -z "$(printf "OPTIONS rtsp://127.0.0.1:$RTSP_PORT_NUMBER/ RTSP/1.0\r\nCSeq: 1\r\n\r\n" | $YI_HACK_PREFIX/usr/bin/nc -w 5 127.0.0.1 $RTSP_PORT_NUMBER 2>/dev/null)" ]; then
-            echo "$(date +'%Y-%m-%d %H:%M:%S') - RTSP not answering, restarting..." >> $LOG_FILE
+            log "RTSP not answering, restarting..."
             killall -q rRTSPServer
             sleep 1
             restart_rtsp
@@ -64,9 +73,9 @@ check_rtsp()
         elif [ $SOCKET -gt 0 ]; then
             if [ "$CPU" == "0.0" ]; then
                 COUNTER=$((COUNTER+1))
-                echo "$(date +'%Y-%m-%d %H:%M:%S') - Detected possible locked process ($COUNTER)" >> $LOG_FILE
+                log "Detected possible locked process ($COUNTER)"
                 if [ $COUNTER -ge $COUNTER_LIMIT ]; then
-                    echo "$(date +'%Y-%m-%d %H:%M:%S') - Restarting rtsp process" >> $LOG_FILE
+                    log "Restarting rtsp process"
                     killall -q rRTSPServer
                     sleep 1
                     restart_rtsp
@@ -90,13 +99,13 @@ check_rtsp_alt()
         CPU2=`top -b -n 2 -d 1 | grep rtsp_server_yi | grep -v grep | tail -n 1 | awk '{print $8}'`
 
         if [ $LISTEN -eq 0 ]; then
-            echo "$(date +'%Y-%m-%d %H:%M:%S') - Restarting rtsp process" >> $LOG_FILE
+            log "Restarting rtsp process"
             killall -q rtsp_server_yi
             killall -q h264grabber
             sleep 1
             restart_rtsp
         elif [ "$CPU1" == "" ] || [ "$CPU2" == "" ]; then
-            echo "$(date +'%Y-%m-%d %H:%M:%S') - No running processes, restarting..." >> $LOG_FILE
+            log "No running processes, restarting..."
             killall -q rtsp_server_yi
             killall -q h264grabber
             sleep 1
@@ -117,13 +126,13 @@ check_rtsp_go2rtc()
         CPU2=`top -b -n 2 -d 1 | grep go2rtc | grep -v grep | tail -n 1 | awk '{print $8}'`
 
         if [ $LISTEN -eq 0 ]; then
-            echo "$(date +'%Y-%m-%d %H:%M:%S') - Restarting rtsp process" >> $LOG_FILE
+            log "Restarting rtsp process"
             killall -q go2rtc
             killall -q h264grabber
             sleep 1
             restart_rtsp
         elif [ "$CPU1" == "" ] || [ "$CPU2" == "" ]; then
-            echo "$(date +'%Y-%m-%d %H:%M:%S') - No running processes, restarting..." >> $LOG_FILE
+            log "No running processes, restarting..."
             killall -q go2rtc
             killall -q h264grabber
             sleep 1
@@ -156,7 +165,7 @@ check_rmm()
     fi
 
     # Failure handling with counter to prevent immediate reboots
-    echo "$(date +'%Y-%m-%d %H:%M:%S') - rmm detection failed" >> $LOG_FILE
+    log "rmm detection failed"
 
     # Read current failure count
     if [ -f /tmp/rmm_fail_count ]; then
@@ -169,11 +178,11 @@ check_rmm()
     FAIL_COUNT=$((FAIL_COUNT + 1))
     echo $FAIL_COUNT > /tmp/rmm_fail_count
 
-    echo "$(date +'%Y-%m-%d %H:%M:%S') - rmm failure count: $FAIL_COUNT/5" >> $LOG_FILE
+    log "rmm failure count: $FAIL_COUNT/5"
 
     # Only reboot after 5 consecutive failures (~50 seconds with 10s interval)
     if [ $FAIL_COUNT -ge 5 ]; then
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - rmm failed 5 times consecutively, rebooting..." >> $LOG_FILE
+        log "rmm failed 5 times consecutively, rebooting..."
         reboot
     fi
 }
@@ -185,7 +194,7 @@ check_mqtt()
     PS=`ps ww | grep mqttv4 | grep -v grep | grep -c ^`
 
     if [ $PS -eq 0 ]; then
-        echo "check_mqtt failed, restart it!" >> $LOG_FILE
+        log "check_mqtt failed, restart it!"
         $START_STOP_SCRIPT mqtt start
     fi
 }
@@ -288,7 +297,13 @@ fi
 
 RTSP_ALT=$(get_config RTSP_ALT)
 
-echo "$(date +'%Y-%m-%d %H:%M:%S') - Starting RTSP watchdog..." >> $LOG_FILE
+# Remote syslog is on when system.sh started syslogd (SYSLOG_SERVER set)
+SYSLOG=no
+if [ ! -z "$(get_config SYSLOG_SERVER)" ] && [ -S /dev/log ]; then
+    SYSLOG=yes
+fi
+
+log "Starting RTSP watchdog..."
 
 while true
 do

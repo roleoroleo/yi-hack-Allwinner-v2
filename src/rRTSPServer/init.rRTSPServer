@@ -60,6 +60,7 @@ patch -p0 < rRTSPServer.patch
 patch -p0 < friend.patch
 patch -p0 < rtp-tcp-drop-packet.patch
 patch -p0 < tcp-send-failure-recovery.patch
+patch -p0 < tcp-interleaved-coalesce.patch
 
 cd live || exit 1
 

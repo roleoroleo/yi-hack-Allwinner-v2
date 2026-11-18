@@ -137,6 +137,22 @@ mount --bind /tmp/etc /etc
 
 hostname -F $YI_HACK_PREFIX/etc/hostname
 
+# Remote syslog: forward the messages of syslog() callers and of the kernel
+SYSLOG_SERVER=$(get_config SYSLOG_SERVER)
+if [ ! -z "$SYSLOG_SERVER" ]; then
+    case "$SYSLOG_SERVER" in
+        *[!A-Za-z0-9.:_-]*)
+            log "Invalid SYSLOG_SERVER, syslogd not started"
+            ;;
+        *)
+            log "Starting syslogd, remote server $SYSLOG_SERVER"
+            # Network only: no local log file in RAM (the kernel has no SysV IPC for -C)
+            $YI_HACK_PREFIX/sbin/syslogd -R "$SYSLOG_SERVER"
+            $YI_HACK_PREFIX/sbin/klogd
+            ;;
+    esac
+fi
+
 TZ_TMP=$(get_config TIMEZONE)
 
 if [[ $(get_config SWAP_FILE) == "yes" ]] ; then

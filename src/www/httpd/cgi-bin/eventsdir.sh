@@ -1,43 +1,43 @@
 #!/bin/sh
+# One awk process for the whole list instead of several forks (date, grep, cut) per folder.
 
 CONF_FILE="etc/system.conf"
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 
-HOMEVER=$(cat /home/homever)
-HV=${HOMEVER:0:2}
-
-get_config()
-{
-    key=$1
-    grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2-
-}
+# Read the option once. Anything other than "local" is treated like "autodetect" and "gmt":
+# the folder name is UTC, the displayed time is converted to the camera's timezone.
+EVENTS_TIME=$(grep -w EVENTS_TIME $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2-)
 
 printf "Content-type: application/json\r\n\r\n"
 printf "{\"records\":[\n"
 
-COUNT=`ls -r /tmp/sd/record | grep H -c`
-IDX=1
-for f in `ls -r /tmp/sd/record | grep H`; do
-    if [ ${#f} == 14 ]; then
-        FS00="${f:0:4}-${f:5:2}-${f:8:2} ${f:11:2}:00"
-        if [[ $(get_config EVENTS_TIME) == "autodetect" ]] ; then
-            FS00E=$(date -u -d "$FS00" +"%s")
-        elif [[ $(get_config EVENTS_TIME) == "local" ]] ; then
-            FS00E=$(date -d "$FS00" +"%s")
-        elif [[ $(get_config EVENTS_TIME) == "gmt" ]] ; then
-            FS00E=$(date -u -d "$FS00" +"%s")
-        fi
-        FL=$(date +%YY%mM%dD%HH -d "@$FS00E")
-        printf "{\n"
-        printf "\"%s\":\"%s\",\n" "datetime" "Date: ${FL:0:4}-${FL:5:2}-${FL:8:2} Time: ${FL:11:2}:00"
-        printf "\"%s\":\"%s\"\n" "dirname" "$f"
-        if [ "$IDX" == "$COUNT" ]; then
-            printf "}\n"
-        else
-            printf "},\n"
-        fi
-        IDX=$(($IDX+1))
-    fi
-done
+ls -r /tmp/sd/record | grep H | awk -v mode="$EVENTS_TIME" '
+# Days since 1970-01-01 for a civil date (Howard Hinnant). Avoids a date(1) fork per folder.
+function days(y, m, d,    era, yoe, mp, doy, doe) {
+    if (m <= 2) y--
+    era = int(y / 400)
+    yoe = y - era * 400
+    mp = (m + 9) % 12
+    doy = int((153 * mp + 2) / 5) + d - 1
+    doe = yoe * 365 + int(yoe / 4) - int(yoe / 100) + doy
+    return era * 146097 + doe - 719468
+}
+length($0) == 14 {
+    y = substr($0, 1, 4) + 0
+    mo = substr($0, 6, 2) + 0
+    d = substr($0, 9, 2) + 0
+    h = substr($0, 12, 2) + 0
+    if (mode == "local")
+        e = mktime(y " " mo " " d " " h " 0 0")
+    else
+        e = days(y, mo, d) * 86400 + h * 3600
+    if (n++)
+        printf "},\n"
+    printf "{\n\"datetime\":\"Date: %s\",\n\"dirname\":\"%s\"\n", strftime("%Y-%m-%d Time: %H:00", e), $0
+}
+END {
+    if (n)
+        printf "}\n"
+}'
 
 printf "]}\n"

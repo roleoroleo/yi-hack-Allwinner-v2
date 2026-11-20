@@ -1,0 +1,46 @@
+--- live.ori/liveMedia/RTPInterface.cpp
++++ live/liveMedia/RTPInterface.cpp
+@@ -524,6 +524,7 @@
+       sendResult = (tlsState != NULL && tlsState->isNeeded)
+ 	? tlsState->write((char const*)(&data[numBytesSentSoFar]), numBytesRemainingToSend)
+ 	: send(socketNum, (char const*)(&data[numBytesSentSoFar]), numBytesRemainingToSend, MSG_NOSIGNAL/*flags*/);
++      int sendError = envir().getErrno();
+       makeSocketNonBlocking(socketNum);
+       if ((unsigned)sendResult != numBytesRemainingToSend) {
+ 	// The blocking "send()" failed, or timed out.  In either case, we assume that the
+@@ -534,6 +535,20 @@
+ #ifdef DEBUG_SEND
+ 	fprintf(stderr, "sendDataOverTCP: blocking send() failed (delivering %d bytes out of %d); closing socket %d\n", sendResult, numBytesRemainingToSend, socketNum); fflush(stderr);
+ #endif
++#ifdef __linux__
++        // Removing only this RTPInterface leaves other tracks (e.g. audio)
++        // alive on the same unusable interleaved TCP connection. Wake the
++        // socket owner so that it closes the whole client and can reconnect.
++        // The media still queued for this client is stale by then: SO_LINGER
++        // with a zero timeout makes the owner's close() discard it, so the
++        // client sees the end of the connection without reading it first.
++        // errno is meaningful only if send() returned an error.
++        fprintf(stderr, "TCP_SEND_FAILURE time=%lld fd=%d written=%d need=%u errno=%d shutdown_shared=1\n",
++                (long long)time(NULL), socketNum, sendResult, numBytesRemainingToSend, sendResult < 0 ? sendError : 0);
++        struct linger abortClose = {1, 0};
++        setsockopt(socketNum, SOL_SOCKET, SO_LINGER, (char const*)&abortClose, sizeof abortClose);
++        shutdown(socketNum, SHUT_RDWR);
++#endif
+ 	removeStreamSocket(socketNum, 0xFF);
+ 	return False;
+       }
+@@ -542,6 +557,14 @@
+     } else if (sendResult < 0 && envir().getErrno() != EAGAIN) {
+       // Because the "send()" call failed, assume that the socket is now unusable, so stop
+       // using it (for both RTP and RTCP):
++#ifdef __linux__
++      int sendError = envir().getErrno();
++      fprintf(stderr, "TCP_SEND_FAILURE time=%lld fd=%d written=%d need=%u errno=%d shutdown_shared=1\n",
++              (long long)time(NULL), socketNum, sendResult, dataSize, sendError);
++      struct linger abortClose = {1, 0};
++      setsockopt(socketNum, SOL_SOCKET, SO_LINGER, (char const*)&abortClose, sizeof abortClose);
++      shutdown(socketNum, SHUT_RDWR);
++#endif
+       removeStreamSocket(socketNum, 0xFF);
+     }
+ 

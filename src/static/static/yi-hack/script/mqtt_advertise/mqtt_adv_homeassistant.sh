@@ -47,6 +47,7 @@ MQTT_IP=$(get_config MQTT_IP)
 MQTT_PORT=$(get_config MQTT_PORT)
 MQTT_USER=$(get_config MQTT_USER)
 MQTT_PASSWORD=$(get_config MQTT_PASSWORD)
+MQTT_CLIENT_ID=$(get_config MQTT_CLIENT_ID)
 MQTT_QOS=$(get_config MQTT_QOS)
 MQTT_TLS=$(get_config MQTT_TLS)
 MQTT_CA_CERT=$(get_config MQTT_CA_CERT)
@@ -76,6 +77,9 @@ if [ ! -z $MQTT_PORT ]; then
 fi
 if [ ! -z $MQTT_USER ]; then
     HOST=$HOST' -u '$MQTT_USER' -w '$MQTT_PASSWORD
+fi
+if [ ! -z $MQTT_CLIENT_ID ]; then
+    CLIENT_ID='-i '"$MQTT_CLIENT_ID"_adv_$$
 fi
 
 if [ "$MQTT_TLS" == "1" ]; then
@@ -145,7 +149,7 @@ else
 fi
 
 mqtt_publish(){
-  $YI_HACK_PREFIX/bin/mqtt-pub $HA_QOS $HA_RETAIN -h $HOST $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m "$CONTENT"
+  $YI_HACK_PREFIX/bin/mqtt-pub $HA_QOS $HA_RETAIN -h $HOST $CLIENT_ID $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m "$CONTENT"
 }
 hass_topic(){
   # type, topic, Full name (optional)
@@ -242,7 +246,7 @@ if [ "$MQTT_ADV_INFO_GLOBAL_ENABLE" == "yes" ]; then
 else
     for ITEM in hostname local_ip netmask gateway wlan_essid mac_addr home_version fw_version model_suffix serial_number; do
         TOPIC=$HOMEASSISTANT_MQTT_PREFIX/sensor/$IDENTIFIERS/$ITEM/config
-        $YI_HACK_PREFIX/bin/mqtt-pub $HA_QOS $HA_RETAIN -h $HOST $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m ""
+        $YI_HACK_PREFIX/bin/mqtt-pub $HA_QOS $HA_RETAIN -h $HOST $CLIENT_ID $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m ""
     done
 fi
 if [ "$MQTT_ADV_TELEMETRY_ENABLE" == "yes" ]; then
@@ -281,7 +285,7 @@ if [ "$MQTT_ADV_TELEMETRY_ENABLE" == "yes" ]; then
 else
     for ITEM in total_memory free_memory free_sd load_avg uptime wlan_strength; do
         hass_topic "sensor" "$ITEM"
-        $YI_HACK_PREFIX/bin/mqtt-pub $HA_QOS $HA_RETAIN -h $HOST $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m ""
+        $YI_HACK_PREFIX/bin/mqtt-pub $HA_QOS $HA_RETAIN -h $HOST $CLIENT_ID $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m ""
     done
 fi
 
@@ -413,12 +417,12 @@ if [ "$MQTT_ADV_CAMERA_SETTING_ENABLE" == "yes" ]; then
     else
         for ITEM in FORCE_NIGHT FORCE_NIGHT_PERSIST; do
             hass_topic "switch" "$ITEM"
-            $YI_HACK_PREFIX/bin/mqtt-pub $HA_QOS $HA_RETAIN -h $HOST $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m ""
+            $YI_HACK_PREFIX/bin/mqtt-pub $HA_QOS $HA_RETAIN -h $HOST $CLIENT_ID $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m ""
         done
     fi
 else
     for ITEM in SWITCH_ON SOUND_DETECTION LED IR ROTATE FORCE_NIGHT FORCE_NIGHT_PERSIST; do
         hass_topic "switch" "$ITEM"
-        $YI_HACK_PREFIX/bin/mqtt-pub $HA_QOS $HA_RETAIN -h $HOST $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m ""
+        $YI_HACK_PREFIX/bin/mqtt-pub $HA_QOS $HA_RETAIN -h $HOST $CLIENT_ID $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m ""
     done
 fi

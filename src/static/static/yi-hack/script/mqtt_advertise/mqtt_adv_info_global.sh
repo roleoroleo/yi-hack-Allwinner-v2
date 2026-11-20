@@ -51,6 +51,7 @@ MQTT_IP=$(get_config MQTT_IP)
 MQTT_PORT=$(get_config MQTT_PORT)
 MQTT_USER=$(get_config MQTT_USER)
 MQTT_PASSWORD=$(get_config MQTT_PASSWORD)
+MQTT_CLIENT_ID=$(get_config MQTT_CLIENT_ID)
 MQTT_TLS=$(get_config MQTT_TLS)
 MQTT_CA_CERT=$(get_config MQTT_CA_CERT)
 MQTT_CLIENT_CERT=$(get_config MQTT_CLIENT_CERT)
@@ -62,6 +63,9 @@ if [ ! -z $MQTT_PORT ]; then
 fi
 if [ ! -z $MQTT_USER ]; then
     HOST=$HOST' -u '$MQTT_USER' -w '$MQTT_PASSWORD
+fi
+if [ ! -z $MQTT_CLIENT_ID ]; then
+    CLIENT_ID='-i '"$MQTT_CLIENT_ID"_adv_$$
 fi
 
 if [ "$MQTT_TLS" == "1" ]; then
@@ -125,4 +129,4 @@ CONTENT=$CONTENT'"gateway":"'$GATEWAY'",'
 CONTENT=$CONTENT'"mac_addr":"'$MAC_ADDR'",'
 CONTENT=$CONTENT'"wlan_essid":"'$WLAN_ESSID'"'
 CONTENT=$CONTENT" }"
-$YI_HACK_PREFIX/bin/mqtt-pub $QOS $RETAIN -h $HOST $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m "$CONTENT"
+$YI_HACK_PREFIX/bin/mqtt-pub $QOS $RETAIN -h $HOST $CLIENT_ID $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $TOPIC -m "$CONTENT"

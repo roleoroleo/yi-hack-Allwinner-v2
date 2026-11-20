@@ -57,6 +57,9 @@ fi
 if [ ! -z "$MQTT_PASSWORD" ]; then
     MQTT_PASSWORD="-w $MQTT_PASSWORD"
 fi
+if [ ! -z "$MQTT_CLIENT_ID" ]; then
+    MQTT_CLIENT_ID="-i $MQTT_CLIENT_ID"_conf2mqtt
+fi
 
 echo "#!/bin/sh" > $TMPFILE
 echo "# Fix \"STDIN Wake\": if there is no terminal (boot/cron), re-run the script" >> $TMPFILE
@@ -68,7 +71,7 @@ echo "fi" >> $TMPFILE
 
 while IFS='=' read -r key val ; do
     lkey="$(echo $key | tr '[A-Z]' '[a-z]')"
-    echo $YI_HACK_PREFIX/bin/mqtt-pub -h "$MQTT_IP" -p "$MQTT_PORT" $MQTT_USER $MQTT_PASSWORD $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $MQTT_PREFIX/stat/camera/$lkey -m $val -r >> $TMPFILE
+    echo $YI_HACK_PREFIX/bin/mqtt-pub -h "$MQTT_IP" -p "$MQTT_PORT" $MQTT_CLIENT_ID $MQTT_USER $MQTT_PASSWORD $MQTT_TLS $MQTT_CA_CERT $MQTT_CLIENT_CERT $MQTT_CLIENT_KEY -n $MQTT_PREFIX/stat/camera/$lkey -m $val -r >> $TMPFILE
     echo sleep 0.1 >> $TMPFILE
 done < "$CAMERA_CONF_FILE"
 

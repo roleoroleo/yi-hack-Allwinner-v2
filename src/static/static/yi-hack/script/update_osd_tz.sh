@@ -21,7 +21,8 @@ TZ_TMP=$(get_config TIMEZONE)
 
 # Enable time osd
 $YI_HACK_PREFIX/bin/set_tz_offset -c osd -o on
-# Set timezone for time osd
-TZP=$(TZ=$TZ_TMP date +%z)
-TZP_SET=$(echo ${TZP:0:1} ${TZP:1:2} ${TZP:3:2} | awk '{ print ($1$2*3600+$3*60) }')
+# The Yi processes run with TZ=TIMEZONE (see system.sh), so the OSD already
+# follows the local timezone: the extra offset must be 0. Re-applying the
+# timezone offset here made the OSD one hour ahead.
+TZP_SET=0
 $YI_HACK_PREFIX/bin/set_tz_offset -c tz_offset_osd -m $MODEL_SUFFIX -f $HV -v $TZP_SET

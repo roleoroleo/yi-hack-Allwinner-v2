@@ -224,15 +224,16 @@ if [[ $(get_config DISABLE_CLOUD) == "no" ]] ; then
             touch /tmp/audio_in_fifo.requested
         fi
         cd /home/app
+        if [ -n "$TZ_TMP" ]; then export TZ=$TZ_TMP; fi
         set_tz_offset -c osd -o off
         sleep 2
         LD_LIBRARY_PATH="/tmp/sd/yi-hack/lib:/lib:/usr/lib:/home/lib:/home/qigan/lib:/home/app/locallib:/tmp/sd:/tmp/sd/gdb" ./rmm &
         sleep 6
         dd if=/tmp/audio_fifo of=/dev/null bs=1 count=8192
         if [[ $(get_config TIME_OSD) == "yes" ]] ; then
-            (sleep 30; export TZP=`TZ=$TZ_TMP date +%z`; export TZP=${TZP:0:3}:${TZP:3:2}; export TZ=GMT$TZP; ./mp4record) &
+            (sleep 30; TZ=$TZ_TMP ./mp4record) &
         else
-            ./mp4record &
+            TZ=$TZ_TMP ./mp4record &
         fi
         ./cloud &
         ./p2p_tnp &
@@ -265,6 +266,7 @@ else
             touch /tmp/audio_in_fifo.requested
         fi
         cd /home/app
+        if [ -n "$TZ_TMP" ]; then export TZ=$TZ_TMP; fi
         set_tz_offset -c osd -o off
         sleep 2
         LD_LIBRARY_PATH="/tmp/sd/yi-hack/lib:/lib:/usr/lib:/home/lib:/home/qigan/lib:/home/app/locallib:/tmp/sd:/tmp/sd/gdb" ./rmm &
@@ -274,9 +276,9 @@ else
         start_buffer
         if [[ $(get_config REC_WITHOUT_CLOUD) == "yes" ]] ; then
             if [[ $(get_config TIME_OSD) == "yes" ]] ; then
-                (sleep 30; export TZP=`TZ=$TZ_TMP date +%z`; export TZP=${TZP:0:3}:${TZP:3:2}; export TZ=GMT$TZP; ./mp4record) &
+                (sleep 30; TZ=$TZ_TMP ./mp4record) &
             else
-                ./mp4record &
+                TZ=$TZ_TMP ./mp4record &
             fi
         fi
         ./cloud &

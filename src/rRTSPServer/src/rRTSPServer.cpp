@@ -61,6 +61,8 @@
 
 // Max frames parsed from the shared buffer in a single poll (every ~10 ms)
 #define MAX_FRAMES_PER_POLL 64
+// Reads of the same range after a frame header with an impossible length
+#define BAD_HEADER_RETRIES 5
 
 int buf_offset;
 int buf_size;
@@ -476,6 +478,8 @@ void *capture(void *ptr)
     int i, n;
     int write_enable = 0;
     int frame_sync = 0;
+    int bad_header = 0;
+    int bad_header_retries = 0;
 
     struct frame_header fhs[MAX_FRAMES_PER_POLL];
     unsigned char* fhs_addr[MAX_FRAMES_PER_POLL];
@@ -592,6 +596,7 @@ void *capture(void *ptr)
 
         buf_idx_cur = buf_idx_end_prev;
         frame_sync = 1;
+        bad_header = 0;
         i = 0;
 
         while (buf_idx_cur != buf_idx_end) {
@@ -599,6 +604,7 @@ void *capture(void *ptr)
             // Check the len
             if (fhs[i].len > input_buffer.size - input_buffer.offset - frame_header_size) {
                 frame_sync = 0;
+                bad_header = 1;
                 if (debug & 3) fprintf(stderr, "%lld: capture - fhs[i].len > input_buffer.size - input_buffer.offset\n", current_timestamp());
                 break;
             }
@@ -618,10 +624,25 @@ void *capture(void *ptr)
 #endif
 
         if (frame_sync == 0) {
+            // The end index can be published a moment before the header of
+            // the next frame is complete. Read the same range again before
+            // skipping it, which would drop the held back frame and the new ones.
+            if (bad_header && (bad_header_retries < BAD_HEADER_RETRIES)) {
+                bad_header_retries++;
+                usleep(1000);
+                continue;
+            }
+            if (bad_header) fprintf(stderr, "%lld: capture - warning - bad frame header, skipped after %d retries\n", current_timestamp(), bad_header_retries);
+            bad_header_retries = 0;
             buf_idx_end_prev = buf_idx_end;
             if (debug & 3) fprintf(stderr, "%lld: capture - frame_sync == 0\n", current_timestamp());
             usleep(10000);
             continue;
+        }
+
+        if (bad_header_retries > 0) {
+            if (debug & 3) fprintf(stderr, "%lld: capture - bad frame header, read again after %d retries\n", current_timestamp(), bad_header_retries);
+            bad_header_retries = 0;
         }
 
         n = i;

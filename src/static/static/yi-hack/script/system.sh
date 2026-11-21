@@ -46,6 +46,9 @@ start_buffer()
 
 log()
 {
+    if [ "$SYSLOG" == "yes" ]; then
+        logger -t system.sh "$1"
+    fi
     if [ "$DEBUG_LOG" == "yes" ]; then
         echo $1 >> /tmp/sd/hack_debug.log
 
@@ -149,6 +152,8 @@ if [ ! -z "$SYSLOG_SERVER" ]; then
             # Network only: no local log file in RAM (the kernel has no SysV IPC for -C)
             $YI_HACK_PREFIX/sbin/syslogd -R "$SYSLOG_SERVER"
             $YI_HACK_PREFIX/sbin/klogd
+            SYSLOG=yes
+            log "syslogd started"
             ;;
     esac
 fi

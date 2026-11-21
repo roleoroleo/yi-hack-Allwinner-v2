@@ -16,7 +16,9 @@
         <div id="ptz_main" class="row" >
             <h4 class="no-margin">Move pad</h4>
             <hr class="tiny-margin"/>
-            <img id="imgSnap" src="img/loading.gif" width="35%"/>
+            <p id="live-status" class="no-margin">Loading...</p>
+            <video id="live-video" muted autoplay playsinline style="width:35%; background:#000;"></video>
+            <img id="live-img" src="img/loading.gif" style="width:100%; display:none;" />
 
             <table class="u-full-width ptz-table">
                 <tbody>

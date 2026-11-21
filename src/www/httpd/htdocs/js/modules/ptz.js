@@ -181,17 +181,6 @@ APP.ptz = (function($) {
                 console.log('error', response);
             }
         });
-
-        interval = 1000;
-
-        (function p() {
-            jQuery.get('cgi-bin/snapshot.sh?res=low&base64=yes', function(data) {
-                image = document.getElementById('imgSnap');
-                image.src = 'data:image/png;base64,' + data;
-            }).always(function() {
-                setTimeout(p, interval);
-            });
-        })();
     }
 
     function updatePage() {
@@ -206,6 +195,8 @@ APP.ptz = (function($) {
                     $('#ptz_description').show();
                     $('#ptz_unavailable').hide();
                     $('#ptz_main').show();
+                    // Same live stream of the Live page (js/modules/live.js)
+                    APP.live.init();
                 } else {
                     $('#ptz_description').hide();
                     $('#ptz_unavailable').show();

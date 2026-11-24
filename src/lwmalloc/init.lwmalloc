@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -e
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+source config.lwmalloc
+
+rm -rf ./_install
+
+
+#### Need glibc for lwmalloc cause sbrk has some issue with musl ####
+
+git clone https://github.com/lindenis-org/lindenis-v536-prebuilt /tmp/lindenis-v536-prebuilt || true
+mkdir -p ./toolchain-glibc
+cp -r /tmp/lindenis-v536-prebuilt/gcc/linux-x86/arm/toolchain-sunxi-glibc/toolchain ./toolchain-glibc

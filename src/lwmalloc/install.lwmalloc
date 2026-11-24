@@ -1,0 +1,12 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+source config.lwmalloc
+
+mkdir -p ../../build/yi-hack/lib/
+
+rsync -a ./${BUILD_FOLDER}/liblwmalloc.so ../../build/yi-hack/lib/
+
+# TODO SET /etc/ld.so.preload for loading for using it everywhere ==> need futher tests

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd $SCRIPT_DIR
+
+source config.lwmalloc
+
+cd "${BUILD_FOLDER}"
+
+export GLIBC_TOOTLCHAIN=$PWD/../toolchain-glibc
+export STAGING_DIR="${GLIBC_TOOTLCHAIN}"
+export CROSSPATH="${GLIBC_TOOTLCHAIN}/toolchain/bin"
+export PATH=${CROSSPATH}:${PATH}
+
+export TARGET=arm-openwrt-linux
+export CROSS=arm-openwrt-linux
+export BUILD=x86_64-pc-linux-gnu
+
+export CROSSPREFIX=${CROSS}-
+
+export STRIP=${CROSSPREFIX}strip
+export CC=${CROSSPREFIX}gcc
+
+
+make -j $(nproc) || exit 1
+make buildtest
+
+${STRIP} liblwmalloc.so || exit 1

@@ -2,6 +2,8 @@ var APP = APP || {};
 
 APP.configurations = (function($) {
 
+    var ethCapable = null;
+
     function init() {
         registerEventHandler();
         fetchConfigs();
@@ -110,12 +112,23 @@ APP.configurations = (function($) {
                     if (key == "go2rtc" && state == "no") {
                         $("#RTSP_ALT option[value='go2rtc']").remove();
                     }
+                    if (key == "eth") {
+                        ethCapable = state === "yes";
+                        updateEthOnlyVisibility();
+                    }
                 });
             },
             error: function(response) {
                 console.log('error', response);
             }
         });
+    }
+
+    function updateEthOnlyVisibility() {
+        if (ethCapable === true)
+            $('#row-eth-only').show();
+        else
+            $('#row-eth-only').hide();
     }
 
     function validateHostname(hostname) {

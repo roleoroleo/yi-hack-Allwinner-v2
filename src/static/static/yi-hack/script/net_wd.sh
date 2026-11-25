@@ -1,0 +1,242 @@
+#!/bin/sh
+
+#
+# Ethernet-only mode monitor.
+#
+# When ETH_ONLY=yes and the camera has a working Ethernet port, keep Wi-Fi
+# disabled: wlan0 is brought down, no DHCP lease is taken and mdnsd never
+# advertises a Wi-Fi address.
+#
+# If the Ethernet link stays down for 5 minutes, Wi-Fi is enabled again as a
+# fallback. When the Ethernet link comes back and stays up for 60 seconds,
+# Wi-Fi is disabled again.
+#
+# The stock firmware (dispatch) already prefers eth0, but its Wi-Fi manager
+# can give wlan0 an address when Wi-Fi reconnects. That address is then
+# advertised by mdnsd as a second service instance (yi-xxxx-2) and clients
+# can switch to it, losing the camera when the Wi-Fi link drops.
+#
+
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+CONF_FILE="$YI_HACK_PREFIX/etc/system.conf"
+
+INTERVAL=10
+ETH_DOWN_LIMIT=30      # 5 minutes
+ETH_UP_LIMIT=6         # 60 seconds
+
+WIFI_OFF_FLAG="/tmp/wifi_off"
+WIFI_FALLBACK_FLAG="/tmp/wifi_fallback"
+LOG_FILE="/tmp/sd/hack_ethonly.log"
+
+ETH_DOWN_COUNT=0
+ETH_UP_COUNT=0
+FALLBACK=0
+
+get_config()
+{
+    key=$1
+    grep -w $1 $CONF_FILE | cut -d "=" -f2-
+}
+
+log()
+{
+    echo "$(date): $1" >> "$LOG_FILE"
+    if [ -e "$LOG_FILE" ] ; then
+        $YI_HACK_PREFIX/usr/bin/tail -n 100 "$LOG_FILE" > "$LOG_FILE.tmp" && mv "$LOG_FILE.tmp" "$LOG_FILE"
+    fi
+}
+
+#
+# Ethernet port detection: the known RJ45 models are always capable, every
+# other model is considered capable once the interface has seen a carrier.
+#
+eth_capable()
+{
+    case "$(cat $YI_HACK_PREFIX/model_suffix 2>/dev/null)" in
+        r30gb|r35gb|r37gb)
+            return 0
+            ;;
+    esac
+
+    ETH_CHANGES=$(cat /sys/class/net/eth0/carrier_changes 2>/dev/null)
+    case "$ETH_CHANGES" in
+        ''|*[!0-9]*)
+            return 1
+            ;;
+        *)
+            [ "$ETH_CHANGES" -gt 0 ]
+            ;;
+    esac
+}
+
+wlan0_has_ip()
+{
+    ifconfig wlan0 2>/dev/null | grep -q "inet addr:"
+}
+
+eth0_has_ip()
+{
+    ifconfig eth0 2>/dev/null | grep -q "inet addr:"
+}
+
+wlan0_dhcp_stop()
+{
+    for PID in $(ps ww | grep udhcpc | grep wlan0 | grep -v grep | awk '{print $1}') ; do
+        kill $PID 2>/dev/null
+    done
+}
+
+restart_onvif()
+{
+    if [[ $(get_config ONVIF) == "yes" ]] && [[ $($YI_HACK_PREFIX/script/service.sh onvif status) == "started" ]] ; then
+        WS_DISCOVERY=0
+        if [[ $(get_config ONVIF_WSDD) == "yes" ]] && [[ $($YI_HACK_PREFIX/script/service.sh wsdd status) == "started" ]] ; then
+            WS_DISCOVERY=1
+        fi
+
+        $YI_HACK_PREFIX/script/service.sh onvif stop >/dev/null 2>&1
+        if [ $WS_DISCOVERY -eq 1 ] ; then
+            $YI_HACK_PREFIX/script/service.sh wsdd stop >/dev/null 2>&1
+        fi
+        $YI_HACK_PREFIX/script/service.sh onvif start >/dev/null 2>&1
+        if [ $WS_DISCOVERY -eq 1 ] ; then
+            $YI_HACK_PREFIX/script/service.sh wsdd start >/dev/null 2>&1
+        fi
+    fi
+}
+
+wifi_off()
+{
+    CHANGED=0
+    if [ ! -f "$WIFI_OFF_FLAG" ] ; then
+        log "Ethernet link up: disabling Wi-Fi"
+        CHANGED=1
+    fi
+    touch "$WIFI_OFF_FLAG"
+    rm -f "$WIFI_FALLBACK_FLAG"
+    # Stop wlan0 DHCP even if the interface is already down, so a client left
+    # over from a fallback cannot take a lease if the stock app brings it up.
+    wlan0_dhcp_stop
+    WLAN_CFG=$(ifconfig wlan0 2>/dev/null)
+    if echo "$WLAN_CFG" | grep -q "inet addr:" || echo "$WLAN_CFG" | grep -q "UP" ; then
+        # busybox ifconfig brings the interface up when clearing the address,
+        # so bring it down again afterwards.
+        ifconfig wlan0 0.0.0.0 2>/dev/null
+        ifconfig wlan0 down 2>/dev/null
+    fi
+    FALLBACK=0
+    if [ $CHANGED -eq 1 ] ; then
+        restart_onvif
+    fi
+}
+
+wifi_on()
+{
+    CHANGED=0
+    if [ ! -f "$WIFI_FALLBACK_FLAG" ] ; then
+        log "Enabling Wi-Fi fallback"
+        CHANGED=1
+    fi
+    rm -f "$WIFI_OFF_FLAG"
+    touch "$WIFI_FALLBACK_FLAG"
+    ifconfig wlan0 up 2>/dev/null
+    if [ -x /home/base/tools/wpa_cli ] ; then
+        /home/base/tools/wpa_cli -i wlan0 reconfigure >/dev/null 2>&1
+    fi
+    if ! wlan0_has_ip ; then
+        $YI_HACK_PREFIX/script/wifidhcp.sh >/dev/null 2>&1
+    fi
+    FALLBACK=1
+    if [ $CHANGED -eq 1 ] ; then
+        restart_onvif
+    fi
+}
+
+wifi_restore()
+{
+    log "Ethernet-only mode disabled: restoring Wi-Fi"
+    rm -f "$WIFI_OFF_FLAG" "$WIFI_FALLBACK_FLAG"
+    if ! wlan0_has_ip ; then
+        ifconfig wlan0 up 2>/dev/null
+        if [ -x /home/base/tools/wpa_cli ] ; then
+            /home/base/tools/wpa_cli -i wlan0 reconfigure >/dev/null 2>&1
+        fi
+        $YI_HACK_PREFIX/script/wifidhcp.sh >/dev/null 2>&1
+    fi
+    FALLBACK=0
+    ETH_DOWN_COUNT=0
+    ETH_UP_COUNT=0
+    restart_onvif
+}
+
+# Give the stock firmware a few seconds to bring the interfaces up.
+sleep 15
+
+if [[ $(get_config ETH_ONLY) == "yes" ]] && eth_capable ; then
+    if [ "$(cat /sys/class/net/eth0/carrier 2>/dev/null)" == "1" ] && eth0_has_ip ; then
+        # The sync block in system.sh may have created the flag already, so
+        # restart ONVIF here even when wifi_off() sees no transition.
+        wifi_off
+        restart_onvif
+    else
+        # No usable Ethernet at boot: start on Wi-Fi and switch back when the
+        # link is up and has an address.
+        wifi_on
+    fi
+fi
+
+while true
+do
+    ETH_MODE=$(get_config ETH_ONLY)
+
+    if [[ "$ETH_MODE" != "yes" ]] || ! eth_capable ; then
+        if [ -f "$WIFI_OFF_FLAG" ] || [ -f "$WIFI_FALLBACK_FLAG" ] ; then
+            wifi_restore
+        fi
+        ETH_DOWN_COUNT=0
+        ETH_UP_COUNT=0
+        sleep $INTERVAL
+        continue
+    fi
+
+    CARRIER=$(cat /sys/class/net/eth0/carrier 2>/dev/null)
+
+    if [ "$CARRIER" == "1" ] && eth0_has_ip ; then
+        ETH_DOWN_COUNT=0
+        if [ $FALLBACK -eq 1 ] ; then
+            ETH_UP_COUNT=$((ETH_UP_COUNT + 1))
+            if [ $ETH_UP_COUNT -ge $ETH_UP_LIMIT ] ; then
+                wifi_off
+            fi
+        else
+            ETH_UP_COUNT=0
+            # Idempotent: also keeps wlan0 down if the stock Wi-Fi manager
+            # brings it back up.
+            wifi_off
+        fi
+    else
+        ETH_UP_COUNT=0
+
+        if [ $FALLBACK -eq 0 ] ; then
+            ETH_DOWN_COUNT=$((ETH_DOWN_COUNT + 1))
+            # Keep wlan0 down during the 5-minute grace period.
+            wifi_off
+            if [ $ETH_DOWN_COUNT -ge $ETH_DOWN_LIMIT ] ; then
+                log "Ethernet unavailable for 5 minutes: enabling Wi-Fi fallback"
+                wifi_on
+            fi
+        else
+            ETH_DOWN_COUNT=$((ETH_DOWN_COUNT + 1))
+            # Retry the fallback DHCP once a minute if Wi-Fi has no address.
+            if [ $((ETH_DOWN_COUNT % 6)) -eq 0 ] && ! wlan0_has_ip ; then
+                ifconfig wlan0 up 2>/dev/null
+                if [ -x /home/base/tools/wpa_cli ] ; then
+                    /home/base/tools/wpa_cli -i wlan0 reconfigure >/dev/null 2>&1
+                fi
+                $YI_HACK_PREFIX/script/wifidhcp.sh >/dev/null 2>&1
+            fi
+        fi
+    fi
+
+    sleep $INTERVAL
+done

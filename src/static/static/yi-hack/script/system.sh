@@ -413,6 +413,13 @@ if [[ $(get_config SSHD) == "yes" ]] ; then
     mkdir -p /tmp/mdns.d
     echo -e "type _ssh._tcp\nport 22\n" > /tmp/mdns.d/ssh.service
 fi
+# Ethernet-only mode: keep wlan0 down before mdnsd starts, so a Wi-Fi address
+# is never advertised while the Ethernet link is up.
+if [[ $(get_config ETH_ONLY) == "yes" ]] && [ "$(cat /sys/class/net/eth0/carrier 2>/dev/null)" == "1" ] && ifconfig eth0 2>/dev/null | grep -q "inet addr:" ; then
+    touch /tmp/wifi_off
+    ifconfig wlan0 0.0.0.0 2>/dev/null
+    ifconfig wlan0 down 2>/dev/null
+fi
 if [[ $(get_config MDNSD) == "yes" ]] ; then
     MAC_ADDR=$(ifconfig eth0 | awk '/HWaddr/{print substr($5,1)}')
     if [ -z $MAC_ADDR ]; then
@@ -514,6 +521,11 @@ echo "PATH=/tmp/sd/yi-hack/bin:/tmp/sd/yi-hack/sbin:/tmp/sd/yi-hack/usr/bin:\$PA
 #rm -f "/tmp/sd/log/log_wifi_connected.tar.gz"
 
 unset TZ
+
+# Start the Ethernet/Wi-Fi mode monitor
+if [[ $(ps | grep net_wd.sh | grep -v grep | grep -c ^) -eq 0 ]]; then
+    $YI_HACK_PREFIX/script/net_wd.sh >/dev/null 2>&1 &
+fi
 
 log "Starting custom startup.sh"
 if [ -f "/tmp/sd/yi-hack/startup.sh" ]; then

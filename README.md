@@ -116,6 +116,7 @@ This custom firmware contains features replicated from the [yi-hack-MStar](https
   - PTZ support through a web page (if the cam supports it).
   - PTZ presets.
   - The possibility to disable all the cloud features.
+  - Ethernet-only mode - on cameras with an Ethernet port, disable Wi-Fi and use the wired connection; Wi-Fi is enabled automatically if the link is down for 5 minutes.
   - Swap File on SD.
   - Online firmware upgrade.
   - Load/save/reset configuration.

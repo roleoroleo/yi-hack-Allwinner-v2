@@ -17,6 +17,7 @@
 # http://IP:PORT/cgi-bin/getlastrecordedvideo.sh?oldness=2&type=2  -- Send the URL of the second to last available video.
 
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
+. $YI_HACK_PREFIX/script/net_info.sh
 
 . $YI_HACK_PREFIX/www/cgi-bin/validate.sh
 
@@ -107,10 +108,7 @@ for f in `ls -Ar /tmp/sd/record/$DIRNAME | grep .mp4`; do
 done
 
 if [ "$TYPE" == "2" ]; then
-    LOCAL_IP=$(ifconfig eth0 | awk '/inet addr/{print substr($2,6)}')
-    if [ -z $LOCAL_IP ]; then
-        LOCAL_IP=$(ifconfig wlan0 | awk '/inet addr/{print substr($2,6)}')
-    fi
+    LOCAL_IP=$(iface_ip "$(active_interface)")
     source /tmp/sd/yi-hack/etc/system.conf
 
     printf "Content-type: text/plain\r\n\r\n"

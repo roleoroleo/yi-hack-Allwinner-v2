@@ -2,6 +2,9 @@
 
 printf "Content-type: application/json\r\n\r\n"
 
+YI_HACK_PREFIX="/tmp/sd/yi-hack"
+. $YI_HACK_PREFIX/script/net_info.sh
+
 NAME="yi-hack-allwinner-v2"
 HOSTNAME=$(hostname)
 FW_VERSION=$(cat /tmp/sd/yi-hack/version)
@@ -17,6 +20,23 @@ if [ -f /tmp/sd/yi-hack/bin/go2rtc ]; then
 else
     GO2RTC="no"
 fi
+case "$MODEL_SUFFIX" in
+    r30gb|r35gb|r37gb)
+        ETH="yes"
+        ;;
+    *)
+        ETH="no"
+        ;;
+esac
+ETH_CHANGES=$(cat /sys/class/net/eth0/carrier_changes 2>/dev/null)
+case "$ETH_CHANGES" in
+    ''|*[!0-9]*) ;;
+    *)
+        if [ "$ETH_CHANGES" -gt 0 ]; then
+            ETH="yes"
+        fi
+        ;;
+esac
 MFG_PART=$(grep  -oE  ".{0,0}mfg@.{0,9}" /sys/firmware/devicetree/base/chosen/bootargs | cut -c 5-14)
 SERIAL_NUMBER=$(dd bs=1 count=20 skip=36 if=/dev/$MFG_PART 2>/dev/null | tr '\0' '0' | cut -c1-20)
 LOCAL_TIME=$(date)
@@ -31,17 +51,16 @@ else
     FREE_SD=$((100-$FREE_SD))%
 fi
 
-LOCAL_IP=$(ifconfig eth0 | awk '/inet addr/{print substr($2,6)}')
-NETMASK=$(ifconfig eth0 | awk '/inet addr/{print substr($4,6)}')
-MAC_ADDR=$(ifconfig eth0 | awk '/HWaddr/{print substr($5,1)}')
-if [ -z $LOCAL_IP ]; then
-    LOCAL_IP=$(ifconfig wlan0 | awk '/inet addr/{print substr($2,6)}')
-    NETMASK=$(ifconfig wlan0 | awk '/inet addr/{print substr($4,6)}')
-    MAC_ADDR=$(ifconfig wlan0 | awk '/HWaddr/{print substr($5,1)}')
-fi
-GATEWAY=$(route -n | awk 'NR==3{print $2}')
-WLAN_ESSID=$(iwconfig wlan0 | grep ESSID | cut -d\" -f2)
-WLAN_STRENGTH=$(cat /proc/net/wireless | grep wlan0 | awk '{ print $3 }' | sed 's/\.$//')
+ACTIVE_IF=$(active_interface)
+LOCAL_IP=$(iface_ip "$ACTIVE_IF")
+NETMASK=$(iface_netmask "$ACTIVE_IF")
+MAC_ADDR=$(iface_mac "$ACTIVE_IF")
+GATEWAY=$(default_gateway)
+ETH_LINK=$(eth_link)
+ETH_SPEED=$(eth_speed)
+WIFI_STATE=$(wifi_state)
+WLAN_ESSID=$(wlan_essid)
+WLAN_STRENGTH=$(wlan_strength)
 FORCE_NIGHT=$(/tmp/sd/yi-hack/script/force_night.sh status)
 
 # Yeah, it's pretty ugly.. but hey, it works.
@@ -54,6 +73,11 @@ printf "\"%s\":\"%s\",\n" "home_version"    "$HOME_VERSION"
 printf "\"%s\":\"%s\",\n" "model_suffix"    "$MODEL_SUFFIX"
 printf "\"%s\":\"%s\",\n" "ptz"             "$PTZ"
 printf "\"%s\":\"%s\",\n" "go2rtc"          "$GO2RTC"
+printf "\"%s\":\"%s\",\n" "eth"             "$ETH"
+printf "\"%s\":\"%s\",\n" "active_if"       "$ACTIVE_IF"
+printf "\"%s\":\"%s\",\n" "eth_link"        "$ETH_LINK"
+printf "\"%s\":\"%s\",\n" "eth_speed"       "$ETH_SPEED"
+printf "\"%s\":\"%s\",\n" "wifi_state"      "$WIFI_STATE"
 printf "\"%s\":\"%s\",\n" "serial_number"   "$SERIAL_NUMBER"
 printf "\"%s\":\"%s\",\n" "local_time"      "$LOCAL_TIME"
 printf "\"%s\":\"%s\",\n" "uptime"          "$UPTIME"

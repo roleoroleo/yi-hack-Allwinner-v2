@@ -289,6 +289,11 @@ check_mqtt()
 
 check_wifi()
 {
+    # Ethernet-only mode: net_wd.sh owns wlan0, a down Wi-Fi interface is not a fault.
+    if [ -f /tmp/wifi_off ]; then
+        return
+    fi
+
     # Check WiFi connection using multiple methods for compatibility
     # Some camera models (e.g., r37gb) have broken wpa_cli that causes segfaults
 

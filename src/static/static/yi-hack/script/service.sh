@@ -101,7 +101,7 @@ init_config()
                 RTSP_STI=""
             fi
         fi
-        if [[ $(get_config RTSP_USE_SLOT) != "yes" ]]; then
+        if [[ $(get_config RTSP_USE_SLOT) == "yes" ]]; then
             RTSP_USE_SLOT="-S -2"
         fi
     fi

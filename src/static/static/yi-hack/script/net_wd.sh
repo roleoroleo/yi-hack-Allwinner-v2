@@ -30,6 +30,7 @@ LOG_FILE="/tmp/sd/hack_ethonly.log"
 
 ETH_DOWN_COUNT=0
 ETH_UP_COUNT=0
+ETH_NOIP_COUNT=0
 FALLBACK=0
 
 get_config()
@@ -84,6 +85,25 @@ wlan0_dhcp_stop()
     for PID in $(ps ww | grep udhcpc | grep wlan0 | grep -v grep | awk '{print $1}') ; do
         kill $PID 2>/dev/null
     done
+}
+
+#
+# Restart only the eth0 DHCP client. A link flap can drop the address and the
+# client with it; the stock firmware does not always bring it back, so the
+# camera would otherwise sit on the Wi-Fi fallback with a healthy cable.
+#
+eth0_dhcp_start()
+{
+    for PID in $(ps ww | grep udhcpc | grep "i eth0" | grep -v grep | awk '{print $1}') ; do
+        kill $PID 2>/dev/null
+    done
+    HN=$(cat $YI_HACK_PREFIX/etc/hostname 2>/dev/null)
+    [ -z "$HN" ] && HN="yi-hack"
+    if [ -f /backup/tools/default.script ] ; then
+        udhcpc -i eth0 -b -s /backup/tools/default.script -x hostname:$HN >/dev/null 2>&1 &
+    elif [ -f /home/app/script/default.script ] ; then
+        udhcpc -i eth0 -b -s /home/app/script/default.script -x hostname:$HN >/dev/null 2>&1 &
+    fi
 }
 
 restart_onvif()
@@ -203,6 +223,7 @@ do
 
     if [ "$CARRIER" == "1" ] && eth0_has_ip ; then
         ETH_DOWN_COUNT=0
+        ETH_NOIP_COUNT=0
         if [ $FALLBACK -eq 1 ] ; then
             ETH_UP_COUNT=$((ETH_UP_COUNT + 1))
             if [ $ETH_UP_COUNT -ge $ETH_UP_LIMIT ] ; then
@@ -216,6 +237,19 @@ do
         fi
     else
         ETH_UP_COUNT=0
+
+        # Carrier up but no address: a flap can drop the lease and its DHCP
+        # client, and the stock firmware does not restart it. Retry at once,
+        # then once a minute, instead of settling on the Wi-Fi fallback.
+        if [ "$CARRIER" == "1" ] && ! eth0_has_ip ; then
+            ETH_NOIP_COUNT=$((ETH_NOIP_COUNT + 1))
+            if [ $ETH_NOIP_COUNT -eq 1 ] || [ $((ETH_NOIP_COUNT % 6)) -eq 0 ] ; then
+                log "Ethernet link up without a lease: restarting eth0 DHCP"
+                eth0_dhcp_start
+            fi
+        else
+            ETH_NOIP_COUNT=0
+        fi
 
         if [ $FALLBACK -eq 0 ] ; then
             ETH_DOWN_COUNT=$((ETH_DOWN_COUNT + 1))

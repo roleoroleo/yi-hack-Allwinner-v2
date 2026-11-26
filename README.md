@@ -57,6 +57,10 @@ Otherwise, check setep 4.
 9. Check the FAQ if you have a problem: https://github.com/roleoroleo/yi-hack-Allwinner-v2/wiki/FAQ
 
 
+### Optional Windows setup for y21ga
+
+If your camera is confirmed as `y21ga`, the [PowerShell card preparation tool](tools/local-setup/README.md) can prepare a fresh microSD with Wi-Fi settings, Disable Cloud enabled, and a local boot report.
+
 ### Online Update Procedure
 1. Go to the "Maintenance" web page
 2. Check if a new release is available

@@ -101,6 +101,9 @@ init_config()
                 RTSP_STI=""
             fi
         fi
+        if [[ $(get_config RTSP_USE_SLOT) != "yes" ]]; then
+            RTSP_USE_SLOT="-S -2"
+        fi
     fi
 
     if [[ $(get_config ONVIF_NETIF) == "wlan0" ]] ; then
@@ -173,17 +176,17 @@ start_rtsp()
         echo "streams:" > /tmp/go2rtc.yaml
         if [ "$RTSP_RES" == "high" ] || [ "$RTSP_RES" == "both" ]; then
             echo "  ch0_0.h264:" >> /tmp/go2rtc.yaml
-            echo "    - exec:h264grabber -p -m $MODEL_SUFFIX $RTSP_G_STI -r high#backchannel=0" >> /tmp/go2rtc.yaml
+            echo "    - exec:h264grabber -p $RTSP_USE_SLOT -m $MODEL_SUFFIX $RTSP_G_STI -r high#backchannel=0" >> /tmp/go2rtc.yaml
         fi
         if [ "$RTSP_RES" != "low" ] && [ "$RTSP_AUDIO" == "aac" ] ; then
-            echo "    - exec:h264grabber -p -m $MODEL_SUFFIX -r none -a#backchannel=0" >> /tmp/go2rtc.yaml
+            echo "    - exec:h264grabber -p $RTSP_USE_SLOT -m $MODEL_SUFFIX -r none -a#backchannel=0" >> /tmp/go2rtc.yaml
         fi
         if [ "$RTSP_RES" == "low" ] || [ "$RTSP_RES" == "both" ]; then
             echo "  ch0_1.h264:" >> /tmp/go2rtc.yaml
-            echo "    - exec:h264grabber -p -m $MODEL_SUFFIX $RTSP_G_STI -r low#backchannel=0" >> /tmp/go2rtc.yaml
+            echo "    - exec:h264grabber -p $RTSP_USE_SLOT -m $MODEL_SUFFIX $RTSP_G_STI -r low#backchannel=0" >> /tmp/go2rtc.yaml
         fi
         if [ "$RTSP_RES" == "low" ] && [ "$RTSP_AUDIO" == "aac" ] ; then
-            echo "    - exec:h264grabber -p -m $MODEL_SUFFIX -r none -a#backchannel=0" >> /tmp/go2rtc.yaml
+            echo "    - exec:h264grabber -p $RTSP_USE_SLOT -m $MODEL_SUFFIX -r none -a#backchannel=0" >> /tmp/go2rtc.yaml
         fi
 
         echo "" >> /tmp/go2rtc.yaml
@@ -205,33 +208,33 @@ start_rtsp()
 
         if [[ $RTSP_RES == "low" ]]; then
             if [ "$RTSP_ALT" == "alternative" ]; then
-                h264grabber -p -m $MODEL_SUFFIX $RTSP_G_STI -r low $H264GRABBER_AUDIO -f &
+                h264grabber -p $RTSP_USE_SLOT -m $MODEL_SUFFIX $RTSP_G_STI -r low $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
             if [ "$SYSLOG" == "yes" ]; then
-                ( $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC 2>&1 | logger -t rtsp-server ) &
+                ( $RTSP_DAEMON $RTSP_USE_SLOT -m $MODEL_SUFFIX -r low $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC 2>&1 | logger -t rtsp-server ) &
             else
-                $RTSP_DAEMON -m $MODEL_SUFFIX -r low $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
+                $RTSP_DAEMON $RTSP_USE_SLOT -m $MODEL_SUFFIX -r low $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
             fi
         elif [[ $RTSP_RES == "high" ]]; then
             if [ "$RTSP_ALT" == "alternative" ]; then
-                h264grabber -p -m $MODEL_SUFFIX $RTSP_G_STI -r high $H264GRABBER_AUDIO -f &
+                h264grabber -p $RTSP_USE_SLOT -m $MODEL_SUFFIX $RTSP_G_STI -r high $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
             if [ "$SYSLOG" == "yes" ]; then
-                ( $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC 2>&1 | logger -t rtsp-server ) &
+                ( $RTSP_DAEMON $RTSP_USE_SLOT -m $MODEL_SUFFIX -r high $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC 2>&1 | logger -t rtsp-server ) &
             else
-                $RTSP_DAEMON -m $MODEL_SUFFIX -r high $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
+                $RTSP_DAEMON $RTSP_USE_SLOT -m $MODEL_SUFFIX -r high $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
             fi
         elif [[ $RTSP_RES == "both" ]]; then
             if [ "$RTSP_ALT" == "alternative" ]; then
-                h264grabber -p -m $MODEL_SUFFIX $RTSP_G_STI -r both $H264GRABBER_AUDIO -f &
+                h264grabber -p $RTSP_USE_SLOT -m $MODEL_SUFFIX $RTSP_G_STI -r both $H264GRABBER_AUDIO -f &
                 sleep 1
             fi
             if [ "$SYSLOG" == "yes" ]; then
-                ( $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC 2>&1 | logger -t rtsp-server ) &
+                ( $RTSP_DAEMON $RTSP_USE_SLOT -m $MODEL_SUFFIX -r both $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC 2>&1 | logger -t rtsp-server ) &
             else
-                $RTSP_DAEMON -m $MODEL_SUFFIX -r both $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
+                $RTSP_DAEMON $RTSP_USE_SLOT -m $MODEL_SUFFIX -r both $RTSP_STI $RTSP_AUDIO_OPTION $P_RTSP_PORT $RTSP_USER $RTSP_PASSWORD $RTSP_AUDIO_BC &
             fi
         fi
 

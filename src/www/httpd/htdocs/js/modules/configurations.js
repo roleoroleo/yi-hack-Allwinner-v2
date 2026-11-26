@@ -91,7 +91,28 @@ APP.configurations = (function($) {
             data: escapedConfigData,
             dataType: "json",
             success: function(response) {
-                saveStatusElem.text("Saved");
+                if (!response || response.error !== "false") {
+                    saveStatusElem.text("Error while saving");
+                    return;
+                }
+
+                $.ajax({
+                    type: "GET",
+                    url: "cgi-bin/get_configs.sh?conf=system",
+                    cache: false,
+                    dataType: "json",
+                    success: function(saved) {
+                        const unsavedKeys = Object.keys(configs).filter(function(key) {
+                            return configs[key] !== undefined && configs[key] !== saved[key];
+                        });
+                        saveStatusElem.text(unsavedKeys.length
+                            ? "Could not verify: " + unsavedKeys.join(", ")
+                            : "Saved");
+                    },
+                    error: function() {
+                        saveStatusElem.text("Could not read back saved settings");
+                    }
+                });
             },
             error: function(response) {
                 saveStatusElem.text("Error while saving");

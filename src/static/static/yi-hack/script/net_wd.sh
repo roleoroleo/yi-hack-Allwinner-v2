@@ -16,9 +16,17 @@
 # advertised by mdnsd as a second service instance (yi-xxxx-2) and clients
 # can switch to it, losing the camera when the Wi-Fi link drops.
 #
+# The monitor runs only while ETH_ONLY=yes: wd.sh starts it when the option
+# is switched on and restarts it if it dies, and it restores Wi-Fi and exits
+# when the option is switched off. With the option off there is no second
+# 10 s loop running next to wd.sh.
+#
 
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
 CONF_FILE="$YI_HACK_PREFIX/etc/system.conf"
+. "$YI_HACK_PREFIX/script/net_info.sh"
+
+PID_FILE="/tmp/net_wd.pid"
 
 INTERVAL=10
 ETH_DOWN_LIMIT=30      # 5 minutes
@@ -33,10 +41,20 @@ ETH_UP_COUNT=0
 ETH_NOIP_COUNT=0
 FALLBACK=0
 
-get_config()
+# read_conf KEY -> CONF_VAL
+# Shell-only, like wd.sh: the 10 s loop must not fork just to read its own
+# setting. Command substitution forks in ash even for functions, so results
+# are returned in variables.
+read_conf()
 {
-    key=$1
-    grep -w $1 $CONF_FILE | cut -d "=" -f2-
+    CONF_VAL=""
+    while IFS='=' read -r K V || [ -n "$K" ]; do
+        if [ "$K" == "$1" ]; then
+            CONF_VAL=$V
+            return 0
+        fi
+    done < "$CONF_FILE"
+    return 1
 }
 
 log()
@@ -45,29 +63,6 @@ log()
     if [ -e "$LOG_FILE" ] ; then
         $YI_HACK_PREFIX/usr/bin/tail -n 100 "$LOG_FILE" > "$LOG_FILE.tmp" && mv "$LOG_FILE.tmp" "$LOG_FILE"
     fi
-}
-
-#
-# Ethernet port detection: the known RJ45 models are always capable, every
-# other model is considered capable once the interface has seen a carrier.
-#
-eth_capable()
-{
-    case "$(cat $YI_HACK_PREFIX/model_suffix 2>/dev/null)" in
-        r30gb|r35gb|r37gb)
-            return 0
-            ;;
-    esac
-
-    ETH_CHANGES=$(cat /sys/class/net/eth0/carrier_changes 2>/dev/null)
-    case "$ETH_CHANGES" in
-        ''|*[!0-9]*)
-            return 1
-            ;;
-        *)
-            [ "$ETH_CHANGES" -gt 0 ]
-            ;;
-    esac
 }
 
 wlan0_has_ip()
@@ -108,9 +103,11 @@ eth0_dhcp_start()
 
 restart_onvif()
 {
-    if [[ $(get_config ONVIF) == "yes" ]] && [[ $($YI_HACK_PREFIX/script/service.sh onvif status) == "started" ]] ; then
+    read_conf ONVIF
+    if [[ "$CONF_VAL" == "yes" ]] && [[ $($YI_HACK_PREFIX/script/service.sh onvif status) == "started" ]] ; then
         WS_DISCOVERY=0
-        if [[ $(get_config ONVIF_WSDD) == "yes" ]] && [[ $($YI_HACK_PREFIX/script/service.sh wsdd status) == "started" ]] ; then
+        read_conf ONVIF_WSDD
+        if [[ "$CONF_VAL" == "yes" ]] && [[ $($YI_HACK_PREFIX/script/service.sh wsdd status) == "started" ]] ; then
             WS_DISCOVERY=1
         fi
 
@@ -189,37 +186,56 @@ wifi_restore()
     restart_onvif
 }
 
+# Only one monitor. wd.sh reads this file to know whether the monitor is
+# already running; the kill check makes a stale file harmless.
+if [ -f "$PID_FILE" ] ; then
+    { read -r OLD_PID < "$PID_FILE"; } 2>/dev/null
+    if [ -n "$OLD_PID" ] && kill -0 "$OLD_PID" 2>/dev/null ; then
+        exit 0
+    fi
+fi
+echo $$ > "$PID_FILE"
+trap 'rm -f "$PID_FILE"' 0
+
 # Give the stock firmware a few seconds to bring the interfaces up.
 sleep 15
 
-if [[ $(get_config ETH_ONLY) == "yes" ]] && eth_capable ; then
-    if [ "$(cat /sys/class/net/eth0/carrier 2>/dev/null)" == "1" ] && eth0_has_ip ; then
-        # The sync block in system.sh may have created the flag already, so
-        # restart ONVIF here even when wifi_off() sees no transition.
-        wifi_off
-        restart_onvif
-    else
-        # No usable Ethernet at boot: start on Wi-Fi and switch back when the
-        # link is up and has an address.
-        wifi_on
+read_conf ETH_ONLY
+if [[ "$CONF_VAL" != "yes" ]] || ! eth_capable ; then
+    # wd.sh starts the monitor briefly after the option is turned off, to
+    # clear a state left behind by a monitor that could not exit cleanly.
+    if [ -f "$WIFI_OFF_FLAG" ] || [ -f "$WIFI_FALLBACK_FLAG" ] ; then
+        wifi_restore
     fi
+    exit 0
+fi
+
+{ read -r CARRIER < /sys/class/net/eth0/carrier; } 2>/dev/null
+if [ "$CARRIER" == "1" ] && eth0_has_ip ; then
+    # The sync block in system.sh may have created the flag already, so
+    # restart ONVIF here even when wifi_off() sees no transition.
+    wifi_off
+    restart_onvif
+else
+    # No usable Ethernet at boot: start on Wi-Fi and switch back when the
+    # link is up and has an address.
+    wifi_on
 fi
 
 while true
 do
-    ETH_MODE=$(get_config ETH_ONLY)
+    read_conf ETH_ONLY
 
-    if [[ "$ETH_MODE" != "yes" ]] || ! eth_capable ; then
+    if [[ "$CONF_VAL" != "yes" ]] || ! eth_capable ; then
+        # The option was turned off: put Wi-Fi back and stop. wd.sh starts
+        # the monitor again if the option is turned back on.
         if [ -f "$WIFI_OFF_FLAG" ] || [ -f "$WIFI_FALLBACK_FLAG" ] ; then
             wifi_restore
         fi
-        ETH_DOWN_COUNT=0
-        ETH_UP_COUNT=0
-        sleep $INTERVAL
-        continue
+        exit 0
     fi
 
-    CARRIER=$(cat /sys/class/net/eth0/carrier 2>/dev/null)
+    { read -r CARRIER < /sys/class/net/eth0/carrier; } 2>/dev/null
 
     if [ "$CARRIER" == "1" ] && eth0_has_ip ; then
         ETH_DOWN_COUNT=0

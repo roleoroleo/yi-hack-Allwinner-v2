@@ -522,8 +522,10 @@ echo "PATH=/tmp/sd/yi-hack/bin:/tmp/sd/yi-hack/sbin:/tmp/sd/yi-hack/usr/bin:\$PA
 
 unset TZ
 
-# Start the Ethernet/Wi-Fi mode monitor
-if [[ $(ps | grep net_wd.sh | grep -v grep | grep -c ^) -eq 0 ]]; then
+# Start the Ethernet-only monitor only while the option is enabled. When it
+# is off the monitor is not running at all; wd.sh starts it if the setting is
+# turned on from the web UI and restarts it if it dies.
+if [[ $(get_config ETH_ONLY) == "yes" ]] ; then
     $YI_HACK_PREFIX/script/net_wd.sh >/dev/null 2>&1 &
 fi
 

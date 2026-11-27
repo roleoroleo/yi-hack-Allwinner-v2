@@ -20,23 +20,11 @@ if [ -f /tmp/sd/yi-hack/bin/go2rtc ]; then
 else
     GO2RTC="no"
 fi
-case "$MODEL_SUFFIX" in
-    r30gb|r35gb|r37gb)
-        ETH="yes"
-        ;;
-    *)
-        ETH="no"
-        ;;
-esac
-ETH_CHANGES=$(cat /sys/class/net/eth0/carrier_changes 2>/dev/null)
-case "$ETH_CHANGES" in
-    ''|*[!0-9]*) ;;
-    *)
-        if [ "$ETH_CHANGES" -gt 0 ]; then
-            ETH="yes"
-        fi
-        ;;
-esac
+if eth_capable ; then
+    ETH="yes"
+else
+    ETH="no"
+fi
 MFG_PART=$(grep  -oE  ".{0,0}mfg@.{0,9}" /sys/firmware/devicetree/base/chosen/bootargs | cut -c 5-14)
 SERIAL_NUMBER=$(dd bs=1 count=20 skip=36 if=/dev/$MFG_PART 2>/dev/null | tr '\0' '0' | cut -c1-20)
 LOCAL_TIME=$(date)

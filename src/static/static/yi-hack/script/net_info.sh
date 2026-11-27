@@ -22,6 +22,31 @@ iface_carrier()
     cat /sys/class/net/"$1"/carrier 2>/dev/null
 }
 
+#
+# Ethernet port detection: the known RJ45 models are always capable, every
+# other model is considered capable once the interface has seen a carrier.
+# Used to gate ETH_ONLY in net_wd.sh, wd.sh and status.json.
+#
+eth_capable()
+{
+    { read -r MODEL < "$YI_HACK_PREFIX/model_suffix"; } 2>/dev/null
+    case "$MODEL" in
+        r30gb|r35gb|r37gb)
+            return 0
+            ;;
+    esac
+
+    { read -r ETH_CHANGES < /sys/class/net/eth0/carrier_changes; } 2>/dev/null
+    case "$ETH_CHANGES" in
+        ''|*[!0-9]*)
+            return 1
+            ;;
+        *)
+            [ "$ETH_CHANGES" -gt 0 ]
+            ;;
+    esac
+}
+
 active_interface()
 {
     if [ "$(iface_carrier eth0)" == "1" ] && iface_has_ip eth0 ; then

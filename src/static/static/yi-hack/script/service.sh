@@ -503,9 +503,9 @@ if [ "$ACTION" == "start" ] ; then
         if [[ $(get_config TIME_OSD) == "yes" ]] ; then
             TZP=`TZ=$TZ_TMP date +%z`
             TZP=${TZP:0:3}:${TZP:3:2}
-            TZ=GMT$TZP ./mp4record > /dev/null &
+            TZ=$TZ_TMP ./mp4record > /dev/null &
         else
-            ./mp4record > /dev/null &
+            TZ=$TZ_TMP ./mp4record > /dev/null &
         fi
     elif [ "$NAME" == "all" ]; then
         start_rtsp
@@ -522,9 +522,9 @@ if [ "$ACTION" == "start" ] ; then
         if [[ $(get_config TIME_OSD) == "yes" ]] ; then
             TZP=`TZ=$TZ_TMP date +%z`
             TZP=${TZP:0:3}:${TZP:3:2}
-            TZ=GMT$TZP ./mp4record > /dev/null &
+            TZ=$TZ_TMP ./mp4record > /dev/null &
         else
-            ./mp4record > /dev/null &
+            TZ=$TZ_TMP ./mp4record > /dev/null &
         fi
     fi
 elif [ "$ACTION" == "stop" ] ; then

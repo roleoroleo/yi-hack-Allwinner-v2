@@ -1,4 +1,8 @@
-killall udhcpc
+# Terminate only wlan0 DHCP clients: in Ethernet-only mode the Ethernet
+# lease must keep running while Wi-Fi is enabled as a fallback.
+for PID in $(ps ww | grep udhcpc | grep wlan0 | grep -v grep | awk '{print $1}'); do
+    kill $PID 2>/dev/null
+done
 HN="yi-hack"
 CONF_FILE="etc/system.conf"
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
@@ -8,6 +12,11 @@ get_config()
     key=$1
     grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2-
 }
+
+# Ethernet-only mode: no lease on wlan0 while Wi-Fi is disabled.
+if [ -f /tmp/wifi_off ]; then
+    exit 0
+fi
 
 if [[ $(get_config WIFI_POWERSAVE) == "no" ]] ; then
     iwconfig wlan0 power off > /dev/null 2>&1

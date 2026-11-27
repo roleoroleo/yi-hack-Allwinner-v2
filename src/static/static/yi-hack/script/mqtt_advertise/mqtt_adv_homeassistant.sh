@@ -9,6 +9,7 @@ CONF_SYSTEM_FILE="etc/system.conf"
 
 PATH=$PATH:$YI_HACK_PREFIX/bin:$YI_HACK_PREFIX/usr/bin
 LD_LIBRARY_PATH=$YI_HACK_PREFIX/lib:$LD_LIBRARY_PATH
+. $YI_HACK_PREFIX/script/net_info.sh
 
 get_config() {
     key=^$1
@@ -25,15 +26,8 @@ get_mqtt_advertise_config() {
     grep -w $1 $YI_HACK_PREFIX/$CONF_MQTT_ADVERTISE_FILE | cut -d "=" -f2-
 }
 
-get_network_addr() {
-    LOCAL_IP=$(ifconfig $1 | awk '/inet addr/{print substr($2,6)}')
-    LOCAL_MAC=$(cat /sys/class/net/$1/address)
-}
-
-get_network_addr eth0
-if [ -z $LOCAL_IP ]; then
-    get_network_addr wlan0
-fi
+LOCAL_IP=$(iface_ip "$(active_interface)")
+LOCAL_MAC=$(iface_mac "$(active_interface)")
 HTTPD_PORT=$(get_system_config HTTPD_PORT)
 
 MQTT_IP=$(get_config MQTT_IP)

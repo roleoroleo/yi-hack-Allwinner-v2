@@ -8,6 +8,9 @@ MODEL_SUFFIX=$(cat /tmp/sd/yi-hack/model_suffix)
 
 START_STOP_SCRIPT=$YI_HACK_PREFIX/script/service.sh
 
+# Shared interface helpers, including eth_capable()
+. $YI_HACK_PREFIX/script/net_info.sh
+
 #LOG_FILE="/tmp/sd/wd.log"
 LOG_FILE="/dev/null"
 LOGWIFI_FILE="/tmp/sd/hack_wififailsafe.log"
@@ -287,8 +290,42 @@ check_mqtt()
     fi
 }
 
+net_wd_running()
+{
+    [ -f /tmp/net_wd.pid ] || return 1
+    { read -r NET_WD_PID < /tmp/net_wd.pid; } 2>/dev/null
+    [ -n "$NET_WD_PID" ] && kill -0 "$NET_WD_PID" 2>/dev/null
+}
+
+# Ethernet-only monitor lifecycle: net_wd.sh runs only while ETH_ONLY=yes.
+# wd.sh starts it when the setting is switched on, so the web switch still
+# applies without a reboot, and restarts it if it dies. Reading the setting
+# and the PID uses shell builtins, so the 10 s loop does not fork for this.
+check_net_mode()
+{
+    read_conf $YI_HACK_PREFIX/$CONF_FILE ETH_ONLY
+    if [[ "$CONF_VAL" == "yes" ]] ; then
+        if eth_capable && ! net_wd_running ; then
+            $YI_HACK_PREFIX/script/net_wd.sh >/dev/null 2>&1 &
+        fi
+    elif [ -f /tmp/wifi_off ] || [ -f /tmp/wifi_fallback ] ; then
+        # The option was switched off while the monitor was not running, or
+        # it died before restoring Wi-Fi: run it once to clean up.
+        if ! net_wd_running ; then
+            $YI_HACK_PREFIX/script/net_wd.sh >/dev/null 2>&1 &
+        fi
+    fi
+}
+
 check_wifi()
 {
+    # Ethernet-only mode: net_wd.sh owns wlan0, a down Wi-Fi interface is not
+    # a fault. A stale flag without a running monitor is not trusted, so the
+    # failsafe is never disabled for good.
+    if [ -f /tmp/wifi_off ] && net_wd_running ; then
+        return
+    fi
+
     # Check WiFi connection using multiple methods for compatibility
     # Some camera models (e.g., r37gb) have broken wpa_cli that causes segfaults
 
@@ -421,6 +458,7 @@ do
     fi
     check_rmm
     check_mqtt
+    check_net_mode
     check_wifi
 
     echo 1500 > /sys/class/net/eth0/mtu

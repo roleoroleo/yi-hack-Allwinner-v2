@@ -2,6 +2,7 @@
 
 CONF_FILE="etc/system.conf"
 YI_HACK_PREFIX="/tmp/sd/yi-hack"
+. $YI_HACK_PREFIX/script/net_info.sh
 
 get_config()
 {
@@ -9,10 +10,7 @@ get_config()
     grep -w $1 $YI_HACK_PREFIX/$CONF_FILE | cut -d "=" -f2-
 }
 
-LOCAL_IP=$(ifconfig eth0 | awk '/inet addr/{print substr($2,6)}')
-if [ -z $LOCAL_IP ]; then
-    LOCAL_IP=$(ifconfig wlan0 | awk '/inet addr/{print substr($2,6)}')
-fi
+LOCAL_IP=$(iface_ip "$(active_interface)")
 
 case $(get_config RTSP_PORT) in
     ''|*[!0-9]*) RTSP_PORT=554 ;;

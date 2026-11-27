@@ -8,6 +8,7 @@ CONF_MQTT_ADVERTISE_FILE="etc/mqtt_advertise.conf"
 
 PATH=$PATH:$YI_HACK_PREFIX/bin:$YI_HACK_PREFIX/usr/bin
 LD_LIBRARY_PATH=$YI_HACK_PREFIX/lib:$LD_LIBRARY_PATH
+. $YI_HACK_PREFIX/script/net_info.sh
 
 get_config() {
     key=^$1
@@ -25,16 +26,12 @@ HOME_VERSION=$(cat /home/app/.appver)
 MODEL_SUFFIX=$(cat $YI_HACK_PREFIX/model_suffix)
 MFG_PART=$(grep  -oE  ".{0,0}mfg@.{0,9}" /sys/firmware/devicetree/base/chosen/bootargs | cut -c 5-14)
 SERIAL_NUMBER=$(dd bs=1 count=20 skip=36 if=/dev/$MFG_PART 2>/dev/null | tr '\0' '0' | cut -c1-20)
-LOCAL_IP=$(ifconfig eth0 | awk '/inet addr/{print substr($2,6)}')
-NETMASK=$(ifconfig eth0 | awk '/inet addr/{print substr($4,6)}')
-MAC_ADDR=$(ifconfig eth0 | awk '/HWaddr/{print substr($5,1)}')
-if [ -z $LOCAL_IP ]; then
-    LOCAL_IP=$(ifconfig wlan0 | awk '/inet addr/{print substr($2,6)}')
-    NETMASK=$(ifconfig wlan0 | awk '/inet addr/{print substr($4,6)}')
-    MAC_ADDR=$(ifconfig wlan0 | awk '/HWaddr/{print substr($5,1)}')
-fi
-GATEWAY=$(route -n | awk 'NR==3{print $2}')
-WLAN_ESSID=$(iwconfig wlan0 | grep ESSID | cut -d\" -f2)
+ACTIVE_IF=$(active_interface)
+LOCAL_IP=$(iface_ip "$ACTIVE_IF")
+NETMASK=$(iface_netmask "$ACTIVE_IF")
+MAC_ADDR=$(iface_mac "$ACTIVE_IF")
+GATEWAY=$(default_gateway)
+WLAN_ESSID=$(wlan_essid)
 
 # MQTT configuration
 

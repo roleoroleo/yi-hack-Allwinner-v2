@@ -111,6 +111,15 @@ init_config()
     else
         ONVIF_NETIF="eth0"
     fi
+    if [[ $(get_config ETH_ONLY) == "yes" ]] ; then
+        # Ethernet-only mode: bind ONVIF/WS-Discovery to the interface that
+        # currently carries the network (eth0 normally, wlan0 during fallback).
+        if ifconfig eth0 2>/dev/null | grep -q "inet addr:" ; then
+            ONVIF_NETIF="eth0"
+        else
+            ONVIF_NETIF="wlan0"
+        fi
+    fi
     ONVIF_AUDIO_BC=$(get_config ONVIF_AUDIO_BC)
     if [ ! -z $ONVIF_AUDIO_BC ]; then
         ONVIF_AUDIO_DECODER="audio_decoder=$ONVIF_AUDIO_BC"

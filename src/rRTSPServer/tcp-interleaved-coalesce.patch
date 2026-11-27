@@ -1,0 +1,30 @@
+--- live.ori/liveMedia/RTPInterface.cpp
++++ live/liveMedia/RTPInterface.cpp
+@@ -505,9 +505,17 @@
+ Boolean RTPInterface::sendDataOverTCP(int socketNum, TLSState* tlsState,
+ 				      u_int8_t const* data, unsigned dataSize,
+ 				      Boolean forceSendToSucceed) {
++  int sendFlags = MSG_NOSIGNAL;
++#if defined(__linux__) && defined(MSG_MORE)
++  // The interleaving header is immediately followed by its RTP/RTCP payload.
++  // Hold these four bytes until that write, preserving the existing SIGPIPE
++  // protection and all partial-write/shared-session failure handling.
++  if (!forceSendToSucceed && dataSize == 4 && data[0] == '$') sendFlags |= MSG_MORE;
++#endif
++
+   int sendResult = (tlsState != NULL && tlsState->isNeeded)
+     ? tlsState->write((char const*)data, dataSize)
+-    : send(socketNum, (char const*)data, dataSize, MSG_NOSIGNAL/*flags*/);
++    : send(socketNum, (char const*)data, dataSize, sendFlags/*flags*/);
+   if (sendResult < (int)dataSize) {
+     // The TCP send() failed - at least partially.
+ 
+@@ -523,7 +531,7 @@
+       makeSocketBlocking(socketNum, RTPINTERFACE_BLOCKING_WRITE_TIMEOUT_MS);
+       sendResult = (tlsState != NULL && tlsState->isNeeded)
+ 	? tlsState->write((char const*)(&data[numBytesSentSoFar]), numBytesRemainingToSend)
+-	: send(socketNum, (char const*)(&data[numBytesSentSoFar]), numBytesRemainingToSend, MSG_NOSIGNAL/*flags*/);
++	: send(socketNum, (char const*)(&data[numBytesSentSoFar]), numBytesRemainingToSend, sendFlags/*flags*/);
+       int sendError = envir().getErrno();
+       makeSocketNonBlocking(socketNum);
+       if ((unsigned)sendResult != numBytesRemainingToSend) {
